@@ -27,6 +27,7 @@ struct _GcsvWindow
 	GtkApplicationWindow parent;
 
 	GtkSourceView *view;
+	GtkSourceFile *file;
 };
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -34,6 +35,9 @@ G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 static void
 gcsv_window_dispose (GObject *object)
 {
+	GcsvWindow *window = GCSV_WINDOW (object);
+
+	g_clear_object (&window->file);
 
 	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
 }
@@ -69,10 +73,59 @@ gcsv_window_init (GcsvWindow *window)
 
 	gtk_container_add (GTK_CONTAINER (window), scrolled_window);
 	gtk_widget_show_all (GTK_WIDGET (window));
+
+	window->file = gtk_source_file_new ();
 }
 
 GcsvWindow *
 gcsv_window_new (void)
 {
 	return g_object_new (GCSV_TYPE_WINDOW, NULL);
+}
+
+static void
+load_cb (GtkSourceFileLoader *loader,
+	 GAsyncResult        *result,
+	 GcsvWindow          *window)
+{
+	GError *error = NULL;
+
+	gtk_source_file_loader_load_finish (loader, result, &error);
+
+	if (error != NULL)
+	{
+		g_warning ("Error when loading file: %s", error->message);
+		g_error_free (error);
+		error = NULL;
+	}
+
+	g_object_unref (loader);
+	g_object_unref (window);
+}
+
+void
+gcsv_window_load_file (GcsvWindow *window,
+		       GFile      *location)
+{
+	GtkTextBuffer *buffer;
+	GtkSourceFileLoader *loader;
+
+	g_return_if_fail (GCSV_IS_WINDOW (window));
+	g_return_if_fail (G_IS_FILE (location));
+
+	gtk_source_file_set_location (window->file, location);
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+
+	loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (buffer),
+					     window->file);
+
+	gtk_source_file_loader_load_async (loader,
+					   G_PRIORITY_DEFAULT,
+					   NULL,
+					   NULL,
+					   NULL,
+					   NULL,
+					   (GAsyncReadyCallback) load_cb,
+					   g_object_ref (window));
 }
