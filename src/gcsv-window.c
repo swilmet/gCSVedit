@@ -65,6 +65,8 @@ create_view (void)
 	GtkSourceBuffer *buffer;
 	GtkSourceLanguageManager *language_manager;
 	GtkSourceLanguage *csv_lang;
+	GtkSourceStyleSchemeManager *scheme_manager;
+	GtkSourceStyleScheme *scheme;
 
 	view = GTK_SOURCE_VIEW (gtk_source_view_new ());
 	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
@@ -72,6 +74,10 @@ create_view (void)
 	language_manager = gtk_source_language_manager_get_default ();
 	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
 	gtk_source_buffer_set_language (buffer, csv_lang);
+
+	scheme_manager = gtk_source_style_scheme_manager_get_default ();
+	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
+	gtk_source_buffer_set_style_scheme (buffer, scheme);
 
 	return view;
 }
