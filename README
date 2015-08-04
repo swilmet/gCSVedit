@@ -1,0 +1,5 @@
+gCSVedit
+========
+
+gCSVedit is under development. The goal is to have a simple CSV editor, based
+on the GTK+ and GtkSourceView libraries.
