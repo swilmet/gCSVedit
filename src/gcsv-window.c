@@ -20,10 +20,13 @@
  */
 
 #include "gcsv-window.h"
+#include <gtksourceview/gtksource.h>
 
 struct _GcsvWindow
 {
 	GtkApplicationWindow parent;
+
+	GtkSourceView *view;
 };
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -54,6 +57,18 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 static void
 gcsv_window_init (GcsvWindow *window)
 {
+	GtkWidget *scrolled_window;
+
+	gtk_window_set_title (GTK_WINDOW (window), g_get_application_name ());
+	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
+
+	window->view = GTK_SOURCE_VIEW (gtk_source_view_new ());
+
+	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (window->view));
+
+	gtk_container_add (GTK_CONTAINER (window), scrolled_window);
+	gtk_widget_show_all (GTK_WIDGET (window));
 }
 
 GcsvWindow *

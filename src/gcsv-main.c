@@ -29,7 +29,6 @@ activate_cb (GtkApplication *app)
 
 	window = gcsv_window_new ();
 	gtk_application_add_window (app, GTK_WINDOW (window));
-	gtk_widget_show (GTK_WIDGET (window));
 }
 
 gint
@@ -38,6 +37,8 @@ main (gint    argc,
 {
 	GtkApplication *app;
 	gint status;
+
+	g_set_application_name ("gCSVedit");
 
 	app = gtk_application_new ("org.ucl.gcsvedit", G_APPLICATION_FLAGS_NONE);
 
