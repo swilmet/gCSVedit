@@ -58,6 +58,24 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 	object_class->finalize = gcsv_window_finalize;
 }
 
+static GtkSourceView *
+create_view (void)
+{
+	GtkSourceView *view;
+	GtkSourceBuffer *buffer;
+	GtkSourceLanguageManager *language_manager;
+	GtkSourceLanguage *csv_lang;
+
+	view = GTK_SOURCE_VIEW (gtk_source_view_new ());
+	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
+
+	language_manager = gtk_source_language_manager_get_default ();
+	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
+	gtk_source_buffer_set_language (buffer, csv_lang);
+
+	return view;
+}
+
 static void
 gcsv_window_init (GcsvWindow *window)
 {
@@ -66,7 +84,7 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_window_set_title (GTK_WINDOW (window), g_get_application_name ());
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
-	window->view = GTK_SOURCE_VIEW (gtk_source_view_new ());
+	window->view = create_view ();
 
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (window->view));
