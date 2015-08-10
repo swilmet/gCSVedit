@@ -13,3 +13,5 @@ gcsvedit_CPPFLAGS =		\
 gcsvedit_LDFLAGS = $(WARN_LDFLAGS)
 
 gcsvedit_LDADD = $(DEP_LIBS)
+
+-include $(top_srcdir)/git.mk
