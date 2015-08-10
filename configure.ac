@@ -6,7 +6,7 @@ AC_INIT([gCSVedit],
         [0.0.1],
 	[http://catl.ions.ucl.ac.be/index.html],
 	[gcsvedit],
-	[http://catl.ions.ucl.ac.be/git/?p=gCSVedit.git;a=summary])
+	[http://catl.ions.ucl.ac.be/git/?p=gcsvedit.git;a=summary])
 
 AX_IS_RELEASE([git-directory])
 
