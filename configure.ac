@@ -27,6 +27,10 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_PROG_CC
 AC_PROG_INSTALL
 
+#Initialize libtool
+LT_PREREQ([2.2.6])
+LT_INIT([disable-static])
+
 # Pull glib-mkenums & co.
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
@@ -45,6 +49,7 @@ PKG_CHECK_MODULES(DEP, [
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	tests/Makefile
 ])
 
 AC_OUTPUT

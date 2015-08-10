@@ -21,6 +21,7 @@
 
 #include "gcsv-window.h"
 #include <gtksourceview/gtksource.h>
+#include "gcsv-alignment.h"
 
 struct _GcsvWindow
 {
@@ -28,6 +29,8 @@ struct _GcsvWindow
 
 	GtkSourceView *view;
 	GtkSourceFile *file;
+
+	GcsvAlignment *align;
 };
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -38,6 +41,7 @@ gcsv_window_dispose (GObject *object)
 	GcsvWindow *window = GCSV_WINDOW (object);
 
 	g_clear_object (&window->file);
+	g_clear_object (&window->align);
 
 	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
 }
@@ -88,6 +92,7 @@ static void
 gcsv_window_init (GcsvWindow *window)
 {
 	GtkWidget *scrolled_window;
+	GtkTextBuffer *buffer;
 
 	gtk_window_set_title (GTK_WINDOW (window), g_get_application_name ());
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
@@ -101,6 +106,9 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_widget_show_all (GTK_WIDGET (window));
 
 	window->file = gtk_source_file_new ();
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	window->align = gcsv_alignment_new (buffer, ',');
 }
 
 GcsvWindow *
@@ -124,6 +132,8 @@ load_cb (GtkSourceFileLoader *loader,
 		g_error_free (error);
 		error = NULL;
 	}
+
+	gcsv_alignment_update (window->align);
 
 	g_object_unref (loader);
 	g_object_unref (window);
