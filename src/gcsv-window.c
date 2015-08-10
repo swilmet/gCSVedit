@@ -71,6 +71,8 @@ create_view (void)
 	view = GTK_SOURCE_VIEW (gtk_source_view_new ());
 	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
 
+	gtk_text_view_set_monospace (GTK_TEXT_VIEW (view), TRUE);
+
 	language_manager = gtk_source_language_manager_get_default ();
 	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
 	gtk_source_buffer_set_language (buffer, csv_lang);
