@@ -15,4 +15,7 @@ TESTS = $(UNIT_TEST_PROGS)
 UNIT_TEST_PROGS = test-utils
 test_utils_SOURCES = test-utils.c
 
+UNIT_TEST_PROGS += test-alignment
+test_alignment_SOURCES = test-alignment.c
+
 -include $(top_srcdir)/git.mk
