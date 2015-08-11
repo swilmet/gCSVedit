@@ -25,6 +25,58 @@
 #include <locale.h>
 #include "gcsv-window.h"
 
+static gchar *
+get_locale_directory (void)
+{
+	return g_build_filename (DATADIR, "locale", NULL);
+}
+
+static void
+setup_i18n (void)
+{
+	gchar *locale_dir;
+
+	setlocale (LC_ALL, "");
+
+	locale_dir = get_locale_directory ();
+	bindtextdomain (GETTEXT_PACKAGE, locale_dir);
+	g_free (locale_dir);
+
+	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+	textdomain (GETTEXT_PACKAGE);
+}
+
+static void
+startup_cb (GtkApplication *app)
+{
+	const gchar *menu_str;
+	GtkBuilder *builder;
+	GMenuModel *menubar;
+
+	menu_str =
+		"<interface>"
+		"  <menu id='menubar'>"
+		"    <submenu>"
+		"      <attribute name='label' translatable='yes'>_File</attribute>"
+		"      <item>"
+		"        <attribute name='label' translatable='yes'>_Quit</attribute>"
+		"        <attribute name='icon'>application-exit</attribute>"
+		"        <attribute name='action'>win.quit</attribute>"
+		"        <attribute name='accel'>&lt;Control&gt;q</attribute>"
+		"      </item>"
+		"    </submenu>"
+		"  </menu>"
+		"</interface>";
+
+	builder = gtk_builder_new_from_string (menu_str, -1);
+	gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
+	menubar = G_MENU_MODEL (gtk_builder_get_object (builder, "menubar"));
+
+	gtk_application_set_menubar (app, menubar);
+
+	g_object_unref (builder);
+}
+
 static void
 activate_cb (GtkApplication *app)
 {
@@ -69,27 +121,6 @@ open_cb (GtkApplication  *app,
 	gcsv_window_load_file (window, files[0]);
 }
 
-static gchar *
-get_locale_directory (void)
-{
-	return g_build_filename (DATADIR, "locale", NULL);
-}
-
-static void
-setup_i18n (void)
-{
-	gchar *locale_dir;
-
-	setlocale (LC_ALL, "");
-
-	locale_dir = get_locale_directory ();
-	bindtextdomain (GETTEXT_PACKAGE, locale_dir);
-	g_free (locale_dir);
-
-	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-	textdomain (GETTEXT_PACKAGE);
-}
-
 gint
 main (gint    argc,
       gchar **argv)
@@ -102,6 +133,11 @@ main (gint    argc,
 	g_set_application_name ("gCSVedit");
 
 	app = gtk_application_new ("org.ucl.gcsvedit", G_APPLICATION_HANDLES_OPEN);
+
+	g_signal_connect (app,
+			  "startup",
+			  G_CALLBACK (startup_cb),
+			  NULL);
 
 	g_signal_connect (app,
 			  "activate",

@@ -63,6 +63,28 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 	object_class->finalize = gcsv_window_finalize;
 }
 
+static void
+quit_activate_cb (GSimpleAction *quit_action,
+		  GVariant      *parameter)
+{
+	g_application_quit (g_application_get_default ());
+}
+
+static void
+add_actions (GcsvWindow *window)
+{
+	GSimpleAction *quit_action;
+
+	quit_action = g_simple_action_new ("quit", NULL);
+	g_signal_connect (quit_action,
+			  "activate",
+			  G_CALLBACK (quit_activate_cb),
+			  NULL);
+
+	g_action_map_add_action (G_ACTION_MAP (window), G_ACTION (quit_action));
+	g_object_unref (quit_action);
+}
+
 static GtkSourceView *
 create_view (void)
 {
@@ -86,14 +108,37 @@ create_view (void)
 	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
 	gtk_source_buffer_set_style_scheme (buffer, scheme);
 
+	gtk_widget_set_hexpand (GTK_WIDGET (view), TRUE);
+	gtk_widget_set_vexpand (GTK_WIDGET (view), TRUE);
+
 	return view;
+}
+
+static GtkWidget *
+get_menubar (void)
+{
+	GtkApplication *app;
+	GMenuModel *model;
+
+	app = GTK_APPLICATION (g_application_get_default ());
+	model = gtk_application_get_menubar (app);
+
+	return gtk_menu_bar_new_from_model (model);
 }
 
 static void
 gcsv_window_init (GcsvWindow *window)
 {
+	GtkWidget *vgrid;
 	GtkWidget *scrolled_window;
 	GtkTextBuffer *buffer;
+
+	add_actions (window);
+
+	vgrid = gtk_grid_new ();
+	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
+
+	gtk_container_add (GTK_CONTAINER (vgrid), get_menubar ());
 
 	/*
 	gtk_window_set_title (GTK_WINDOW (window), g_get_application_name ());
@@ -105,8 +150,9 @@ gcsv_window_init (GcsvWindow *window)
 
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (window->view));
+	gtk_container_add (GTK_CONTAINER (vgrid), scrolled_window);
 
-	gtk_container_add (GTK_CONTAINER (window), scrolled_window);
+	gtk_container_add (GTK_CONTAINER (window), vgrid);
 	gtk_widget_show_all (GTK_WIDGET (window));
 
 	window->file = gtk_source_file_new ();
