@@ -19,7 +19,10 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
+#include "config.h"
 #include <gtk/gtk.h>
+#include <glib/gi18n.h>
+#include <locale.h>
 #include "gcsv-window.h"
 
 static void
@@ -66,12 +69,35 @@ open_cb (GtkApplication  *app,
 	gcsv_window_load_file (window, files[0]);
 }
 
+static gchar *
+get_locale_directory (void)
+{
+	return g_build_filename (DATADIR, "locale", NULL);
+}
+
+static void
+setup_i18n (void)
+{
+	gchar *locale_dir;
+
+	setlocale (LC_ALL, "");
+
+	locale_dir = get_locale_directory ();
+	bindtextdomain (GETTEXT_PACKAGE, locale_dir);
+	g_free (locale_dir);
+
+	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+	textdomain (GETTEXT_PACKAGE);
+}
+
 gint
 main (gint    argc,
       gchar **argv)
 {
 	GtkApplication *app;
 	gint status;
+
+	setup_i18n ();
 
 	g_set_application_name ("gCSVedit");
 

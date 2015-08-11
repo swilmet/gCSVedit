@@ -21,6 +21,7 @@
 
 #include "gcsv-window.h"
 #include <gtksourceview/gtksource.h>
+#include <glib/gi18n.h>
 #include "gcsv-alignment.h"
 
 struct _GcsvWindow
@@ -94,7 +95,10 @@ gcsv_window_init (GcsvWindow *window)
 	GtkWidget *scrolled_window;
 	GtkTextBuffer *buffer;
 
+	/*
 	gtk_window_set_title (GTK_WINDOW (window), g_get_application_name ());
+	*/
+	gtk_window_set_title (GTK_WINDOW (window), _("gCSVedit - CSV editor"));
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
 	window->view = create_view ();

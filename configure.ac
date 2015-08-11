@@ -38,6 +38,7 @@ AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
 # Compile warnings
 AX_COMPILER_FLAGS([WARN_CFLAGS], [WARN_LDFLAGS])
 
+# pkg-config
 PKG_CHECK_MODULES(DEP, [
 	glib-2.0 >= $GLIB_REQUIRED_VERSION
 	gio-2.0 >= $GLIB_REQUIRED_VERSION
@@ -45,9 +46,16 @@ PKG_CHECK_MODULES(DEP, [
 	gtksourceview-3.0 >= $GTKSOURCEVIEW_REQUIRED_VERSION
 ])
 
+# i18n
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.19.4])
+AC_SUBST([GETTEXT_PACKAGE], [$PACKAGE])
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [Define to the gettext package name.])
+
 # Output files
 AC_CONFIG_FILES([
 	Makefile
+	po/Makefile.in
 	src/Makefile
 	tests/Makefile
 ])

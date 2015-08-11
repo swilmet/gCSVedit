@@ -1,6 +1,7 @@
-AM_CPPFLAGS =			\
-	-I$(top_srcdir)		\
-	$(WARN_CFLAGS)		\
+AM_CPPFLAGS =				\
+	-I$(top_srcdir)			\
+	-DDATADIR=\""$(datadir)"\"	\
+	$(WARN_CFLAGS)			\
 	$(DEP_CFLAGS)
 
 AM_LDFLAGS = $(WARN_LDFLAGS)
