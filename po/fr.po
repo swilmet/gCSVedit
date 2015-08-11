@@ -1,0 +1,22 @@
+# French translation of gCSVedit.
+# Copyright 2015 - Université Catholique de Louvain
+# This file is distributed under the same license as the gCSVedit package.
+#
+# Sébastien Wilmet <sebastien.wilmet@uclouvain.be>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gcsvedit HEAD\n"
+"Report-Msgid-Bugs-To: http://catl.ions.ucl.ac.be/index.html\n"
+"POT-Creation-Date: 2015-08-11 14:11+0200\n"
+"PO-Revision-Date: 2015-08-11 14:25+0200\n"
+"Last-Translator: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+
+#: src/gcsv-window.c:101
+msgid "gCSVedit - CSV editor"
+msgstr "gCSVedit - éditeur CSV"
