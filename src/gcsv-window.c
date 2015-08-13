@@ -262,3 +262,16 @@ gcsv_window_load_file (GcsvWindow *window,
 					   (GAsyncReadyCallback) load_cb,
 					   g_object_ref (window));
 }
+
+gboolean
+gcsv_window_is_untouched (GcsvWindow *window)
+{
+	GtkTextBuffer *buffer;
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+
+	return (gtk_text_buffer_get_char_count (buffer) == 0 &&
+		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
+		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
+		gtk_source_file_get_location (window->file) == NULL);
+}

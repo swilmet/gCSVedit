@@ -91,15 +91,17 @@ open_cb (GtkApplication  *app,
 
 	active_window = gtk_application_get_active_window (app);
 
-	if (active_window == NULL)
+	g_return_if_fail (active_window == NULL || GCSV_IS_WINDOW (active_window));
+
+	if (active_window != NULL &&
+	    gcsv_window_is_untouched (GCSV_WINDOW (active_window)))
 	{
-		window = gcsv_window_new ();
-		gtk_application_add_window (app, GTK_WINDOW (window));
+		window = GCSV_WINDOW (active_window);
 	}
 	else
 	{
-		g_return_if_fail (GCSV_IS_WINDOW (active_window));
-		window = GCSV_WINDOW (active_window);
+		window = gcsv_window_new ();
+		gtk_application_add_window (app, GTK_WINDOW (window));
 	}
 
 	gcsv_window_load_file (window, files[0]);
