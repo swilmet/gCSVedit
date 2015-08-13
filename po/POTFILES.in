@@ -3,3 +3,4 @@ src/gcsv-alignment.c
 src/gcsv-main.c
 src/gcsv-utils.c
 src/gcsv-window.c
+src/resources/menu.ui

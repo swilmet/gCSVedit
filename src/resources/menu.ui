@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<interface>
+  <menu id="menubar">
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <item>
+        <attribute name="label" translatable="yes">_Quit</attribute>
+        <attribute name="icon">application-exit</attribute>
+        <attribute name="action">win.quit</attribute>
+        <attribute name="accel">&lt;Control&gt;q</attribute>
+      </item>
+    </submenu>
+  </menu>
+</interface>

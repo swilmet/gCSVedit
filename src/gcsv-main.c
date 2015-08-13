@@ -49,26 +49,10 @@ setup_i18n (void)
 static void
 startup_cb (GtkApplication *app)
 {
-	const gchar *menu_str;
 	GtkBuilder *builder;
 	GMenuModel *menubar;
 
-	menu_str =
-		"<interface>"
-		"  <menu id='menubar'>"
-		"    <submenu>"
-		"      <attribute name='label' translatable='yes'>_File</attribute>"
-		"      <item>"
-		"        <attribute name='label' translatable='yes'>_Quit</attribute>"
-		"        <attribute name='icon'>application-exit</attribute>"
-		"        <attribute name='action'>win.quit</attribute>"
-		"        <attribute name='accel'>&lt;Control&gt;q</attribute>"
-		"      </item>"
-		"    </submenu>"
-		"  </menu>"
-		"</interface>";
-
-	builder = gtk_builder_new_from_string (menu_str, -1);
+	builder = gtk_builder_new_from_resource ("/org/ucl/gcsvedit/menu.ui");
 	gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
 	menubar = G_MENU_MODEL (gtk_builder_get_object (builder, "menubar"));
 
