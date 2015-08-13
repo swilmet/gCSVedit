@@ -65,24 +65,71 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 
 static void
 quit_activate_cb (GSimpleAction *quit_action,
-		  GVariant      *parameter)
+		  GVariant      *parameter,
+		  gpointer       user_data)
 {
 	g_application_quit (g_application_get_default ());
 }
 
 static void
+open_dialog_response_cb (GtkFileChooserDialog *dialog,
+			 gint                  response_id,
+			 GcsvWindow           *window)
+{
+	if (response_id == GTK_RESPONSE_ACCEPT)
+	{
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		GApplication *app;
+		GFile *file;
+		GFile *files[1];
+
+		file = gtk_file_chooser_get_file (chooser);
+		files[0] = file;
+
+		app = g_application_get_default ();
+		g_application_open (app, files, 1, NULL);
+
+		g_object_unref (file);
+	}
+
+	gtk_widget_destroy (GTK_WIDGET (dialog));
+}
+
+static void
+open_activate_cb (GSimpleAction *open_action,
+		  GVariant      *parameter,
+		  gpointer       user_data)
+{
+	GcsvWindow *window = GCSV_WINDOW (user_data);
+	GtkWidget *dialog;
+
+	dialog = gtk_file_chooser_dialog_new (_("Open File"),
+					      GTK_WINDOW (window),
+					      GTK_FILE_CHOOSER_ACTION_OPEN,
+					      _("_Cancel"), GTK_RESPONSE_CANCEL,
+					      _("_Open"), GTK_RESPONSE_ACCEPT,
+					      NULL);
+
+	g_signal_connect (dialog,
+			  "response",
+			  G_CALLBACK (open_dialog_response_cb),
+			  window);
+
+	gtk_widget_show (dialog);
+}
+
+static void
 add_actions (GcsvWindow *window)
 {
-	GSimpleAction *quit_action;
+	const GActionEntry entries[] = {
+		{ "quit", quit_activate_cb },
+		{ "open", open_activate_cb },
+	};
 
-	quit_action = g_simple_action_new ("quit", NULL);
-	g_signal_connect (quit_action,
-			  "activate",
-			  G_CALLBACK (quit_activate_cb),
-			  NULL);
-
-	g_action_map_add_action (G_ACTION_MAP (window), G_ACTION (quit_action));
-	g_object_unref (quit_action);
+	g_action_map_add_action_entries (G_ACTION_MAP (window),
+					 entries,
+					 G_N_ELEMENTS (entries),
+					 window);
 }
 
 static GtkSourceView *

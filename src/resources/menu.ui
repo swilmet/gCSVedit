@@ -4,6 +4,12 @@
     <submenu>
       <attribute name="label" translatable="yes">_File</attribute>
       <item>
+        <attribute name="label" translatable="yes">_Open</attribute>
+        <attribute name="icon">document-open</attribute>
+        <attribute name="action">win.open</attribute>
+        <attribute name="accel">&lt;Control&gt;o</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">_Quit</attribute>
         <attribute name="icon">application-exit</attribute>
         <attribute name="action">win.quit</attribute>
