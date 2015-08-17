@@ -17,6 +17,8 @@ noinst_LTLIBRARIES = libgcsvedit.la
 libgcsvedit_la_SOURCES =		\
 	gcsv-alignment.c		\
 	gcsv-alignment.h		\
+	gcsv-delimiter-chooser.c	\
+	gcsv-delimiter-chooser.h	\
 	gcsv-utils.c			\
 	gcsv-utils.h			\
 	gcsv-window.c			\

@@ -23,14 +23,15 @@
 #include <gtksourceview/gtksource.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
+#include "gcsv-delimiter-chooser.h"
 
 struct _GcsvWindow
 {
 	GtkApplicationWindow parent;
 
+	GcsvDelimiterChooser *delimiter_chooser;
 	GtkSourceView *view;
 	GtkSourceFile *file;
-
 	GcsvAlignment *align;
 };
 
@@ -374,6 +375,10 @@ gcsv_window_init (GcsvWindow *window)
 
 	gtk_container_add (GTK_CONTAINER (vgrid), get_menubar ());
 
+	window->delimiter_chooser = gcsv_delimiter_chooser_new (',');
+	gtk_container_add (GTK_CONTAINER (vgrid),
+			   GTK_WIDGET (window->delimiter_chooser));
+
 	window->view = create_view ();
 
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
@@ -402,6 +407,10 @@ gcsv_window_init (GcsvWindow *window)
 				 G_CALLBACK (location_notify_cb),
 				 window,
 				 0);
+
+	g_object_bind_property (window->delimiter_chooser, "delimiter",
+				window->align, "delimiter",
+				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 }
 
 GcsvWindow *
