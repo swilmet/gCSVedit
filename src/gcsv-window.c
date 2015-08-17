@@ -48,19 +48,11 @@ gcsv_window_dispose (GObject *object)
 }
 
 static void
-gcsv_window_finalize (GObject *object)
-{
-
-	G_OBJECT_CLASS (gcsv_window_parent_class)->finalize (object);
-}
-
-static void
 gcsv_window_class_init (GcsvWindowClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	object_class->dispose = gcsv_window_dispose;
-	object_class->finalize = gcsv_window_finalize;
 }
 
 static void
