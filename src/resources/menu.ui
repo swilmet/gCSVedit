@@ -10,6 +10,12 @@
         <attribute name="accel">&lt;Control&gt;o</attribute>
       </item>
       <item>
+        <attribute name="label" translatable="yes">_Save</attribute>
+        <attribute name="icon">document-save</attribute>
+        <attribute name="action">win.save</attribute>
+        <attribute name="accel">&lt;Control&gt;s</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">_Quit</attribute>
         <attribute name="icon">application-exit</attribute>
         <attribute name="action">win.quit</attribute>

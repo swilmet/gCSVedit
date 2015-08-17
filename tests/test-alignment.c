@@ -38,6 +38,7 @@ check_alignment (const gchar *before,
 		 gunichar     delimiter)
 {
 	GtkTextBuffer *buffer;
+	GtkSourceBuffer *copy_without_align;
 	GcsvAlignment *align;
 	gchar *buffer_text;
 
@@ -63,6 +64,13 @@ check_alignment (const gchar *before,
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, after);
 	g_free (buffer_text);
+
+	/* Test copy without alignment */
+	copy_without_align = gcsv_alignment_copy_buffer_without_alignment (align);
+	buffer_text = get_buffer_text (GTK_TEXT_BUFFER (copy_without_align));
+	g_assert_cmpstr (buffer_text, ==, before);
+	g_free (buffer_text);
+	g_object_unref (copy_without_align);
 
 	g_object_unref (align);
 	g_object_unref (buffer);

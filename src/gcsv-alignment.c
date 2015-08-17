@@ -407,3 +407,55 @@ gcsv_alignment_update (GcsvAlignment *align)
 		}
 	}
 }
+
+GtkSourceBuffer *
+gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
+{
+	GtkTextBuffer *copy;
+	GtkTextIter iter;
+	GtkTextIter insert;
+
+	copy = GTK_TEXT_BUFFER (gtk_source_buffer_new (NULL));
+
+	gtk_text_buffer_get_start_iter (align->buffer, &iter);
+	gtk_text_buffer_get_start_iter (copy, &insert);
+
+	while (!gtk_text_iter_is_end (&iter))
+	{
+		GtkTextIter start;
+		GtkTextIter end;
+		gchar *text;
+
+		start = iter;
+		if (gtk_text_iter_begins_tag (&start, align->tag))
+		{
+			gtk_text_iter_forward_to_tag_toggle (&start, align->tag);
+			g_assert (gtk_text_iter_ends_tag (&start, align->tag));
+		}
+
+		g_assert (!gtk_text_iter_has_tag (&start, align->tag));
+
+		if (gtk_text_iter_is_end (&start))
+		{
+			break;
+		}
+
+		end = start;
+		if (gtk_text_iter_forward_to_tag_toggle (&end, align->tag))
+		{
+			g_assert (gtk_text_iter_begins_tag (&end, align->tag));
+		}
+		else
+		{
+			g_assert (gtk_text_iter_is_end (&end));
+		}
+
+		text = gtk_text_buffer_get_text (align->buffer, &start, &end, TRUE);
+		gtk_text_buffer_insert (copy, &insert, text, -1);
+		g_free (text);
+
+		iter = end;
+	}
+
+	return GTK_SOURCE_BUFFER (copy);
+}
