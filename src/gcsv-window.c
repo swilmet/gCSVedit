@@ -41,8 +41,8 @@ gcsv_window_dispose (GObject *object)
 {
 	GcsvWindow *window = GCSV_WINDOW (object);
 
-	g_clear_object (&window->file);
 	g_clear_object (&window->align);
+	g_clear_object (&window->file);
 
 	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
 }
@@ -127,7 +127,13 @@ save_cb (GtkSourceFileSaver *saver,
 	GtkSourceBuffer *buffer_without_align;
 	GApplication *app;
 
-	gtk_source_file_saver_save_finish (saver, result, &error);
+	if (gtk_source_file_saver_save_finish (saver, result, &error))
+	{
+		GtkTextBuffer *buffer;
+
+		buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+		gtk_text_buffer_set_modified (buffer, FALSE);
+	}
 
 	if (error != NULL)
 	{
@@ -181,8 +187,30 @@ save_activate_cb (GSimpleAction *save_action,
 }
 
 static void
+update_save_action_sensitivity (GcsvWindow *window)
+{
+	GAction *action;
+	GtkTextBuffer *buffer;
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+
+	action = g_action_map_lookup_action (G_ACTION_MAP (window), "save");
+	g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
+				     gtk_source_file_get_location (window->file) != NULL &&
+				     gtk_text_buffer_get_modified (buffer));
+}
+
+static void
+update_actions_sensitivity (GcsvWindow *window)
+{
+	update_save_action_sensitivity (window);
+}
+
+static void
 add_actions (GcsvWindow *window)
 {
+	GtkTextBuffer *buffer;
+
 	const GActionEntry entries[] = {
 		{ "open", open_activate_cb },
 		{ "save", save_activate_cb },
@@ -193,6 +221,21 @@ add_actions (GcsvWindow *window)
 					 entries,
 					 G_N_ELEMENTS (entries),
 					 window);
+
+	update_actions_sensitivity (window);
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	g_signal_connect_object (buffer,
+				 "modified-changed",
+				 G_CALLBACK (update_save_action_sensitivity),
+				 window,
+				 G_CONNECT_SWAPPED);
+
+	g_signal_connect_object (window->file,
+				 "notify::location",
+				 G_CALLBACK (update_save_action_sensitivity),
+				 window,
+				 G_CONNECT_SWAPPED);
 }
 
 static GtkSourceView *
@@ -243,8 +286,6 @@ gcsv_window_init (GcsvWindow *window)
 	GtkWidget *scrolled_window;
 	GtkTextBuffer *buffer;
 
-	add_actions (window);
-
 	vgrid = gtk_grid_new ();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
 
@@ -269,6 +310,8 @@ gcsv_window_init (GcsvWindow *window)
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
 	window->align = gcsv_alignment_new (buffer, ',');
+
+	add_actions (window);
 }
 
 GcsvWindow *

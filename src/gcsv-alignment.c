@@ -378,17 +378,20 @@ insert_missing_spaces (GcsvAlignment *align,
 void
 gcsv_alignment_update (GcsvAlignment *align)
 {
+	gboolean modified;
 	gint n_columns;
 	gint n_lines;
 	gint column_num;
 
 	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
 
+	modified = gtk_text_buffer_get_modified (align->buffer);
+
 	gcsv_utils_delete_text_with_tag (align->buffer, align->tag);
 
 	if (align->delimiter == '\0')
 	{
-		return;
+		goto end;
 	}
 
 	n_columns = count_columns (align);
@@ -406,6 +409,9 @@ gcsv_alignment_update (GcsvAlignment *align)
 			insert_missing_spaces (align, line_num, column_num, max_column_length);
 		}
 	}
+
+end:
+	gtk_text_buffer_set_modified (align->buffer, modified);
 }
 
 GtkSourceBuffer *
