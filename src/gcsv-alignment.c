@@ -61,19 +61,6 @@ set_buffer (GcsvAlignment *align,
 }
 
 static void
-set_delimiter (GcsvAlignment *align,
-	       gunichar       delimiter)
-{
-	if (align->delimiter != delimiter)
-	{
-		align->delimiter = delimiter;
-		g_object_notify (G_OBJECT (align), "delimiter");
-
-		gcsv_alignment_update (align);
-	}
-}
-
-static void
 gcsv_alignment_get_property (GObject    *object,
 			     guint       prop_id,
 			     GValue     *value,
@@ -112,7 +99,7 @@ gcsv_alignment_set_property (GObject      *object,
 			break;
 
 		case PROP_DELIMITER:
-			set_delimiter (align, g_value_get_uint (value));
+			gcsv_alignment_set_delimiter (align, g_value_get_uint (value));
 			break;
 
 		default:
@@ -131,8 +118,6 @@ gcsv_alignment_dispose (GObject *object)
 		if (align->tag != NULL)
 		{
 			GtkTextTagTable *table;
-
-			gcsv_utils_delete_text_with_tag (align->buffer, align->tag);
 
 			table = gtk_text_buffer_get_tag_table (align->buffer);
 			gtk_text_tag_table_remove (table, align->tag);
@@ -192,6 +177,37 @@ gcsv_alignment_new (GtkTextBuffer *buffer,
 			     "buffer", buffer,
 			     "delimiter", delimiter,
 			     NULL);
+}
+
+gunichar
+gcsv_alignment_get_delimiter (GcsvAlignment *align)
+{
+	g_return_val_if_fail (GCSV_IS_ALIGNMENT (align), '\0');
+
+	return align->delimiter;
+}
+
+void
+gcsv_alignment_set_delimiter (GcsvAlignment *align,
+			      gunichar       delimiter)
+{
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	if (align->delimiter != delimiter)
+	{
+		align->delimiter = delimiter;
+		g_object_notify (G_OBJECT (align), "delimiter");
+
+		gcsv_alignment_update (align);
+	}
+}
+
+void
+gcsv_alignment_remove_alignment (GcsvAlignment *align)
+{
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	gcsv_alignment_set_delimiter (align, '\0');
 }
 
 static gint

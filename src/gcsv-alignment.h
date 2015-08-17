@@ -34,6 +34,13 @@ G_DECLARE_FINAL_TYPE (GcsvAlignment, gcsv_alignment,
 GcsvAlignment *	gcsv_alignment_new				(GtkTextBuffer *buffer,
 								 gunichar       delimiter);
 
+gunichar	gcsv_alignment_get_delimiter			(GcsvAlignment *align);
+
+void		gcsv_alignment_set_delimiter			(GcsvAlignment *align,
+								 gunichar       delimiter);
+
+void		gcsv_alignment_remove_alignment			(GcsvAlignment *align);
+
 void		gcsv_alignment_update				(GcsvAlignment *align);
 
 GtkSourceBuffer *

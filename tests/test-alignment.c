@@ -51,6 +51,7 @@ check_alignment (const gchar *before,
 	g_free (buffer_text);
 
 	/* Test unalignment */
+	gcsv_alignment_remove_alignment (align);
 	g_object_unref (align);
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, before);
