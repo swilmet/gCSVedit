@@ -37,25 +37,6 @@ struct _GcsvWindow
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void
-gcsv_window_dispose (GObject *object)
-{
-	GcsvWindow *window = GCSV_WINDOW (object);
-
-	g_clear_object (&window->align);
-	g_clear_object (&window->file);
-
-	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
-}
-
-static void
-gcsv_window_class_init (GcsvWindowClass *klass)
-{
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-	object_class->dispose = gcsv_window_dispose;
-}
-
-static void
 quit_activate_cb (GSimpleAction *quit_action,
 		  GVariant      *parameter,
 		  gpointer       user_data)
@@ -201,8 +182,6 @@ update_actions_sensitivity (GcsvWindow *window)
 static void
 add_actions (GcsvWindow *window)
 {
-	GtkTextBuffer *buffer;
-
 	const GActionEntry entries[] = {
 		{ "open", open_activate_cb },
 		{ "save", save_activate_cb },
@@ -215,19 +194,6 @@ add_actions (GcsvWindow *window)
 					 window);
 
 	update_actions_sensitivity (window);
-
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	g_signal_connect_object (buffer,
-				 "modified-changed",
-				 G_CALLBACK (update_save_action_sensitivity),
-				 window,
-				 G_CONNECT_SWAPPED);
-
-	g_signal_connect_object (window->file,
-				 "notify::location",
-				 G_CALLBACK (update_save_action_sensitivity),
-				 window,
-				 G_CONNECT_SWAPPED);
 }
 
 static GtkSourceView *
@@ -272,22 +238,126 @@ get_menubar (void)
 }
 
 static void
+set_title (GcsvWindow  *window,
+	   const gchar *file_title)
+{
+	GtkTextBuffer *buffer;
+	gboolean modified;
+	const gchar *modified_marker;
+	gchar *title;
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	modified = gtk_text_buffer_get_modified (buffer);
+	modified_marker = modified ? "*" : "";
+
+	title = g_strdup_printf ("%s%s - %s",
+				 modified_marker,
+				 file_title,
+				 g_get_application_name ());
+
+	gtk_window_set_title (GTK_WINDOW (window), title);
+	g_free (title);
+}
+
+static void
+query_display_name_cb (GFile        *location,
+		       GAsyncResult *result,
+		       GcsvWindow   *window)
+{
+	GFileInfo *info;
+	const gchar *display_name;
+	GError *error = NULL;
+
+	info = g_file_query_info_finish (location, result, &error);
+
+	if (error != NULL)
+	{
+		g_warning ("File query info error: %s", error->message);
+		g_error_free (error);
+		error = NULL;
+		goto out;
+	}
+
+	display_name = g_file_info_get_display_name (info);
+	set_title (window, display_name);
+
+out:
+	g_clear_object (&info);
+	g_object_unref (window);
+}
+
+static void
+update_title (GcsvWindow *window)
+{
+	GFile *location;
+
+	location = gtk_source_file_get_location (window->file);
+
+	if (location == NULL)
+	{
+		set_title (window, _("Unsaved File"));
+	}
+	else
+	{
+		g_file_query_info_async (location,
+					 G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME,
+					 G_FILE_QUERY_INFO_NONE,
+					 G_PRIORITY_DEFAULT,
+					 NULL,
+					 (GAsyncReadyCallback) query_display_name_cb,
+					 g_object_ref (window));
+	}
+}
+
+static void
+buffer_modified_changed_cb (GtkTextBuffer *buffer,
+			    GcsvWindow    *window)
+{
+	update_title (window);
+	update_save_action_sensitivity (window);
+}
+
+static void
+location_notify_cb (GtkSourceFile *file,
+		    GParamSpec    *pspec,
+		    GcsvWindow    *window)
+{
+	update_title (window);
+	update_save_action_sensitivity (window);
+}
+
+static void
+gcsv_window_dispose (GObject *object)
+{
+	GcsvWindow *window = GCSV_WINDOW (object);
+
+	g_clear_object (&window->align);
+	g_clear_object (&window->file);
+
+	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
+}
+
+static void
+gcsv_window_class_init (GcsvWindowClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	object_class->dispose = gcsv_window_dispose;
+}
+
+static void
 gcsv_window_init (GcsvWindow *window)
 {
 	GtkWidget *vgrid;
 	GtkWidget *scrolled_window;
 	GtkTextBuffer *buffer;
 
+	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
+
 	vgrid = gtk_grid_new ();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
 
 	gtk_container_add (GTK_CONTAINER (vgrid), get_menubar ());
-
-	/*
-	gtk_window_set_title (GTK_WINDOW (window), g_get_application_name ());
-	*/
-	gtk_window_set_title (GTK_WINDOW (window), _("gCSVedit - CSV editor"));
-	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
 	window->view = create_view ();
 
@@ -304,6 +374,19 @@ gcsv_window_init (GcsvWindow *window)
 	window->align = gcsv_alignment_new (buffer, ',');
 
 	add_actions (window);
+	update_title (window);
+
+	g_signal_connect_object (buffer,
+				 "modified-changed",
+				 G_CALLBACK (buffer_modified_changed_cb),
+				 window,
+				 0);
+
+	g_signal_connect_object (window->file,
+				 "notify::location",
+				 G_CALLBACK (location_notify_cb),
+				 window,
+				 0);
 }
 
 GcsvWindow *
