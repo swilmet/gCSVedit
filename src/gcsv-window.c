@@ -266,6 +266,9 @@ query_display_name_cb (GFile        *location,
 {
 	GFileInfo *info;
 	const gchar *display_name;
+	GFile *parent = NULL;
+	gchar *directory = NULL;
+	gchar *file_title = NULL;
 	GError *error = NULL;
 
 	info = g_file_query_info_finish (location, result, &error);
@@ -279,10 +282,22 @@ query_display_name_cb (GFile        *location,
 	}
 
 	display_name = g_file_info_get_display_name (info);
-	set_title (window, display_name);
+
+	parent = g_file_get_parent (location);
+	g_return_if_fail (parent != NULL);
+
+	directory = g_file_get_parse_name (parent);
+
+	file_title = g_strdup_printf ("%s (%s)", display_name, directory);
+	set_title (window, file_title);
 
 out:
 	g_clear_object (&info);
+	g_clear_object (&parent);
+	g_free (directory);
+	g_free (file_title);
+
+	/* Async operation finished */
 	g_object_unref (window);
 }
 
