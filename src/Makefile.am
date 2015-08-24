@@ -22,7 +22,9 @@ libgcsvedit_la_SOURCES =		\
 	gcsv-utils.c			\
 	gcsv-utils.h			\
 	gcsv-window.c			\
-	gcsv-window.h
+	gcsv-window.h			\
+	gtktextregion.c			\
+	gtktextregion.h
 
 libgcsvedit_la_LIBADD = $(DEP_LIBS)
 
