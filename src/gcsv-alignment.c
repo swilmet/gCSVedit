@@ -21,6 +21,7 @@
 
 #include "gcsv-alignment.h"
 #include "gcsv-utils.h"
+#include "gtktextregion.h"
 
 struct _GcsvAlignment
 {
@@ -36,6 +37,11 @@ struct _GcsvAlignment
 
 	/* Contains the columns lengths as guint's. */
 	GArray *columns_lengths;
+
+	/* The remaining region in the GtkTextBuffer to align. */
+	GtkTextRegion *region;
+
+	guint idle_id;
 };
 
 enum
@@ -44,6 +50,9 @@ enum
 	PROP_BUFFER,
 	PROP_DELIMITER,
 };
+
+/* Max number of lines to align at once. */
+#define BATCH_SIZE 100
 
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 
@@ -54,6 +63,39 @@ get_column_length (GcsvAlignment *align,
 	g_return_val_if_fail (column_num < align->columns_lengths->len, 0);
 
 	return g_array_index (align->columns_lengths, guint, column_num);
+}
+
+/* A TextRegion can contain empty subregions. So checking the number of
+ * subregions is not sufficient.
+ * When calling gtk_text_region_add() with equal iters, the subregion is not
+ * added. But when a subregion becomes empty, due to text deletion, the
+ * subregion is not removed from the TextRegion.
+ */
+static gboolean
+is_text_region_empty (GtkTextRegion *region)
+{
+	GtkTextRegionIterator region_iter;
+
+	gtk_text_region_get_iterator (region, &region_iter, 0);
+
+	while (!gtk_text_region_iterator_is_end (&region_iter))
+	{
+		GtkTextIter region_start;
+		GtkTextIter region_end;
+
+		gtk_text_region_iterator_get_subregion (&region_iter,
+							&region_start,
+							&region_end);
+
+		if (!gtk_text_iter_equal (&region_start, &region_end))
+		{
+			return FALSE;
+		}
+
+		gtk_text_region_iterator_next (&region_iter);
+	}
+
+	return TRUE;
 }
 
 static void
@@ -123,6 +165,18 @@ static void
 gcsv_alignment_dispose (GObject *object)
 {
 	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	if (align->idle_id != 0)
+	{
+		g_source_remove (align->idle_id);
+		align->idle_id = 0;
+	}
+
+	if (align->region != NULL)
+	{
+		gtk_text_region_destroy (align->region);
+		align->region = NULL;
+	}
 
 	if (align->buffer != NULL)
 	{
@@ -416,42 +470,170 @@ update_columns_lengths (GcsvAlignment *align)
 	}
 }
 
-void
-gcsv_alignment_update (GcsvAlignment *align)
+static void
+align_subregion (GcsvAlignment     *align,
+		 const GtkTextIter *start,
+		 const GtkTextIter *end)
 {
 	gboolean modified;
-	guint n_columns;
-	guint column_num;
-	guint n_lines;
+	guint end_line;
+	guint line_num;
 
-	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+	g_assert (gtk_text_iter_starts_line (start));
+	g_assert (gtk_text_iter_ends_line (end));
 
 	modified = gtk_text_buffer_get_modified (align->buffer);
 
-	update_columns_lengths (align);
+	end_line = gtk_text_iter_get_line (end);
 
-	gcsv_utils_delete_text_with_tag (align->buffer, align->tag);
-
-	if (align->delimiter == '\0')
+	for (line_num = gtk_text_iter_get_line (start);
+	     line_num <= end_line;
+	     line_num++)
 	{
-		goto end;
-	}
+		guint n_columns = align->columns_lengths->len;
+		guint column_num;
 
-	n_columns = align->columns_lengths->len;
-	n_lines = gtk_text_buffer_get_line_count (align->buffer);
-
-	for (column_num = 0; column_num < n_columns; column_num++)
-	{
-		guint line_num;
-
-		for (line_num = 0; line_num < n_lines; line_num++)
+		for (column_num = 0; column_num < n_columns; column_num++)
 		{
 			insert_missing_spaces (align, line_num, column_num);
 		}
 	}
 
-end:
 	gtk_text_buffer_set_modified (align->buffer, modified);
+}
+
+static void
+adjust_subregion (GtkTextIter *start,
+		  GtkTextIter *end)
+{
+	if (!gtk_text_iter_starts_line (start))
+	{
+		gtk_text_iter_set_line_offset (start, 0);
+	}
+
+	if (!gtk_text_iter_ends_line (end))
+	{
+		gtk_text_iter_forward_to_line_end (end);
+	}
+}
+
+static gboolean
+idle_cb (GcsvAlignment *align)
+{
+	guint n_remaining_lines = BATCH_SIZE;
+	GtkTextRegionIterator region_iter;
+	GtkTextIter start;
+	GtkTextIter stop;
+
+	if (align->region == NULL)
+	{
+		align->idle_id = 0;
+		return G_SOURCE_REMOVE;
+	}
+
+	gtk_text_buffer_get_start_iter (align->buffer, &stop);
+
+	gtk_text_region_get_iterator (align->region, &region_iter, 0);
+
+	while (n_remaining_lines > 0 &&
+	       !gtk_text_region_iterator_is_end (&region_iter))
+	{
+		GtkTextIter subregion_start;
+		GtkTextIter subregion_end;
+		guint n_lines;
+		guint line_end;
+
+		gtk_text_region_iterator_get_subregion (&region_iter,
+							&subregion_start,
+							&subregion_end);
+
+		n_lines = gtk_text_iter_get_line (&subregion_end) - gtk_text_iter_get_line (&subregion_start) + 1;
+
+		if (n_lines > n_remaining_lines)
+		{
+			subregion_end = subregion_start;
+			gtk_text_iter_forward_lines (&subregion_end, n_remaining_lines - 1);
+			n_lines = n_remaining_lines;
+		}
+
+		adjust_subregion (&subregion_start, &subregion_end);
+
+		/* Remember the line, since the iter won't be valid after
+		 * aligning the columns.
+		 */
+		line_end = gtk_text_iter_get_line (&subregion_end);
+
+		align_subregion (align, &subregion_start, &subregion_end);
+
+		gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end);
+		if (!gtk_text_iter_ends_line (&stop))
+		{
+			gtk_text_iter_forward_to_line_end (&stop);
+		}
+
+		n_remaining_lines -= n_lines;
+		gtk_text_region_iterator_next (&region_iter);
+	}
+
+	gtk_text_buffer_get_start_iter (align->buffer, &start);
+	gtk_text_region_subtract (align->region, &start, &stop);
+
+	if (is_text_region_empty (align->region))
+	{
+		if (align->region != NULL)
+		{
+			gtk_text_region_destroy (align->region);
+			align->region = NULL;
+		}
+
+		align->idle_id = 0;
+		return G_SOURCE_REMOVE;
+	}
+
+	return G_SOURCE_CONTINUE;
+}
+
+static void
+install_idle (GcsvAlignment *align)
+{
+	if (align->idle_id == 0)
+	{
+		align->idle_id = g_idle_add ((GSourceFunc) idle_cb, align);
+	}
+}
+
+void
+gcsv_alignment_update (GcsvAlignment *align)
+{
+	gboolean modified;
+	GtkTextIter start;
+	GtkTextIter end;
+
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	update_columns_lengths (align);
+
+	if (align->region != NULL)
+	{
+		gtk_text_region_destroy (align->region);
+		align->region = NULL;
+	}
+
+	modified = gtk_text_buffer_get_modified (align->buffer);
+	gcsv_utils_delete_text_with_tag (align->buffer, align->tag);
+	gtk_text_buffer_set_modified (align->buffer, modified);
+
+	if (align->delimiter == '\0')
+	{
+		return;
+	}
+
+	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
+
+	align->region = gtk_text_region_new (align->buffer);
+	gtk_text_region_add (align->region, &start, &end);
+
+	install_idle (align);
 }
 
 GtkSourceBuffer *
