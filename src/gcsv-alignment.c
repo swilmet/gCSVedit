@@ -27,13 +27,15 @@ struct _GcsvAlignment
 	GObject parent;
 
 	GtkTextBuffer *buffer;
+	gunichar delimiter;
 
 	/* The alignment is surrounded by a tag, so we know where the alignment
 	 * is. It permits to remove it or to not take it into account.
 	 */
 	GtkTextTag *tag;
 
-	gunichar delimiter;
+	/* Contains the columns lengths as guint's. */
+	GArray *columns_lengths;
 };
 
 enum
@@ -44,6 +46,15 @@ enum
 };
 
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
+
+static guint
+get_column_length (GcsvAlignment *align,
+		   guint          column_num)
+{
+	g_return_val_if_fail (column_num < align->columns_lengths->len, 0);
+
+	return g_array_index (align->columns_lengths, guint, column_num);
+}
 
 static void
 set_buffer (GcsvAlignment *align,
@@ -210,10 +221,10 @@ gcsv_alignment_remove_alignment (GcsvAlignment *align)
 	gcsv_alignment_set_delimiter (align, '\0');
 }
 
-static gint
+static guint
 count_columns (GcsvAlignment *align)
 {
-	gint n_columns = 1;
+	guint n_columns = 1;
 	gchar *first_line;
 	gchar *p;
 	GtkTextIter start;
@@ -246,9 +257,9 @@ count_columns (GcsvAlignment *align)
 static void
 move_iter_to_nth_column (GcsvAlignment *align,
 			 GtkTextIter   *iter,
-			 gint           nth_column)
+			 guint          nth_column)
 {
-	gint column_num = 0;
+	guint column_num = 0;
 
 	gtk_text_iter_set_line_offset (iter, 0);
 
@@ -273,8 +284,8 @@ move_iter_to_nth_column (GcsvAlignment *align,
 
 static void
 get_field_bounds (GcsvAlignment *align,
-		  gint           line_num,
-		  gint           column_num,
+		  guint          line_num,
+		  guint          column_num,
 		  GtkTextIter   *start,
 		  GtkTextIter   *end)
 {
@@ -305,37 +316,24 @@ get_field_bounds (GcsvAlignment *align,
 	}
 }
 
-static gint
+/* Length in characters, not in bytes. */
+static guint
 get_field_length (const GtkTextIter *field_start,
 		  const GtkTextIter *field_end)
 {
 	g_return_val_if_fail (gtk_text_iter_get_line (field_start) == gtk_text_iter_get_line (field_end), 0);
+	g_return_val_if_fail (gtk_text_iter_compare (field_start, field_end) <= 0, 0);
 
 	return gtk_text_iter_get_line_offset (field_end) - gtk_text_iter_get_line_offset (field_start);
 }
 
-#if 0
-static gchar *
-get_field_text (GcsvAlignment *align,
-		gint           line_num,
-		gint           column_num)
+static guint
+compute_max_column_length (GcsvAlignment *align,
+			   guint          column_num)
 {
-	GtkTextIter start;
-	GtkTextIter end;
-
-	get_field_bounds (align, line_num, column_num, &start, &end);
-
-	return gtk_text_buffer_get_text (align->buffer, &start, &end, TRUE);
-}
-#endif
-
-static gint
-get_max_column_length (GcsvAlignment *align,
-		       gint           column_num)
-{
-	gint n_lines;
-	gint line_num;
-	gint max_column_length = 0;
+	guint n_lines;
+	guint line_num;
+	guint max_column_length = 0;
 
 	n_lines = gtk_text_buffer_get_line_count (align->buffer);
 
@@ -343,7 +341,7 @@ get_max_column_length (GcsvAlignment *align,
 	{
 		GtkTextIter start;
 		GtkTextIter end;
-		gint length;
+		guint length;
 
 		get_field_bounds (align, line_num, column_num, &start, &end);
 		length = get_field_length (&start, &end);
@@ -359,15 +357,17 @@ get_max_column_length (GcsvAlignment *align,
 
 static void
 insert_missing_spaces (GcsvAlignment *align,
-		       gint           line_num,
-		       gint           column_num,
-		       gint           column_length)
+		       guint          line_num,
+		       guint          column_num)
 {
 	GtkTextIter field_start;
 	GtkTextIter field_end;
-	gint field_length;
-	gint n_spaces;
+	guint column_length;
+	guint field_length;
+	guint n_spaces;
 	gchar *alignment;
+
+	column_length = get_column_length (align, column_num);
 
 	get_field_bounds (align, line_num, column_num, &field_start, &field_end);
 	field_length = get_field_length (&field_start, &field_end);
@@ -391,17 +391,44 @@ insert_missing_spaces (GcsvAlignment *align,
 	g_free (alignment);
 }
 
+static void
+update_columns_lengths (GcsvAlignment *align)
+{
+	guint n_columns;
+	guint column_num;
+
+	if (align->columns_lengths != NULL)
+	{
+		g_array_unref (align->columns_lengths);
+		align->columns_lengths = NULL;
+	}
+
+	n_columns = count_columns (align);
+	align->columns_lengths = g_array_sized_new (FALSE, TRUE, sizeof (guint), n_columns);
+
+	for (column_num = 0; column_num < n_columns; column_num++)
+	{
+		guint max_column_length;
+
+		max_column_length = compute_max_column_length (align, column_num);
+
+		g_array_append_val (align->columns_lengths, max_column_length);
+	}
+}
+
 void
 gcsv_alignment_update (GcsvAlignment *align)
 {
 	gboolean modified;
-	gint n_columns;
-	gint n_lines;
-	gint column_num;
+	guint n_columns;
+	guint column_num;
+	guint n_lines;
 
 	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
 
 	modified = gtk_text_buffer_get_modified (align->buffer);
+
+	update_columns_lengths (align);
 
 	gcsv_utils_delete_text_with_tag (align->buffer, align->tag);
 
@@ -410,19 +437,16 @@ gcsv_alignment_update (GcsvAlignment *align)
 		goto end;
 	}
 
-	n_columns = count_columns (align);
+	n_columns = align->columns_lengths->len;
 	n_lines = gtk_text_buffer_get_line_count (align->buffer);
 
 	for (column_num = 0; column_num < n_columns; column_num++)
 	{
-		gint max_column_length;
-		gint line_num;
-
-		max_column_length = get_max_column_length (align, column_num);
+		guint line_num;
 
 		for (line_num = 0; line_num < n_lines; line_num++)
 		{
-			insert_missing_spaces (align, line_num, column_num, max_column_length);
+			insert_missing_spaces (align, line_num, column_num);
 		}
 	}
 
