@@ -1,0 +1,4 @@
+This directory contains sample CSV/DSV files.
+
+Some of them are real output, and may not be really “clean”, but that's the
+point, to stress-test a bit gCSVedit.
