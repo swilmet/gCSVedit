@@ -388,6 +388,7 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_container_add (GTK_CONTAINER (vgrid), scrolled_window);
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
+	gtk_widget_grab_focus (GTK_WIDGET (window->view));
 	gtk_widget_show_all (GTK_WIDGET (window));
 
 	window->file = gtk_source_file_new ();
