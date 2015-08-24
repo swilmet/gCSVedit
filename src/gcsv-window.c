@@ -211,6 +211,8 @@ create_view (void)
 	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
 
 	gtk_text_view_set_monospace (GTK_TEXT_VIEW (view), TRUE);
+	gtk_source_view_set_show_line_numbers (view, TRUE);
+	gtk_source_view_set_highlight_current_line (view, TRUE);
 
 	language_manager = gtk_source_language_manager_get_default ();
 	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
