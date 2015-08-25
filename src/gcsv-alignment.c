@@ -36,7 +36,7 @@ struct _GcsvAlignment
 	GtkTextTag *tag;
 
 	/* Contains the columns lengths as guint's. */
-	GArray *columns_lengths;
+	GArray *column_lengths;
 
 	/* The remaining region in the GtkTextBuffer to align. */
 	GtkTextRegion *region;
@@ -60,9 +60,9 @@ static guint
 get_column_length (GcsvAlignment *align,
 		   guint          column_num)
 {
-	g_return_val_if_fail (column_num < align->columns_lengths->len, 0);
+	g_return_val_if_fail (column_num < align->column_lengths->len, 0);
 
-	return g_array_index (align->columns_lengths, guint, column_num);
+	return g_array_index (align->column_lengths, guint, column_num);
 }
 
 /* A TextRegion can contain empty subregions. So checking the number of
@@ -457,19 +457,19 @@ insert_missing_spaces (GcsvAlignment *align,
 }
 
 static void
-update_columns_lengths (GcsvAlignment *align)
+update_column_lengths (GcsvAlignment *align)
 {
 	guint n_columns;
 	guint column_num;
 
-	if (align->columns_lengths != NULL)
+	if (align->column_lengths != NULL)
 	{
-		g_array_unref (align->columns_lengths);
-		align->columns_lengths = NULL;
+		g_array_unref (align->column_lengths);
+		align->column_lengths = NULL;
 	}
 
 	n_columns = count_columns (align);
-	align->columns_lengths = g_array_sized_new (FALSE, TRUE, sizeof (guint), n_columns);
+	align->column_lengths = g_array_sized_new (FALSE, TRUE, sizeof (guint), n_columns);
 
 	for (column_num = 0; column_num < n_columns; column_num++)
 	{
@@ -477,7 +477,7 @@ update_columns_lengths (GcsvAlignment *align)
 
 		max_column_length = compute_max_column_length (align, column_num);
 
-		g_array_append_val (align->columns_lengths, max_column_length);
+		g_array_append_val (align->column_lengths, max_column_length);
 	}
 }
 
@@ -529,7 +529,7 @@ align_subregion (GcsvAlignment     *align,
 	/* Insert missing spaces */
 	for (line_num = start_line; line_num <= end_line; line_num++)
 	{
-		guint n_columns = align->columns_lengths->len;
+		guint n_columns = align->column_lengths->len;
 		guint column_num;
 
 		for (column_num = 0; column_num < n_columns; column_num++)
@@ -653,7 +653,7 @@ gcsv_alignment_update (GcsvAlignment *align)
 
 	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
 
-	update_columns_lengths (align);
+	update_column_lengths (align);
 
 	if (align->region == NULL)
 	{
