@@ -44,6 +44,8 @@ struct _GcsvAlignment
 	GtkTextRegion *region;
 
 	guint idle_id;
+	gulong insert_text_handler_id;
+	gulong delete_range_handler_id;
 
 	guint enabled : 1;
 };
@@ -541,23 +543,39 @@ delete_range_cb (GtkTextBuffer *buffer,
 static void
 connect_signals (GcsvAlignment *align)
 {
-	g_signal_connect_object (align->buffer,
-				 "insert-text",
-				 G_CALLBACK (insert_text_after_cb),
-				 align,
-				 G_CONNECT_AFTER);
+	if (align->insert_text_handler_id == 0)
+	{
+		align->insert_text_handler_id =
+			g_signal_connect_swapped (align->buffer,
+						  "insert-text",
+						  G_CALLBACK (insert_text_after_cb),
+						  align);
+	}
 
-	g_signal_connect_object (align->buffer,
-				 "delete-range",
-				 G_CALLBACK (delete_range_cb),
-				 align,
-				 0);
+	if (align->delete_range_handler_id == 0)
+	{
+		align->delete_range_handler_id =
+			g_signal_connect (align->buffer,
+					  "delete-range",
+					  G_CALLBACK (delete_range_cb),
+					  align);
+	}
 }
 
 static void
 disconnect_signals (GcsvAlignment *align)
 {
-	g_signal_handlers_disconnect_by_data (align->buffer, align);
+	if (align->insert_text_handler_id != 0)
+	{
+		g_signal_handler_disconnect (align->buffer, align->insert_text_handler_id);
+		align->insert_text_handler_id = 0;
+	}
+
+	if (align->delete_range_handler_id != 0)
+	{
+		g_signal_handler_disconnect (align->buffer, align->delete_range_handler_id);
+		align->delete_range_handler_id = 0;
+	}
 }
 
 static void
@@ -640,6 +658,8 @@ static void
 gcsv_alignment_dispose (GObject *object)
 {
 	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	disconnect_signals (align);
 
 	if (align->idle_id != 0)
 	{
