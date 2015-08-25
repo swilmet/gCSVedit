@@ -21,40 +21,68 @@
 
 #include "gcsv-utils.h"
 
+/* Delete text in @buffer between @start and @end and containing @tag. */
 void
-gcsv_utils_delete_text_with_tag (GtkTextBuffer *buffer,
-				 GtkTextTag    *tag)
+gcsv_utils_delete_text_with_tag (GtkTextBuffer     *buffer,
+				 const GtkTextIter *start,
+				 const GtkTextIter *end,
+				 GtkTextTag        *tag)
 {
+	GtkTextMark *end_mark;
 	GtkTextIter iter;
 
-	gtk_text_buffer_get_start_iter (buffer, &iter);
+	g_return_if_fail (GTK_IS_TEXT_BUFFER (buffer));
+	g_return_if_fail (start != NULL);
+	g_return_if_fail (end != NULL);
+	g_return_if_fail (gtk_text_iter_compare (start, end) <= 0);
+	g_return_if_fail (GTK_IS_TEXT_TAG (tag));
+
+	end_mark = gtk_text_buffer_create_mark (buffer, NULL, end, FALSE);
+	iter = *start;
 
 	while (TRUE)
 	{
-		GtkTextIter start;
-		GtkTextIter end;
+		GtkTextIter chunk_start;
+		GtkTextIter chunk_end;
+		GtkTextIter limit;
 
-		start = iter;
-		if (!gtk_text_iter_begins_tag (&start, tag))
+		gtk_text_buffer_get_iter_at_mark (buffer, &limit, end_mark);
+
+		chunk_start = iter;
+		if (!gtk_text_iter_begins_tag (&chunk_start, tag))
 		{
-			if (!gtk_text_iter_forward_to_tag_toggle (&start, tag))
+			if (!gtk_text_iter_forward_to_tag_toggle (&chunk_start, tag))
 			{
-				return;
+				break;
 			}
 
-			g_assert (gtk_text_iter_begins_tag (&start, tag));
+			g_assert (gtk_text_iter_begins_tag (&chunk_start, tag));
 		}
 
-		end = start;
-		if (!gtk_text_iter_forward_to_tag_toggle (&end, tag))
+		if (gtk_text_iter_compare (&limit, &chunk_start) <= 0)
+		{
+			break;
+		}
+
+		chunk_end = chunk_start;
+		if (!gtk_text_iter_forward_to_tag_toggle (&chunk_end, tag))
 		{
 			g_assert_not_reached ();
 		}
-		g_assert (gtk_text_iter_ends_tag (&end, tag));
+		g_assert (gtk_text_iter_ends_tag (&chunk_end, tag));
 
-		gtk_text_buffer_delete (buffer, &start, &end);
-		iter = end;
+		if (gtk_text_iter_compare (&limit, &chunk_end) < 0)
+		{
+			gtk_text_buffer_delete (buffer, &chunk_start, &limit);
+			break;
+		}
+
+		gtk_text_buffer_delete (buffer, &chunk_start, &chunk_end);
+
+		iter = chunk_end;
 	}
+
+	gtk_text_buffer_delete_mark (buffer, end_mark);
 }
 
 /* Returns: a 0-terminated array of blocked signal handler ids.

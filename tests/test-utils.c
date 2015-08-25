@@ -46,26 +46,40 @@ test_delete_text_with_tag (void)
 	tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
 
 	gtk_text_buffer_set_text (buffer, text_before, -1);
-	gcsv_utils_delete_text_with_tag (buffer, tag);
+	gtk_text_buffer_get_bounds (buffer, &start, &end);
+	gcsv_utils_delete_text_with_tag (buffer, &start, &end, tag);
 	text_after = get_buffer_text (buffer);
 	g_assert_cmpstr (text_after, ==, text_before);
 	g_free (text_after);
 
 	gtk_text_buffer_set_text (buffer, text_before, -1);
 
+	/* Add tag to the 'h'. */
 	gtk_text_buffer_get_iter_at_offset (buffer, &start, 0);
 	gtk_text_buffer_get_iter_at_offset (buffer, &end, 1);
 	gtk_text_buffer_apply_tag (buffer, tag, &start, &end);
 
+	/* Add tag to "uni". */
 	gtk_text_buffer_get_iter_at_offset (buffer, &start, 6);
 	gtk_text_buffer_get_iter_at_offset (buffer, &end, 9);
 	gtk_text_buffer_apply_tag (buffer, tag, &start, &end);
 
+	/* Add tag to "se". */
 	gtk_text_buffer_get_iter_at_offset (buffer, &start, 12);
 	gtk_text_buffer_get_iter_at_offset (buffer, &end, 14);
 	gtk_text_buffer_apply_tag (buffer, tag, &start, &end);
 
-	gcsv_utils_delete_text_with_tag (buffer, tag);
+	/* Delete text with tag in "hello" */
+	gtk_text_buffer_get_start_iter (buffer, &start);
+	gtk_text_buffer_get_iter_at_offset (buffer, &end, 5);
+	gcsv_utils_delete_text_with_tag (buffer, &start, &end, tag);
+	text_after = get_buffer_text (buffer);
+	g_assert_cmpstr (text_after, ==, "ello universe");
+	g_free (text_after);
+
+	/* Delete remaining text with tag */
+	gtk_text_buffer_get_bounds (buffer, &start, &end);
+	gcsv_utils_delete_text_with_tag (buffer, &start, &end, tag);
 	text_after = get_buffer_text (buffer);
 	g_assert_cmpstr (text_after, ==, "ello ver");
 	g_free (text_after);

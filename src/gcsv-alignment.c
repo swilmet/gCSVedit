@@ -284,6 +284,11 @@ count_columns (GcsvAlignment *align)
 	GtkTextIter start;
 	GtkTextIter end;
 
+	if (align->delimiter == '\0')
+	{
+		return 1;
+	}
+
 	gtk_text_buffer_get_start_iter (align->buffer, &start);
 	end = start;
 	gtk_text_iter_forward_line (&end);
@@ -389,6 +394,11 @@ compute_max_column_length (GcsvAlignment *align,
 	guint line_num;
 	guint max_column_length = 0;
 
+	if (align->delimiter == '\0')
+	{
+		return 0;
+	}
+
 	n_lines = gtk_text_buffer_get_line_count (align->buffer);
 
 	for (line_num = 0; line_num < n_lines; line_num++)
@@ -477,8 +487,13 @@ align_subregion (GcsvAlignment     *align,
 {
 	gulong *handler_ids;
 	gboolean modified;
+	guint start_line;
 	guint end_line;
 	guint line_num;
+	GtkTextMark *start_mark;
+	GtkTextMark *end_mark;
+	GtkTextIter start_check;
+	GtkTextIter end_check;
 
 	g_assert (gtk_text_iter_starts_line (start));
 	g_assert (gtk_text_iter_ends_line (end));
@@ -487,11 +502,31 @@ align_subregion (GcsvAlignment     *align,
 							    "modified-changed");
 	modified = gtk_text_buffer_get_modified (align->buffer);
 
+	/* Delete alignment */
+	start_mark = gtk_text_buffer_create_mark (align->buffer, NULL, start, TRUE);
+	end_mark = gtk_text_buffer_create_mark (align->buffer, NULL, end, FALSE);
+
+	start_line = gtk_text_iter_get_line (start);
 	end_line = gtk_text_iter_get_line (end);
 
-	for (line_num = gtk_text_iter_get_line (start);
-	     line_num <= end_line;
-	     line_num++)
+	gcsv_utils_delete_text_with_tag (align->buffer, start, end, align->tag);
+
+	gtk_text_buffer_get_iter_at_mark (align->buffer, &start_check, start_mark);
+	gtk_text_buffer_delete_mark (align->buffer, start_mark);
+
+	gtk_text_buffer_get_iter_at_mark (align->buffer, &end_check, end_mark);
+	gtk_text_buffer_delete_mark (align->buffer, end_mark);
+
+	g_return_if_fail (gtk_text_iter_get_line (&start_check) == (gint)start_line);
+	g_return_if_fail (gtk_text_iter_get_line (&end_check) == (gint)end_line);
+
+	if (align->delimiter == '\0')
+	{
+		goto end;
+	}
+
+	/* Insert missing spaces */
+	for (line_num = start_line; line_num <= end_line; line_num++)
 	{
 		guint n_columns = align->columns_lengths->len;
 		guint column_num;
@@ -502,6 +537,7 @@ align_subregion (GcsvAlignment     *align,
 		}
 	}
 
+end:
 	gtk_text_buffer_set_modified (align->buffer, modified);
 	gcsv_utils_unblock_signal_handlers (G_OBJECT (align->buffer),
 					    handler_ids);
@@ -611,8 +647,6 @@ install_idle (GcsvAlignment *align)
 void
 gcsv_alignment_update (GcsvAlignment *align)
 {
-	gulong *handler_ids;
-	gboolean modified;
 	GtkTextIter start;
 	GtkTextIter end;
 
@@ -620,31 +654,12 @@ gcsv_alignment_update (GcsvAlignment *align)
 
 	update_columns_lengths (align);
 
-	if (align->region != NULL)
+	if (align->region == NULL)
 	{
-		gtk_text_region_destroy (align->region);
-		align->region = NULL;
-	}
-
-	handler_ids = gcsv_utils_block_all_signal_handlers (G_OBJECT (align->buffer),
-							    "modified-changed");
-	modified = gtk_text_buffer_get_modified (align->buffer);
-
-	gcsv_utils_delete_text_with_tag (align->buffer, align->tag);
-
-	gtk_text_buffer_set_modified (align->buffer, modified);
-	gcsv_utils_unblock_signal_handlers (G_OBJECT (align->buffer),
-					    handler_ids);
-	g_free (handler_ids);
-
-	if (align->delimiter == '\0')
-	{
-		return;
+		align->region = gtk_text_region_new (align->buffer);
 	}
 
 	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-
-	align->region = gtk_text_region_new (align->buffer);
 	gtk_text_region_add (align->region, &start, &end);
 
 	install_idle (align);
