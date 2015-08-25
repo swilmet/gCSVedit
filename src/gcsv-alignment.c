@@ -569,10 +569,10 @@ connect_signals (GcsvAlignment *align)
 	if (align->insert_text_handler_id == 0)
 	{
 		align->insert_text_handler_id =
-			g_signal_connect_swapped (align->buffer,
-						  "insert-text",
-						  G_CALLBACK (insert_text_after_cb),
-						  align);
+			g_signal_connect_after (align->buffer,
+						"insert-text",
+						G_CALLBACK (insert_text_after_cb),
+						align);
 	}
 
 	if (align->delete_range_handler_id == 0)
