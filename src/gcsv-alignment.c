@@ -352,10 +352,22 @@ align_subregion (GcsvAlignment     *align,
 	g_assert (gtk_text_iter_starts_line (start));
 	g_assert (gtk_text_iter_ends_line (end));
 
+	/* Block signals, store modified */
 	handler_ids = gcsv_utils_block_all_signal_handlers (G_OBJECT (align->buffer),
 							    "modified-changed");
 	modified = gtk_text_buffer_get_modified (align->buffer);
 
+	if (align->insert_text_handler_id != 0)
+	{
+		g_signal_handler_block (align->buffer, align->insert_text_handler_id);
+	}
+
+	if (align->delete_range_handler_id != 0)
+	{
+		g_signal_handler_block (align->buffer, align->delete_range_handler_id);
+	}
+
+	/* Adjust all fields alignment */
 	start_line = gtk_text_iter_get_line (start);
 	end_line = gtk_text_iter_get_line (end);
 
@@ -368,6 +380,17 @@ align_subregion (GcsvAlignment     *align,
 		{
 			adjust_field_alignment (align, line_num, column_num);
 		}
+	}
+
+	/* Unblock signals, restore modified */
+	if (align->insert_text_handler_id != 0)
+	{
+		g_signal_handler_unblock (align->buffer, align->insert_text_handler_id);
+	}
+
+	if (align->delete_range_handler_id != 0)
+	{
+		g_signal_handler_unblock (align->buffer, align->delete_range_handler_id);
 	}
 
 	gtk_text_buffer_set_modified (align->buffer, modified);
