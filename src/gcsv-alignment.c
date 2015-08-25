@@ -492,6 +492,25 @@ add_subregion_to_align (GcsvAlignment *align,
 }
 
 static void
+update_all (GcsvAlignment *align)
+{
+	GtkTextIter start;
+	GtkTextIter end;
+
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	if (!align->enabled)
+	{
+		return;
+	}
+
+	update_column_lengths (align);
+
+	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
+	add_subregion_to_align (align, &start, &end);
+}
+
+static void
 insert_text_after_cb (GtkTextBuffer *buffer,
 		      GtkTextIter   *location,
 		      gchar         *text,
@@ -558,7 +577,7 @@ set_buffer (GcsvAlignment *align,
 
 	g_object_notify (G_OBJECT (align), "buffer");
 
-	gcsv_alignment_update (align);
+	update_all (align);
 }
 
 static void
@@ -728,7 +747,7 @@ gcsv_alignment_set_enabled (GcsvAlignment *align,
 	if (enabled)
 	{
 		connect_signals (align);
-		gcsv_alignment_update (align);
+		update_all (align);
 	}
 	else
 	{
@@ -763,7 +782,7 @@ gcsv_alignment_set_delimiter (GcsvAlignment *align,
 		align->delimiter = delimiter;
 		g_object_notify (G_OBJECT (align), "delimiter");
 
-		gcsv_alignment_update (align);
+		update_all (align);
 	}
 }
 
@@ -773,25 +792,6 @@ gcsv_alignment_remove_alignment (GcsvAlignment *align)
 	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
 
 	gcsv_alignment_set_delimiter (align, '\0');
-}
-
-void
-gcsv_alignment_update (GcsvAlignment *align)
-{
-	GtkTextIter start;
-	GtkTextIter end;
-
-	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
-
-	if (!align->enabled)
-	{
-		return;
-	}
-
-	update_column_lengths (align);
-
-	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-	add_subregion_to_align (align, &start, &end);
 }
 
 GtkSourceBuffer *

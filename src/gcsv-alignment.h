@@ -44,8 +44,6 @@ void		gcsv_alignment_set_delimiter			(GcsvAlignment *align,
 
 void		gcsv_alignment_remove_alignment			(GcsvAlignment *align);
 
-void		gcsv_alignment_update				(GcsvAlignment *align);
-
 GtkSourceBuffer *
 		gcsv_alignment_copy_buffer_without_alignment	(GcsvAlignment *align);
 

@@ -33,6 +33,15 @@ get_buffer_text (GtkTextBuffer *buffer)
 }
 
 static void
+flush_queue (void)
+{
+	while (gtk_events_pending ())
+	{
+		gtk_main_iteration ();
+	}
+}
+
+static void
 check_alignment (const gchar *before,
 		 const gchar *after,
 		 gunichar     delimiter)
@@ -61,7 +70,7 @@ check_alignment (const gchar *before,
 	gtk_text_buffer_set_text (buffer, "", -1);
 	align = gcsv_alignment_new (buffer, delimiter);
 	gtk_text_buffer_set_text (buffer, before, -1);
-	gcsv_alignment_update (align);
+	flush_queue ();
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, after);
 	g_free (buffer_text);
