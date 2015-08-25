@@ -443,9 +443,9 @@ compute_column_length (GcsvAlignment *align,
 }
 
 static void
-adjust_missing_spaces (GcsvAlignment *align,
-		       guint          line_num,
-		       guint          column_num)
+adjust_field_alignment (GcsvAlignment *align,
+			guint          line_num,
+			guint          column_num)
 {
 	GtkTextIter field_start;
 	GtkTextIter field_end;
@@ -538,7 +538,7 @@ align_subregion (GcsvAlignment     *align,
 
 		for (column_num = 0; column_num < n_columns; column_num++)
 		{
-			adjust_missing_spaces (align, line_num, column_num);
+			adjust_field_alignment (align, line_num, column_num);
 		}
 	}
 
