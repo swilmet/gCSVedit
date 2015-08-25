@@ -341,6 +341,7 @@ move_iter_to_nth_column (GcsvAlignment *align,
 	}
 }
 
+/* Get field bounds, delimiters excluded. */
 static void
 get_field_bounds (GcsvAlignment *align,
 		  guint          line_num,
