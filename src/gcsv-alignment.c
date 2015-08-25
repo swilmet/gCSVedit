@@ -44,6 +44,8 @@ struct _GcsvAlignment
 	GtkTextRegion *region;
 
 	guint idle_id;
+
+	guint enabled : 1;
 };
 
 enum
@@ -51,6 +53,7 @@ enum
 	PROP_0,
 	PROP_BUFFER,
 	PROP_DELIMITER,
+	PROP_ENABLED,
 };
 
 /* Max number of lines to align at once. */
@@ -517,15 +520,8 @@ delete_range_cb (GtkTextBuffer *buffer,
 }
 
 static void
-set_buffer (GcsvAlignment *align,
-	    GtkTextBuffer *buffer)
+connect_signals (GcsvAlignment *align)
 {
-	g_assert (align->buffer == NULL);
-	g_assert (align->tag == NULL);
-
-	align->buffer = g_object_ref (buffer);
-	align->tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
-
 	g_signal_connect_object (align->buffer,
 				 "insert-text",
 				 G_CALLBACK (insert_text_after_cb),
@@ -537,6 +533,28 @@ set_buffer (GcsvAlignment *align,
 				 G_CALLBACK (delete_range_cb),
 				 align,
 				 0);
+}
+
+static void
+disconnect_signals (GcsvAlignment *align)
+{
+	g_signal_handlers_disconnect_by_data (align->buffer, align);
+}
+
+static void
+set_buffer (GcsvAlignment *align,
+	    GtkTextBuffer *buffer)
+{
+	g_assert (align->buffer == NULL);
+	g_assert (align->tag == NULL);
+
+	align->buffer = g_object_ref (buffer);
+	align->tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
+
+	if (align->enabled)
+	{
+		connect_signals (align);
+	}
 
 	g_object_notify (G_OBJECT (align), "buffer");
 
@@ -561,6 +579,10 @@ gcsv_alignment_get_property (GObject    *object,
 			g_value_set_uint (value, align->delimiter);
 			break;
 
+		case PROP_ENABLED:
+			g_value_set_boolean (value, align->enabled);
+			break;
+
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 			break;
@@ -583,6 +605,10 @@ gcsv_alignment_set_property (GObject      *object,
 
 		case PROP_DELIMITER:
 			gcsv_alignment_set_delimiter (align, g_value_get_uint (value));
+			break;
+
+		case PROP_ENABLED:
+			gcsv_alignment_set_enabled (align, g_value_get_boolean (value));
 			break;
 
 		default:
@@ -655,6 +681,16 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class,
+					 PROP_ENABLED,
+					 g_param_spec_boolean ("enabled",
+							       "Enabled",
+							       "",
+							       TRUE,
+							       G_PARAM_READWRITE |
+							       G_PARAM_CONSTRUCT |
+							       G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -672,6 +708,40 @@ gcsv_alignment_new (GtkTextBuffer *buffer,
 			     "buffer", buffer,
 			     "delimiter", delimiter,
 			     NULL);
+}
+
+void
+gcsv_alignment_set_enabled (GcsvAlignment *align,
+			    gboolean       enabled)
+{
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	enabled = enabled != FALSE;
+
+	if (align->enabled == enabled)
+	{
+		return;
+	}
+
+	align->enabled = enabled;
+
+	if (enabled)
+	{
+		connect_signals (align);
+		gcsv_alignment_update (align);
+	}
+	else
+	{
+		disconnect_signals (align);
+
+		if (align->idle_id != 0)
+		{
+			g_source_remove (align->idle_id);
+			align->idle_id = 0;
+		}
+	}
+
+	g_object_notify (G_OBJECT (align), "enabled");
 }
 
 gunichar
@@ -712,6 +782,11 @@ gcsv_alignment_update (GcsvAlignment *align)
 	GtkTextIter end;
 
 	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	if (!align->enabled)
+	{
+		return;
+	}
 
 	update_column_lengths (align);
 

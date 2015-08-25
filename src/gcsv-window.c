@@ -438,7 +438,7 @@ load_cb (GtkSourceFileLoader *loader,
 		error = NULL;
 	}
 
-	gcsv_alignment_update (window->align);
+	gcsv_alignment_set_enabled (window->align, TRUE);
 
 	g_object_unref (loader);
 	g_object_unref (window);
@@ -460,6 +460,8 @@ gcsv_window_load_file (GcsvWindow *window,
 
 	loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (buffer),
 					     window->file);
+
+	gcsv_alignment_set_enabled (window->align, FALSE);
 
 	gtk_source_file_loader_load_async (loader,
 					   G_PRIORITY_DEFAULT,
