@@ -472,6 +472,51 @@ install_idle (GcsvAlignment *align)
 }
 
 static void
+add_subregion_to_align (GcsvAlignment *align,
+			GtkTextIter   *start,
+			GtkTextIter   *end)
+{
+	adjust_subregion (start, end);
+
+	if (align->region == NULL)
+	{
+		align->region = gtk_text_region_new (align->buffer);
+	}
+
+	gtk_text_region_add (align->region, start, end);
+
+	install_idle (align);
+}
+
+static void
+insert_text_after_cb (GtkTextBuffer *buffer,
+		      GtkTextIter   *location,
+		      gchar         *text,
+		      gint           length,
+		      GcsvAlignment *align)
+{
+	GtkTextIter start;
+	GtkTextIter end;
+
+	start = end = *location;
+	gtk_text_iter_backward_chars (&start, g_utf8_strlen (text, length));
+
+	add_subregion_to_align (align, &start, &end);
+}
+
+static void
+delete_range_cb (GtkTextBuffer *buffer,
+		 GtkTextIter   *start,
+		 GtkTextIter   *end,
+		 GcsvAlignment *align)
+{
+	GtkTextIter start_copy = *start;
+	GtkTextIter end_copy = *end;
+
+	add_subregion_to_align (align, &start_copy, &end_copy);
+}
+
+static void
 set_buffer (GcsvAlignment *align,
 	    GtkTextBuffer *buffer)
 {
@@ -480,6 +525,18 @@ set_buffer (GcsvAlignment *align,
 
 	align->buffer = g_object_ref (buffer);
 	align->tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
+
+	g_signal_connect_object (align->buffer,
+				 "insert-text",
+				 G_CALLBACK (insert_text_after_cb),
+				 align,
+				 G_CONNECT_AFTER);
+
+	g_signal_connect_object (align->buffer,
+				 "delete-range",
+				 G_CALLBACK (delete_range_cb),
+				 align,
+				 0);
 
 	g_object_notify (G_OBJECT (align), "buffer");
 
@@ -658,15 +715,8 @@ gcsv_alignment_update (GcsvAlignment *align)
 
 	update_column_lengths (align);
 
-	if (align->region == NULL)
-	{
-		align->region = gtk_text_region_new (align->buffer);
-	}
-
 	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-	gtk_text_region_add (align->region, &start, &end);
-
-	install_idle (align);
+	add_subregion_to_align (align, &start, &end);
 }
 
 GtkSourceBuffer *
