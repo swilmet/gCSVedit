@@ -380,13 +380,33 @@ get_field_bounds (GcsvAlignment *align,
 
 /* Length in characters, not in bytes. */
 static guint
-get_field_length (const GtkTextIter *field_start,
-		  const GtkTextIter *field_end)
+get_field_length (GcsvAlignment     *align,
+		  const GtkTextIter *field_start,
+		  const GtkTextIter *field_end,
+		  gboolean           include_virtual_spaces)
 {
+	GtkTextIter iter;
+	guint length = 0;
+
 	g_return_val_if_fail (gtk_text_iter_get_line (field_start) == gtk_text_iter_get_line (field_end), 0);
 	g_return_val_if_fail (gtk_text_iter_compare (field_start, field_end) <= 0, 0);
 
-	return gtk_text_iter_get_line_offset (field_end) - gtk_text_iter_get_line_offset (field_start);
+	if (include_virtual_spaces)
+	{
+		return gtk_text_iter_get_line_offset (field_end) - gtk_text_iter_get_line_offset (field_start);
+	}
+
+	for (iter = *field_start;
+	     !gtk_text_iter_equal (&iter, field_end);
+	     gtk_text_iter_forward_char (&iter))
+	{
+		if (!gtk_text_iter_has_tag (&iter, align->tag))
+		{
+			length++;
+		}
+	}
+
+	return length;
 }
 
 static gint
@@ -410,9 +430,8 @@ compute_column_length (GcsvAlignment *align,
 		GtkTextIter end;
 		gint length;
 
-		/* TODO: do not count virtual spaces. */
 		get_field_bounds (align, line_num, column_num, &start, &end);
-		length = get_field_length (&start, &end);
+		length = get_field_length (align, &start, &end, FALSE);
 
 		if (length > max_length)
 		{
@@ -448,7 +467,7 @@ adjust_missing_spaces (GcsvAlignment *align,
 
 	/* Insert missing spaces */
 	get_field_bounds (align, line_num, column_num, &field_start, &field_end);
-	field_length = get_field_length (&field_start, &field_end);
+	field_length = get_field_length (align, &field_start, &field_end, TRUE);
 
 	g_return_if_fail (field_length <= column_length);
 
