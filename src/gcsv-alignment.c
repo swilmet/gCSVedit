@@ -100,183 +100,6 @@ is_text_region_empty (GtkTextRegion *region)
 	return TRUE;
 }
 
-static void
-set_buffer (GcsvAlignment *align,
-	    GtkTextBuffer *buffer)
-{
-	g_assert (align->buffer == NULL);
-	g_assert (align->tag == NULL);
-
-	align->buffer = g_object_ref (buffer);
-	align->tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
-
-	g_object_notify (G_OBJECT (align), "buffer");
-
-	gcsv_alignment_update (align);
-}
-
-static void
-gcsv_alignment_get_property (GObject    *object,
-			     guint       prop_id,
-			     GValue     *value,
-			     GParamSpec *pspec)
-{
-	GcsvAlignment *align = GCSV_ALIGNMENT (object);
-
-	switch (prop_id)
-	{
-		case PROP_BUFFER:
-			g_value_set_object (value, align->buffer);
-			break;
-
-		case PROP_DELIMITER:
-			g_value_set_uint (value, align->delimiter);
-			break;
-
-		default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-			break;
-	}
-}
-
-static void
-gcsv_alignment_set_property (GObject      *object,
-			     guint         prop_id,
-			     const GValue *value,
-			     GParamSpec   *pspec)
-{
-	GcsvAlignment *align = GCSV_ALIGNMENT (object);
-
-	switch (prop_id)
-	{
-		case PROP_BUFFER:
-			set_buffer (align, g_value_get_object (value));
-			break;
-
-		case PROP_DELIMITER:
-			gcsv_alignment_set_delimiter (align, g_value_get_uint (value));
-			break;
-
-		default:
-			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-			break;
-	}
-}
-
-static void
-gcsv_alignment_dispose (GObject *object)
-{
-	GcsvAlignment *align = GCSV_ALIGNMENT (object);
-
-	if (align->idle_id != 0)
-	{
-		g_source_remove (align->idle_id);
-		align->idle_id = 0;
-	}
-
-	if (align->region != NULL)
-	{
-		gtk_text_region_destroy (align->region);
-		align->region = NULL;
-	}
-
-	if (align->buffer != NULL)
-	{
-		if (align->tag != NULL)
-		{
-			GtkTextTagTable *table;
-
-			table = gtk_text_buffer_get_tag_table (align->buffer);
-			gtk_text_tag_table_remove (table, align->tag);
-
-			align->tag = NULL;
-		}
-
-		g_object_unref (align->buffer);
-		align->buffer = NULL;
-	}
-
-	G_OBJECT_CLASS (gcsv_alignment_parent_class)->dispose (object);
-}
-
-static void
-gcsv_alignment_class_init (GcsvAlignmentClass *klass)
-{
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-	object_class->get_property = gcsv_alignment_get_property;
-	object_class->set_property = gcsv_alignment_set_property;
-	object_class->dispose = gcsv_alignment_dispose;
-
-	g_object_class_install_property (object_class,
-					 PROP_BUFFER,
-					 g_param_spec_object ("buffer",
-							      "Buffer",
-							      "",
-							      GTK_TYPE_TEXT_BUFFER,
-							      G_PARAM_READWRITE |
-							      G_PARAM_CONSTRUCT_ONLY |
-							      G_PARAM_STATIC_STRINGS));
-
-	g_object_class_install_property (object_class,
-					 PROP_DELIMITER,
-					 g_param_spec_unichar ("delimiter",
-							       "Delimiter",
-							       "",
-							       ',',
-							       G_PARAM_READWRITE |
-							       G_PARAM_CONSTRUCT |
-							       G_PARAM_STATIC_STRINGS));
-}
-
-static void
-gcsv_alignment_init (GcsvAlignment *align)
-{
-}
-
-GcsvAlignment *
-gcsv_alignment_new (GtkTextBuffer *buffer,
-		    gunichar       delimiter)
-{
-	g_return_val_if_fail (GTK_IS_TEXT_BUFFER (buffer), NULL);
-
-	return g_object_new (GCSV_TYPE_ALIGNMENT,
-			     "buffer", buffer,
-			     "delimiter", delimiter,
-			     NULL);
-}
-
-gunichar
-gcsv_alignment_get_delimiter (GcsvAlignment *align)
-{
-	g_return_val_if_fail (GCSV_IS_ALIGNMENT (align), '\0');
-
-	return align->delimiter;
-}
-
-void
-gcsv_alignment_set_delimiter (GcsvAlignment *align,
-			      gunichar       delimiter)
-{
-	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
-
-	if (align->delimiter != delimiter)
-	{
-		align->delimiter = delimiter;
-		g_object_notify (G_OBJECT (align), "delimiter");
-
-		gcsv_alignment_update (align);
-	}
-}
-
-void
-gcsv_alignment_remove_alignment (GcsvAlignment *align)
-{
-	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
-
-	gcsv_alignment_set_delimiter (align, '\0');
-}
-
 static guint
 count_columns (GcsvAlignment *align)
 {
@@ -646,6 +469,183 @@ install_idle (GcsvAlignment *align)
 	{
 		align->idle_id = g_idle_add ((GSourceFunc) idle_cb, align);
 	}
+}
+
+static void
+set_buffer (GcsvAlignment *align,
+	    GtkTextBuffer *buffer)
+{
+	g_assert (align->buffer == NULL);
+	g_assert (align->tag == NULL);
+
+	align->buffer = g_object_ref (buffer);
+	align->tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
+
+	g_object_notify (G_OBJECT (align), "buffer");
+
+	gcsv_alignment_update (align);
+}
+
+static void
+gcsv_alignment_get_property (GObject    *object,
+			     guint       prop_id,
+			     GValue     *value,
+			     GParamSpec *pspec)
+{
+	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	switch (prop_id)
+	{
+		case PROP_BUFFER:
+			g_value_set_object (value, align->buffer);
+			break;
+
+		case PROP_DELIMITER:
+			g_value_set_uint (value, align->delimiter);
+			break;
+
+		default:
+			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+			break;
+	}
+}
+
+static void
+gcsv_alignment_set_property (GObject      *object,
+			     guint         prop_id,
+			     const GValue *value,
+			     GParamSpec   *pspec)
+{
+	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	switch (prop_id)
+	{
+		case PROP_BUFFER:
+			set_buffer (align, g_value_get_object (value));
+			break;
+
+		case PROP_DELIMITER:
+			gcsv_alignment_set_delimiter (align, g_value_get_uint (value));
+			break;
+
+		default:
+			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+			break;
+	}
+}
+
+static void
+gcsv_alignment_dispose (GObject *object)
+{
+	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	if (align->idle_id != 0)
+	{
+		g_source_remove (align->idle_id);
+		align->idle_id = 0;
+	}
+
+	if (align->region != NULL)
+	{
+		gtk_text_region_destroy (align->region);
+		align->region = NULL;
+	}
+
+	if (align->buffer != NULL)
+	{
+		if (align->tag != NULL)
+		{
+			GtkTextTagTable *table;
+
+			table = gtk_text_buffer_get_tag_table (align->buffer);
+			gtk_text_tag_table_remove (table, align->tag);
+
+			align->tag = NULL;
+		}
+
+		g_object_unref (align->buffer);
+		align->buffer = NULL;
+	}
+
+	G_OBJECT_CLASS (gcsv_alignment_parent_class)->dispose (object);
+}
+
+static void
+gcsv_alignment_class_init (GcsvAlignmentClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	object_class->get_property = gcsv_alignment_get_property;
+	object_class->set_property = gcsv_alignment_set_property;
+	object_class->dispose = gcsv_alignment_dispose;
+
+	g_object_class_install_property (object_class,
+					 PROP_BUFFER,
+					 g_param_spec_object ("buffer",
+							      "Buffer",
+							      "",
+							      GTK_TYPE_TEXT_BUFFER,
+							      G_PARAM_READWRITE |
+							      G_PARAM_CONSTRUCT_ONLY |
+							      G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class,
+					 PROP_DELIMITER,
+					 g_param_spec_unichar ("delimiter",
+							       "Delimiter",
+							       "",
+							       ',',
+							       G_PARAM_READWRITE |
+							       G_PARAM_CONSTRUCT |
+							       G_PARAM_STATIC_STRINGS));
+}
+
+static void
+gcsv_alignment_init (GcsvAlignment *align)
+{
+}
+
+GcsvAlignment *
+gcsv_alignment_new (GtkTextBuffer *buffer,
+		    gunichar       delimiter)
+{
+	g_return_val_if_fail (GTK_IS_TEXT_BUFFER (buffer), NULL);
+
+	return g_object_new (GCSV_TYPE_ALIGNMENT,
+			     "buffer", buffer,
+			     "delimiter", delimiter,
+			     NULL);
+}
+
+gunichar
+gcsv_alignment_get_delimiter (GcsvAlignment *align)
+{
+	g_return_val_if_fail (GCSV_IS_ALIGNMENT (align), '\0');
+
+	return align->delimiter;
+}
+
+void
+gcsv_alignment_set_delimiter (GcsvAlignment *align,
+			      gunichar       delimiter)
+{
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	if (align->delimiter != delimiter)
+	{
+		align->delimiter = delimiter;
+		g_object_notify (G_OBJECT (align), "delimiter");
+
+		gcsv_alignment_update (align);
+	}
+}
+
+void
+gcsv_alignment_remove_alignment (GcsvAlignment *align)
+{
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	gcsv_alignment_set_delimiter (align, '\0');
 }
 
 void
