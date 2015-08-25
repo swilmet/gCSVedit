@@ -35,7 +35,9 @@ struct _GcsvAlignment
 	 */
 	GtkTextTag *tag;
 
-	/* Contains the columns lengths as guint's. */
+	/* Contains the column lengths as gint's. A column length of -1 means no
+	 * alignment.
+	 */
 	GArray *column_lengths;
 
 	/* The remaining region in the GtkTextBuffer to align. */
@@ -56,13 +58,13 @@ enum
 
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 
-static guint
+static gint
 get_column_length (GcsvAlignment *align,
 		   guint          column_num)
 {
 	g_return_val_if_fail (column_num < align->column_lengths->len, 0);
 
-	return g_array_index (align->column_lengths, guint, column_num);
+	return g_array_index (align->column_lengths, gint, column_num);
 }
 
 /* A TextRegion can contain empty subregions. So checking the number of
@@ -387,17 +389,17 @@ get_field_length (const GtkTextIter *field_start,
 	return gtk_text_iter_get_line_offset (field_end) - gtk_text_iter_get_line_offset (field_start);
 }
 
-static guint
-compute_max_column_length (GcsvAlignment *align,
-			   guint          column_num)
+static gint
+compute_column_length (GcsvAlignment *align,
+		       guint          column_num)
 {
 	guint n_lines;
 	guint line_num;
-	guint max_column_length = 0;
+	gint max_length = 0;
 
 	if (align->delimiter == '\0')
 	{
-		return 0;
+		return -1;
 	}
 
 	n_lines = gtk_text_buffer_get_line_count (align->buffer);
@@ -406,18 +408,18 @@ compute_max_column_length (GcsvAlignment *align,
 	{
 		GtkTextIter start;
 		GtkTextIter end;
-		guint length;
+		gint length;
 
 		get_field_bounds (align, line_num, column_num, &start, &end);
 		length = get_field_length (&start, &end);
 
-		if (length > max_column_length)
+		if (length > max_length)
 		{
-			max_column_length = length;
+			max_length = length;
 		}
 	}
 
-	return max_column_length;
+	return max_length;
 }
 
 static void
@@ -469,15 +471,12 @@ update_column_lengths (GcsvAlignment *align)
 	}
 
 	n_columns = count_columns (align);
-	align->column_lengths = g_array_sized_new (FALSE, TRUE, sizeof (guint), n_columns);
+	align->column_lengths = g_array_sized_new (FALSE, TRUE, sizeof (gint), n_columns);
 
 	for (column_num = 0; column_num < n_columns; column_num++)
 	{
-		guint max_column_length;
-
-		max_column_length = compute_max_column_length (align, column_num);
-
-		g_array_append_val (align->column_lengths, max_column_length);
+		gint column_length = compute_column_length (align, column_num);
+		g_array_append_val (align->column_lengths, column_length);
 	}
 }
 
