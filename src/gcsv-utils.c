@@ -56,3 +56,63 @@ gcsv_utils_delete_text_with_tag (GtkTextBuffer *buffer,
 		iter = end;
 	}
 }
+
+/* Returns: a 0-terminated array of blocked signal handler ids.
+ * Free with g_free().
+ */
+gulong *
+gcsv_utils_block_all_signal_handlers (GObject     *instance,
+				      const gchar *signal_name)
+{
+	guint signal_id;
+	GArray *handler_ids;
+
+	g_return_val_if_fail (G_IS_OBJECT (instance), NULL);
+
+	signal_id = g_signal_lookup (signal_name, G_OBJECT_TYPE (instance));
+	g_return_val_if_fail (signal_id != 0, NULL);
+
+	handler_ids = g_array_new (TRUE, TRUE, sizeof (gulong));
+
+	while (TRUE)
+	{
+		gulong handler_id;
+
+		handler_id = g_signal_handler_find (instance,
+						    G_SIGNAL_MATCH_UNBLOCKED,
+						    signal_id,
+						    0,
+						    NULL,
+						    NULL,
+						    NULL);
+
+		if (handler_id == 0)
+		{
+			break;
+		}
+
+		g_signal_handler_block (instance, handler_id);
+		g_array_append_val (handler_ids, handler_id);
+	}
+
+	return (gulong *) g_array_free (handler_ids, FALSE);
+}
+
+void
+gcsv_utils_unblock_signal_handlers (GObject      *instance,
+				    const gulong *handler_ids)
+{
+	gint i;
+
+	g_return_if_fail (G_IS_OBJECT (instance));
+
+	if (handler_ids == NULL)
+	{
+		return;
+	}
+
+	for (i = 0; handler_ids[i] != 0; i++)
+	{
+		g_signal_handler_unblock (instance, handler_ids[i]);
+	}
+}

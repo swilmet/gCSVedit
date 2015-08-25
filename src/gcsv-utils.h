@@ -29,6 +29,12 @@ G_BEGIN_DECLS
 void		gcsv_utils_delete_text_with_tag		(GtkTextBuffer *buffer,
 							 GtkTextTag    *tag);
 
+gulong *	gcsv_utils_block_all_signal_handlers	(GObject     *instance,
+							 const gchar *signal_name);
+
+void		gcsv_utils_unblock_signal_handlers	(GObject      *instance,
+							 const gulong *handler_ids);
+
 G_END_DECLS
 
 #endif /* __GCSV_UTILS_H__ */
