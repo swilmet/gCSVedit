@@ -63,6 +63,11 @@ enum
 
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 
+/* Prototypes */
+static void add_subregion_to_align (GcsvAlignment *align,
+				    GtkTextIter   *start,
+				    GtkTextIter   *end);
+
 static gint
 get_column_length (GcsvAlignment *align,
 		   guint          column_num)
@@ -270,7 +275,10 @@ compute_column_length (GcsvAlignment *align,
 	return max_length;
 }
 
-static void
+/* Returns TRUE if field correctly adjusted. Returns FALSE if the column length
+ * has been updated.
+ */
+static gboolean
 adjust_field_alignment (GcsvAlignment *align,
 			guint          line_num,
 			guint          column_num)
@@ -284,26 +292,39 @@ adjust_field_alignment (GcsvAlignment *align,
 
 	column_length = get_column_length (align, column_num);
 
-	/* Delete alignment */
+	/* Delete previous alignment */
 	get_field_bounds (align, line_num, column_num, &field_start, &field_end);
 	gcsv_utils_delete_text_with_tag (align->buffer, &field_start, &field_end, align->tag);
 
 	if (column_length < 0)
 	{
-		return;
+		return TRUE;
 	}
 
-	/* Insert missing spaces */
+	/* Compare field length with column length */
 	get_field_bounds (align, line_num, column_num, &field_start, &field_end);
 	field_length = get_field_length (align, &field_start, &field_end, TRUE);
 
-	g_return_if_fail (field_length <= column_length);
-
 	if (field_length == column_length)
 	{
-		return;
+		return TRUE;
 	}
 
+	if (field_length > column_length)
+	{
+		GtkTextIter start;
+		GtkTextIter end;
+
+		/* Update column length */
+		g_array_remove_index (align->column_lengths, column_num);
+		g_array_insert_val (align->column_lengths, column_num, field_length);
+
+		gtk_text_buffer_get_bounds (align->buffer, &start, &end);
+		add_subregion_to_align (align, &start, &end);
+		return FALSE;
+	}
+
+	/* Insert missing spaces */
 	n_spaces = column_length - field_length;
 	alignment = g_strnfill (n_spaces, ' ');
 
@@ -314,6 +335,7 @@ adjust_field_alignment (GcsvAlignment *align,
 					  NULL);
 
 	g_free (alignment);
+	return TRUE;
 }
 
 static void
@@ -338,7 +360,10 @@ update_column_lengths (GcsvAlignment *align)
 	}
 }
 
-static void
+/* Returns TRUE if the subregion is correctly aligned, FALSE if a column length
+ * has been updated.
+ */
+static gboolean
 align_subregion (GcsvAlignment     *align,
 		 const GtkTextIter *start,
 		 const GtkTextIter *end)
@@ -348,6 +373,7 @@ align_subregion (GcsvAlignment     *align,
 	guint start_line;
 	guint end_line;
 	guint line_num;
+	gboolean finished = TRUE;
 
 	g_assert (gtk_text_iter_starts_line (start));
 	g_assert (gtk_text_iter_ends_line (end));
@@ -378,10 +404,15 @@ align_subregion (GcsvAlignment     *align,
 
 		for (column_num = 0; column_num < n_columns; column_num++)
 		{
-			adjust_field_alignment (align, line_num, column_num);
+			if (!adjust_field_alignment (align, line_num, column_num))
+			{
+				finished = FALSE;
+				goto out;
+			}
 		}
 	}
 
+out:
 	/* Unblock signals, restore modified */
 	if (align->insert_text_handler_id != 0)
 	{
@@ -397,6 +428,8 @@ align_subregion (GcsvAlignment     *align,
 	gcsv_utils_unblock_signal_handlers (G_OBJECT (align->buffer),
 					    handler_ids);
 	g_free (handler_ids);
+
+	return finished;
 }
 
 static void
@@ -460,7 +493,10 @@ idle_cb (GcsvAlignment *align)
 		 */
 		line_end = gtk_text_iter_get_line (&subregion_end);
 
-		align_subregion (align, &subregion_start, &subregion_end);
+		if (!align_subregion (align, &subregion_start, &subregion_end))
+		{
+			return G_SOURCE_CONTINUE;
+		}
 
 		gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end);
 		if (!gtk_text_iter_ends_line (&stop))
