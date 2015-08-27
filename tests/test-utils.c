@@ -95,5 +95,5 @@ main (gint    argc,
 
 	g_test_add_func ("/utils/delete-text-with-tag", test_delete_text_with_tag);
 
-	return 0;
+	return g_test_run ();
 }

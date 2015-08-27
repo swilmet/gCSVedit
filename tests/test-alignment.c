@@ -118,5 +118,5 @@ main (gint    argc,
 
 	g_test_add_func ("/align/commas", test_commas);
 
-	return 0;
+	return g_test_run ();
 }
