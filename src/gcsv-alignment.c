@@ -493,7 +493,7 @@ idle_cb (GcsvAlignment *align)
 static void
 install_idle (GcsvAlignment *align)
 {
-	if (align->idle_id == 0)
+	if (align->enabled && align->idle_id == 0)
 	{
 		align->idle_id = g_idle_add ((GSourceFunc) idle_cb, align);
 	}
