@@ -714,17 +714,22 @@ gcsv_alignment_set_property (GObject      *object,
 }
 
 static void
-gcsv_alignment_dispose (GObject *object)
+remove_event_sources (GcsvAlignment *align)
 {
-	GcsvAlignment *align = GCSV_ALIGNMENT (object);
-
-	disconnect_signals (align);
-
 	if (align->idle_id != 0)
 	{
 		g_source_remove (align->idle_id);
 		align->idle_id = 0;
 	}
+}
+
+static void
+gcsv_alignment_dispose (GObject *object)
+{
+	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	disconnect_signals (align);
+	remove_event_sources (align);
 
 	if (align->region != NULL)
 	{
@@ -831,12 +836,7 @@ gcsv_alignment_set_enabled (GcsvAlignment *align,
 	else
 	{
 		disconnect_signals (align);
-
-		if (align->idle_id != 0)
-		{
-			g_source_remove (align->idle_id);
-			align->idle_id = 0;
-		}
+		remove_event_sources (align);
 	}
 
 	g_object_notify (G_OBJECT (align), "enabled");
