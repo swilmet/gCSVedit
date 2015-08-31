@@ -21,9 +21,7 @@ if [ "$#" = 0 -a "x$NOCONFIGURE" = "x" ]; then
 	echo "" >&2
 fi
 
-set -x
 aclocal --install || exit 1
-glib-gettextize --force --copy || exit 1
 autoreconf --verbose --force --install -Wno-portability || exit 1
 
 cd $olddir
@@ -36,5 +34,3 @@ if [ "$NOCONFIGURE" = "" ]; then
 else
 	echo "Skipping configure process."
 fi
-
-{ set +x; } 2>/dev/null
