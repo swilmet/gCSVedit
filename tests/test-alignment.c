@@ -156,6 +156,51 @@ test_column_growing (void)
 	g_object_unref (align);
 }
 
+static void
+test_column_shrinking (void)
+{
+	GtkTextBuffer *buffer;
+	GcsvAlignment *align;
+	const gchar *text_after;
+	gchar *buffer_text;
+	GtkTextIter start;
+	GtkTextIter end;
+
+	buffer = gtk_text_buffer_new (NULL);
+	gtk_text_buffer_set_text (buffer,
+				  "daa,bb\n"
+				  "1,2",
+				  -1);
+
+	align = gcsv_alignment_new (buffer, ',');
+	flush_queue ();
+
+	text_after =
+		"daa,bb\n"
+		"1  ,2 ";
+
+	buffer_text = get_buffer_text (buffer);
+	g_assert_cmpstr (buffer_text, ==, text_after);
+	g_free (buffer_text);
+
+	/* Delete the 'd' */
+	gtk_text_buffer_get_start_iter (buffer, &start);
+	gtk_text_buffer_get_iter_at_offset (buffer, &end, 1);
+	gtk_text_buffer_delete (buffer, &start, &end);
+	flush_queue ();
+
+	text_after =
+		"aa,bb\n"
+		"1 ,2 ";
+
+	buffer_text = get_buffer_text (buffer);
+	g_assert_cmpstr (buffer_text, ==, text_after);
+	g_free (buffer_text);
+
+	g_object_unref (buffer);
+	g_object_unref (align);
+}
+
 gint
 main (gint    argc,
       gchar **argv)
@@ -164,6 +209,7 @@ main (gint    argc,
 
 	g_test_add_func ("/align/commas", test_commas);
 	g_test_add_func ("/align/column_growing", test_column_growing);
+	g_test_add_func ("/align/column_shrinking", test_column_shrinking);
 
 	return g_test_run ();
 }
