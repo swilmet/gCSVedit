@@ -23,6 +23,17 @@
 #include "gcsv-utils.h"
 #include "gtktextregion.h"
 
+typedef enum _Phase Phase;
+enum _Phase
+{
+	/* The alignment is done in two phases. The first one is scanning, to
+	 * compute the column length. The second one is aligning, to insert
+	 * missing spaces.
+	 */
+	PHASE_SCANNING,
+	PHASE_ALIGNING,
+};
+
 struct _GcsvAlignment
 {
 	GObject parent;
@@ -40,8 +51,9 @@ struct _GcsvAlignment
 	 */
 	GArray *column_lengths;
 
-	/* The remaining region in the GtkTextBuffer to align. */
+	/* The remaining region in the GtkTextBuffer to scan or align. */
 	GtkTextRegion *region;
+	Phase current_phase;
 
 	guint idle_id;
 	gulong insert_text_handler_id;
@@ -58,15 +70,55 @@ enum
 	PROP_ENABLED,
 };
 
-/* Max number of lines to align at once. */
-#define BATCH_SIZE 100
+/* Function to handle a subregion of a GtkTextRegion.
+ * Returns TRUE if the subregion was handled normally, and if the next subregion
+ * can be handled. Returns FALSE otherwise, for example if the GtkTextRegion has
+ * been altered so the iteration of the GtkTextRegion must stop.
+ */
+typedef gboolean (* HandleSubregionFunc) (GcsvAlignment     *align,
+					  const GtkTextIter *start,
+					  const GtkTextIter *end);
+
+/* Max number of lines to scan or align at once. Aligning takes normally more
+ * time since it needs to delete and insert text, while scanning is just
+ * reading.
+ */
+#define SCANNING_BATCH_SIZE 100
+#define ALIGNING_BATCH_SIZE 50
+
+#define ENABLE_DEBUG 0
 
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 
 /* Prototypes */
-static void add_subregion_to_align (GcsvAlignment *align,
-				    GtkTextIter   *start,
-				    GtkTextIter   *end);
+static void add_subregion (GcsvAlignment *align,
+			   GtkTextIter   *start,
+			   GtkTextIter   *end);
+
+#if ENABLE_DEBUG
+static void
+print_column_lengths (GcsvAlignment *align)
+{
+	guint i;
+
+	g_print ("column lengths: ");
+
+	for (i = 0; i < align->column_lengths->len; i++)
+	{
+		gint len;
+
+		len = g_array_index (align->column_lengths, gint, i);
+		g_print ("%d", len);
+
+		if (i < align->column_lengths->len - 1)
+		{
+			g_print (", ");
+		}
+	}
+
+	g_print ("\n");
+}
+#endif
 
 static gint
 get_column_length (GcsvAlignment *align,
@@ -75,6 +127,31 @@ get_column_length (GcsvAlignment *align,
 	g_return_val_if_fail (column_num < align->column_lengths->len, 0);
 
 	return g_array_index (align->column_lengths, gint, column_num);
+}
+
+static void
+set_column_length (GcsvAlignment *align,
+		   guint          column_num,
+		   gint           column_length)
+{
+	if (column_num >= align->column_lengths->len)
+	{
+		guint i;
+
+		for (i = align->column_lengths->len; i < column_num; i++)
+		{
+			gint no_alignment = -1;
+			g_array_insert_val (align->column_lengths, i, no_alignment);
+		}
+
+		g_array_insert_val (align->column_lengths, column_num, column_length);
+	}
+	else
+	{
+		/* Update value */
+		g_array_remove_index (align->column_lengths, column_num);
+		g_array_insert_val (align->column_lengths, column_num, column_length);
+	}
 }
 
 /* A TextRegion can contain empty subregions. So checking the number of
@@ -111,10 +188,11 @@ is_text_region_empty (GtkTextRegion *region)
 }
 
 static guint
-count_columns (GcsvAlignment *align)
+count_columns (GcsvAlignment *align,
+	       guint          at_line)
 {
 	guint n_columns = 1;
-	gchar *first_line;
+	gchar *line;
 	gchar *p;
 	GtkTextIter start;
 	GtkTextIter end;
@@ -124,13 +202,13 @@ count_columns (GcsvAlignment *align)
 		return 1;
 	}
 
-	gtk_text_buffer_get_start_iter (align->buffer, &start);
+	gtk_text_buffer_get_iter_at_line (align->buffer, &start, at_line);
 	end = start;
 	gtk_text_iter_forward_line (&end);
 
-	first_line = gtk_text_buffer_get_text (align->buffer, &start, &end, TRUE);
+	line = gtk_text_buffer_get_text (align->buffer, &start, &end, TRUE);
 
-	p = first_line;
+	p = line;
 	while (p != NULL && *p != '\0')
 	{
 		gunichar ch;
@@ -144,7 +222,7 @@ count_columns (GcsvAlignment *align)
 		p = g_utf8_find_next_char (p, NULL);
 	}
 
-	g_free (first_line);
+	g_free (line);
 	return n_columns;
 }
 
@@ -242,37 +320,62 @@ get_field_length (GcsvAlignment     *align,
 	return length;
 }
 
-static gint
-compute_column_length (GcsvAlignment *align,
-		       guint          column_num)
+static gboolean
+scan_subregion (GcsvAlignment     *align,
+		const GtkTextIter *start,
+		const GtkTextIter *end)
 {
-	guint n_lines;
+	guint start_line;
+	guint end_line;
 	guint line_num;
-	gint max_length = 0;
 
-	if (align->delimiter == '\0')
+	g_assert (gtk_text_iter_starts_line (start));
+	g_assert (gtk_text_iter_ends_line (end));
+
+	start_line = gtk_text_iter_get_line (start);
+	end_line = gtk_text_iter_get_line (end);
+
+	for (line_num = start_line; line_num <= end_line; line_num++)
 	{
-		return -1;
-	}
+		guint n_columns;
+		guint column_num;
 
-	n_lines = gtk_text_buffer_get_line_count (align->buffer);
+		n_columns = count_columns (align, line_num);
 
-	for (line_num = 0; line_num < n_lines; line_num++)
-	{
-		GtkTextIter start;
-		GtkTextIter end;
-		gint length;
-
-		get_field_bounds (align, line_num, column_num, &start, &end);
-		length = get_field_length (align, &start, &end, FALSE);
-
-		if (length > max_length)
+		for (column_num = 0; column_num < n_columns; column_num++)
 		{
-			max_length = length;
+			gint field_length;
+			gint column_length;
+
+			if (align->delimiter == '\0')
+			{
+				field_length = -1;
+			}
+			else
+			{
+				GtkTextIter field_start;
+				GtkTextIter field_end;
+
+				get_field_bounds (align, line_num, column_num, &field_start, &field_end);
+				field_length = get_field_length (align, &field_start, &field_end, FALSE);
+			}
+
+			if (column_num >= align->column_lengths->len)
+			{
+				set_column_length (align, column_num, field_length);
+				continue;
+			}
+
+			column_length = get_column_length (align, column_num);
+
+			if (field_length > column_length)
+			{
+				set_column_length (align, column_num, field_length);
+			}
 		}
 	}
 
-	return max_length;
+	return TRUE;
 }
 
 /* Returns TRUE if field correctly adjusted. Returns FALSE if the column length
@@ -315,12 +418,10 @@ adjust_field_alignment (GcsvAlignment *align,
 		GtkTextIter start;
 		GtkTextIter end;
 
-		/* Update column length */
-		g_array_remove_index (align->column_lengths, column_num);
-		g_array_insert_val (align->column_lengths, column_num, field_length);
+		set_column_length (align, column_num, field_length);
 
 		gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-		add_subregion_to_align (align, &start, &end);
+		add_subregion (align, &start, &end);
 		return FALSE;
 	}
 
@@ -336,28 +437,6 @@ adjust_field_alignment (GcsvAlignment *align,
 
 	g_free (alignment);
 	return TRUE;
-}
-
-static void
-update_column_lengths (GcsvAlignment *align)
-{
-	guint n_columns;
-	guint column_num;
-
-	if (align->column_lengths != NULL)
-	{
-		g_array_unref (align->column_lengths);
-		align->column_lengths = NULL;
-	}
-
-	n_columns = count_columns (align);
-	align->column_lengths = g_array_sized_new (FALSE, TRUE, sizeof (gint), n_columns);
-
-	for (column_num = 0; column_num < n_columns; column_num++)
-	{
-		gint column_length = compute_column_length (align, column_num);
-		g_array_append_val (align->column_lengths, column_length);
-	}
 }
 
 /* Returns TRUE if the subregion is correctly aligned, FALSE if a column length
@@ -447,18 +526,22 @@ adjust_subregion (GtkTextIter *start,
 	}
 }
 
+/* Returns whether the handling of the whole buffer is finished.
+ * I.e. it returns TRUE if there is no more chunks.
+ */
 static gboolean
-idle_cb (GcsvAlignment *align)
+handle_next_chunk (GcsvAlignment       *align,
+		   guint                batch_size,
+		   HandleSubregionFunc  handle_subregion_func)
 {
-	guint n_remaining_lines = BATCH_SIZE;
+	guint n_remaining_lines = batch_size;
 	GtkTextRegionIterator region_iter;
 	GtkTextIter start;
 	GtkTextIter stop;
 
 	if (align->region == NULL)
 	{
-		align->idle_id = 0;
-		return G_SOURCE_REMOVE;
+		return TRUE;
 	}
 
 	gtk_text_buffer_get_start_iter (align->buffer, &stop);
@@ -489,13 +572,15 @@ idle_cb (GcsvAlignment *align)
 		adjust_subregion (&subregion_start, &subregion_end);
 
 		/* Remember the line, since the iter won't be valid after
-		 * aligning the columns.
+		 * handling the subregion. In our case, the line number won't
+		 * change, but if lines are inserted or deleted, we would need a
+		 * GtkTextMark to remember the location.
 		 */
 		line_end = gtk_text_iter_get_line (&subregion_end);
 
-		if (!align_subregion (align, &subregion_start, &subregion_end))
+		if (!handle_subregion_func (align, &subregion_start, &subregion_end))
 		{
-			return G_SOURCE_CONTINUE;
+			return FALSE;
 		}
 
 		gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end);
@@ -519,8 +604,64 @@ idle_cb (GcsvAlignment *align)
 			align->region = NULL;
 		}
 
-		align->idle_id = 0;
-		return G_SOURCE_REMOVE;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static gboolean
+scan_next_chunk (GcsvAlignment *align)
+{
+	g_assert (align->current_phase == PHASE_SCANNING);
+
+	return handle_next_chunk (align, SCANNING_BATCH_SIZE, scan_subregion);
+}
+
+static gboolean
+align_next_chunk (GcsvAlignment *align)
+{
+	g_assert (align->current_phase == PHASE_ALIGNING);
+
+	return handle_next_chunk (align, ALIGNING_BATCH_SIZE, align_subregion);
+}
+
+static gboolean
+idle_cb (GcsvAlignment *align)
+{
+	gboolean finished;
+
+	switch (align->current_phase)
+	{
+		case PHASE_SCANNING:
+			finished = scan_next_chunk (align);
+			if (finished)
+			{
+				GtkTextIter start;
+				GtkTextIter end;
+
+				align->current_phase = PHASE_ALIGNING;
+
+				gtk_text_buffer_get_bounds (align->buffer, &start, &end);
+				add_subregion (align, &start, &end);
+
+#if ENABLE_DEBUG
+				print_column_lengths (align);
+#endif
+			}
+			break;
+
+		case PHASE_ALIGNING:
+			finished = align_next_chunk (align);
+			if (finished)
+			{
+				align->idle_id = 0;
+				return G_SOURCE_REMOVE;
+			}
+			break;
+
+		default:
+			g_assert_not_reached ();
 	}
 
 	return G_SOURCE_CONTINUE;
@@ -536,9 +677,9 @@ install_idle (GcsvAlignment *align)
 }
 
 static void
-add_subregion_to_align (GcsvAlignment *align,
-			GtkTextIter   *start,
-			GtkTextIter   *end)
+add_subregion (GcsvAlignment *align,
+	       GtkTextIter   *start,
+	       GtkTextIter   *end)
 {
 	adjust_subregion (start, end);
 
@@ -558,17 +699,22 @@ update_all (GcsvAlignment *align)
 	GtkTextIter start;
 	GtkTextIter end;
 
-	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
-
 	if (!align->enabled)
 	{
 		return;
 	}
 
-	update_column_lengths (align);
+	align->current_phase = PHASE_SCANNING;
+
+	if (align->column_lengths != NULL)
+	{
+		g_array_unref (align->column_lengths);
+	}
+
+	align->column_lengths = g_array_new (FALSE, TRUE, sizeof (gint));
 
 	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-	add_subregion_to_align (align, &start, &end);
+	add_subregion (align, &start, &end);
 }
 
 static void
@@ -584,7 +730,7 @@ insert_text_after_cb (GtkTextBuffer *buffer,
 	start = end = *location;
 	gtk_text_iter_backward_chars (&start, g_utf8_strlen (text, length));
 
-	add_subregion_to_align (align, &start, &end);
+	add_subregion (align, &start, &end);
 }
 
 static void
@@ -596,7 +742,7 @@ delete_range_cb (GtkTextBuffer *buffer,
 	GtkTextIter start_copy = *start;
 	GtkTextIter end_copy = *end;
 
-	add_subregion_to_align (align, &start_copy, &end_copy);
+	add_subregion (align, &start_copy, &end_copy);
 }
 
 static void
@@ -799,6 +945,7 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 static void
 gcsv_alignment_init (GcsvAlignment *align)
 {
+	align->current_phase = PHASE_SCANNING;
 }
 
 GcsvAlignment *
