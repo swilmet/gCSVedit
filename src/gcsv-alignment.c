@@ -190,25 +190,23 @@ is_text_region_empty (GtkTextRegion *region)
 }
 
 static guint
-count_columns (GcsvAlignment *align,
-	       guint          at_line)
+get_column_num (GcsvAlignment     *align,
+		const GtkTextIter *iter)
 {
-	guint n_columns = 1;
+	GtkTextIter start_line;
+	guint column_num = 0;
 	gchar *line;
 	gchar *p;
-	GtkTextIter start;
-	GtkTextIter end;
 
 	if (align->delimiter == '\0')
 	{
-		return 1;
+		return 0;
 	}
 
-	gtk_text_buffer_get_iter_at_line (align->buffer, &start, at_line);
-	end = start;
-	gtk_text_iter_forward_line (&end);
+	start_line = *iter;
+	gtk_text_iter_set_line_offset (&start_line, 0);
 
-	line = gtk_text_buffer_get_text (align->buffer, &start, &end, TRUE);
+	line = gtk_text_buffer_get_text (align->buffer, &start_line, iter, TRUE);
 
 	p = line;
 	while (p != NULL && *p != '\0')
@@ -218,14 +216,30 @@ count_columns (GcsvAlignment *align,
 		ch = g_utf8_get_char (p);
 		if (ch == align->delimiter)
 		{
-			n_columns++;
+			column_num++;
 		}
 
 		p = g_utf8_find_next_char (p, NULL);
 	}
 
 	g_free (line);
-	return n_columns;
+	return column_num;
+}
+
+static guint
+count_columns (GcsvAlignment *align,
+	       guint          at_line)
+{
+	GtkTextIter iter;
+
+	gtk_text_buffer_get_iter_at_line (align->buffer, &iter, at_line);
+
+	if (!gtk_text_iter_ends_line (&iter))
+	{
+		gtk_text_iter_forward_to_line_end (&iter);
+	}
+
+	return get_column_num (align, &iter) + 1;
 }
 
 static void
@@ -787,8 +801,68 @@ delete_range_cb (GtkTextBuffer *buffer,
 {
 	GtkTextIter start_copy = *start;
 	GtkTextIter end_copy = *end;
+	GtkTextIter start_buffer;
+	GtkTextIter end_buffer;
+	GtkTextIter field_start;
+	GtkTextIter field_end;
+	guint column_num;
+	gint field_length;
+	gint column_length;
 
-	add_subregion (align, &start_copy, &end_copy);
+	if (align->delimiter == '\0')
+	{
+		add_subregion (align, &start_copy, &end_copy);
+		return;
+	}
+
+	gtk_text_buffer_get_bounds (buffer, &start_buffer, &end_buffer);
+	if (gtk_text_iter_equal (&start_buffer, start) &&
+	    gtk_text_iter_equal (&end_buffer, end))
+	{
+		add_subregion (align, &start_copy, &end_copy);
+		return;
+	}
+
+	/* If the deletion spans multiple fields, it's simpler to update
+	 * everything, because a column can shrink.
+	 */
+	if (gtk_text_iter_get_line (start) != gtk_text_iter_get_line (end) ||
+	    get_column_num (align, start) != get_column_num (align, end))
+	{
+		update_all (align);
+		return;
+	}
+
+	column_num = get_column_num (align, start);
+
+	/* Still not scanned */
+	if (column_num >= align->column_lengths->len)
+	{
+		add_subregion (align, &start_copy, &end_copy);
+		return;
+	}
+
+	column_length = get_column_length (align, column_num);
+
+	get_field_bounds (align,
+			  gtk_text_iter_get_line (start),
+			  column_num,
+			  &field_start,
+			  &field_end);
+
+	field_length = get_field_length (align, &field_start, &field_end, FALSE);
+
+	if (field_length >= column_length)
+	{
+		/* Maybe a column shrinking, we need to re-scan the buffer if it
+		 * was the last field with the maximum length.
+		 */
+		update_all (align);
+	}
+	else
+	{
+		add_subregion (align, &start_copy, &end_copy);
+	}
 }
 
 static void
