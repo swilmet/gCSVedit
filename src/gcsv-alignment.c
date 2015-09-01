@@ -380,6 +380,39 @@ scan_subregion (GcsvAlignment     *align,
 	return TRUE;
 }
 
+static void
+insert_virtual_spaces (GcsvAlignment *align,
+		       GtkTextIter   *iter,
+		       guint          n_spaces)
+{
+	GtkTextIter selection_start;
+	GtkTextIter selection_end;
+	gboolean at_insert;
+	gchar *alignment;
+
+	gtk_text_buffer_get_selection_bounds (align->buffer,
+					      &selection_start,
+					      &selection_end);
+
+	at_insert = (gtk_text_iter_equal (&selection_start, iter) &&
+		     gtk_text_iter_equal (&selection_end, iter));
+
+	alignment = g_strnfill (n_spaces, ' ');
+	gtk_text_buffer_insert_with_tags (align->buffer,
+					  iter,
+					  alignment, n_spaces,
+					  align->tag,
+					  NULL);
+	g_free (alignment);
+
+	if (at_insert)
+	{
+		GtkTextIter before_alignment = *iter;
+		gtk_text_iter_backward_chars (&before_alignment, n_spaces);
+		gtk_text_buffer_select_range (align->buffer, &before_alignment, &before_alignment);
+	}
+}
+
 /* Returns TRUE if field correctly adjusted. Returns FALSE if the column length
  * has been updated.
  */
@@ -393,7 +426,6 @@ adjust_field_alignment (GcsvAlignment *align,
 	gint column_length;
 	gint field_length;
 	guint n_spaces;
-	gchar *alignment;
 
 	column_length = get_column_length (align, column_num);
 
@@ -423,15 +455,8 @@ adjust_field_alignment (GcsvAlignment *align,
 
 	/* Insert missing spaces */
 	n_spaces = column_length - field_length;
-	alignment = g_strnfill (n_spaces, ' ');
+	insert_virtual_spaces (align, &field_end, n_spaces);
 
-	gtk_text_buffer_insert_with_tags (align->buffer,
-					  &field_end,
-					  alignment, n_spaces,
-					  align->tag,
-					  NULL);
-
-	g_free (alignment);
 	return TRUE;
 }
 
