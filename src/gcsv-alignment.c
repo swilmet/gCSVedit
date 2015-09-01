@@ -84,6 +84,10 @@ typedef gboolean (* HandleSubregionFunc) (GcsvAlignment     *align,
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 
 /* Prototypes */
+static void add_subregion_to_align (GcsvAlignment *align,
+				    GtkTextIter   *start,
+				    GtkTextIter   *end);
+
 static void update_all (GcsvAlignment *align);
 
 #if ENABLE_DEBUG
@@ -125,6 +129,9 @@ set_column_length (GcsvAlignment *align,
 		   guint          column_num,
 		   gint           column_length)
 {
+	GtkTextIter start;
+	GtkTextIter end;
+
 	if (column_num >= align->column_lengths->len)
 	{
 		guint i;
@@ -143,6 +150,10 @@ set_column_length (GcsvAlignment *align,
 		g_array_remove_index (align->column_lengths, column_num);
 		g_array_insert_val (align->column_lengths, column_num, column_length);
 	}
+
+	/* If the column length is updated, we need to re-align the columns. */
+	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
+	add_subregion_to_align (align, &start, &end);
 }
 
 /* A TextRegion can contain empty subregions. So checking the number of
