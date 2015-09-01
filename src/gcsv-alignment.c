@@ -23,17 +23,6 @@
 #include "gcsv-utils.h"
 #include "gtktextregion.h"
 
-typedef enum _Phase Phase;
-enum _Phase
-{
-	/* The alignment is done in two phases. The first one is scanning, to
-	 * compute the column length. The second one is aligning, to insert
-	 * missing spaces.
-	 */
-	PHASE_SCANNING,
-	PHASE_ALIGNING,
-};
-
 struct _GcsvAlignment
 {
 	GObject parent;
@@ -51,9 +40,13 @@ struct _GcsvAlignment
 	 */
 	GArray *column_lengths;
 
-	/* The remaining region in the GtkTextBuffer to scan or align. */
-	GtkTextRegion *region;
-	Phase current_phase;
+	/* The remaining region in the GtkTextBuffer to scan, to compute column
+	 * lengths. scan_region is always fully handled before align_region.
+	 */
+	GtkTextRegion *scan_region;
+
+	/* The region to align, i.e. adjusting the virtual spacing. */
+	GtkTextRegion *align_region;
 
 	guint idle_id;
 	gulong insert_text_handler_id;
@@ -91,9 +84,7 @@ typedef gboolean (* HandleSubregionFunc) (GcsvAlignment     *align,
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 
 /* Prototypes */
-static void add_subregion (GcsvAlignment *align,
-			   GtkTextIter   *start,
-			   GtkTextIter   *end);
+static void update_all (GcsvAlignment *align);
 
 #if ENABLE_DEBUG
 static void
@@ -415,13 +406,7 @@ adjust_field_alignment (GcsvAlignment *align,
 
 	if (field_length > column_length)
 	{
-		GtkTextIter start;
-		GtkTextIter end;
-
-		set_column_length (align, column_num, field_length);
-
-		gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-		add_subregion (align, &start, &end);
+		update_all (align);
 		return FALSE;
 	}
 
@@ -531,6 +516,7 @@ adjust_subregion (GtkTextIter *start,
  */
 static gboolean
 handle_next_chunk (GcsvAlignment       *align,
+		   GtkTextRegion       *region,
 		   guint                batch_size,
 		   HandleSubregionFunc  handle_subregion_func)
 {
@@ -539,14 +525,14 @@ handle_next_chunk (GcsvAlignment       *align,
 	GtkTextIter start;
 	GtkTextIter stop;
 
-	if (align->region == NULL)
+	if (region == NULL)
 	{
 		return TRUE;
 	}
 
 	gtk_text_buffer_get_start_iter (align->buffer, &stop);
 
-	gtk_text_region_get_iterator (align->region, &region_iter, 0);
+	gtk_text_region_get_iterator (region, &region_iter, 0);
 
 	while (n_remaining_lines > 0 &&
 	       !gtk_text_region_iterator_is_end (&region_iter))
@@ -594,16 +580,10 @@ handle_next_chunk (GcsvAlignment       *align,
 	}
 
 	gtk_text_buffer_get_start_iter (align->buffer, &start);
-	gtk_text_region_subtract (align->region, &start, &stop);
+	gtk_text_region_subtract (region, &start, &stop);
 
-	if (is_text_region_empty (align->region))
+	if (is_text_region_empty (region))
 	{
-		if (align->region != NULL)
-		{
-			gtk_text_region_destroy (align->region);
-			align->region = NULL;
-		}
-
 		return TRUE;
 	}
 
@@ -613,58 +593,64 @@ handle_next_chunk (GcsvAlignment       *align,
 static gboolean
 scan_next_chunk (GcsvAlignment *align)
 {
-	g_assert (align->current_phase == PHASE_SCANNING);
-
-	return handle_next_chunk (align, SCANNING_BATCH_SIZE, scan_subregion);
+	return handle_next_chunk (align,
+				  align->scan_region,
+				  SCANNING_BATCH_SIZE,
+				  scan_subregion);
 }
 
 static gboolean
 align_next_chunk (GcsvAlignment *align)
 {
-	g_assert (align->current_phase == PHASE_ALIGNING);
-
-	return handle_next_chunk (align, ALIGNING_BATCH_SIZE, align_subregion);
+	return handle_next_chunk (align,
+				  align->align_region,
+				  ALIGNING_BATCH_SIZE,
+				  align_subregion);
 }
 
 static gboolean
 idle_cb (GcsvAlignment *align)
 {
-	gboolean finished;
-
-	switch (align->current_phase)
+	if (align->scan_region != NULL)
 	{
-		case PHASE_SCANNING:
-			finished = scan_next_chunk (align);
-			if (finished)
-			{
-				GtkTextIter start;
-				GtkTextIter end;
-
-				align->current_phase = PHASE_ALIGNING;
-
-				gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-				add_subregion (align, &start, &end);
+		gboolean finished = scan_next_chunk (align);
 
 #if ENABLE_DEBUG
-				print_column_lengths (align);
+		if (finished)
+		{
+			print_column_lengths (align);
+		}
 #endif
-			}
-			break;
 
-		case PHASE_ALIGNING:
-			finished = align_next_chunk (align);
-			if (finished)
-			{
-				align->idle_id = 0;
-				return G_SOURCE_REMOVE;
-			}
-			break;
+		if (finished && align->scan_region != NULL)
+		{
+			gtk_text_region_destroy (align->scan_region);
+			align->scan_region = NULL;
+		}
 
-		default:
-			g_assert_not_reached ();
+		return G_SOURCE_CONTINUE;
 	}
 
-	return G_SOURCE_CONTINUE;
+	if (align->align_region != NULL)
+	{
+		gboolean finished = align_next_chunk (align);
+		if (finished)
+		{
+			if (align->align_region != NULL)
+			{
+				gtk_text_region_destroy (align->align_region);
+				align->align_region = NULL;
+			}
+
+			align->idle_id = 0;
+			return G_SOURCE_REMOVE;
+		}
+
+		return G_SOURCE_CONTINUE;
+	}
+
+	align->idle_id = 0;
+	return G_SOURCE_REMOVE;
 }
 
 static void
@@ -677,20 +663,46 @@ install_idle (GcsvAlignment *align)
 }
 
 static void
+add_subregion_to_scan (GcsvAlignment *align,
+		       GtkTextIter   *start,
+		       GtkTextIter   *end)
+{
+	adjust_subregion (start, end);
+
+	if (align->scan_region == NULL)
+	{
+		align->scan_region = gtk_text_region_new (align->buffer);
+	}
+
+	gtk_text_region_add (align->scan_region, start, end);
+
+	install_idle (align);
+}
+
+static void
+add_subregion_to_align (GcsvAlignment *align,
+			GtkTextIter   *start,
+			GtkTextIter   *end)
+{
+	adjust_subregion (start, end);
+
+	if (align->align_region == NULL)
+	{
+		align->align_region = gtk_text_region_new (align->buffer);
+	}
+
+	gtk_text_region_add (align->align_region, start, end);
+
+	install_idle (align);
+}
+
+static void
 add_subregion (GcsvAlignment *align,
 	       GtkTextIter   *start,
 	       GtkTextIter   *end)
 {
-	adjust_subregion (start, end);
-
-	if (align->region == NULL)
-	{
-		align->region = gtk_text_region_new (align->buffer);
-	}
-
-	gtk_text_region_add (align->region, start, end);
-
-	install_idle (align);
+	add_subregion_to_scan (align, start, end);
+	add_subregion_to_align (align, start, end);
 }
 
 static void
@@ -703,8 +715,6 @@ update_all (GcsvAlignment *align)
 	{
 		return;
 	}
-
-	align->current_phase = PHASE_SCANNING;
 
 	if (align->column_lengths != NULL)
 	{
@@ -877,10 +887,16 @@ gcsv_alignment_dispose (GObject *object)
 	disconnect_signals (align);
 	remove_event_sources (align);
 
-	if (align->region != NULL)
+	if (align->scan_region != NULL)
 	{
-		gtk_text_region_destroy (align->region);
-		align->region = NULL;
+		gtk_text_region_destroy (align->scan_region);
+		align->scan_region = NULL;
+	}
+
+	if (align->align_region != NULL)
+	{
+		gtk_text_region_destroy (align->align_region);
+		align->align_region = NULL;
 	}
 
 	if (align->buffer != NULL)
@@ -945,7 +961,6 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 static void
 gcsv_alignment_init (GcsvAlignment *align)
 {
-	align->current_phase = PHASE_SCANNING;
 }
 
 GcsvAlignment *
