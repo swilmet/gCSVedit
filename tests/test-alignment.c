@@ -70,14 +70,13 @@ check_alignment (const gchar *before,
 	g_assert_cmpstr (buffer_text, ==, before);
 	g_free (buffer_text);
 
-	/* Test alignment update */
+	/* Test alignment update, with column insertion */
 	gtk_text_buffer_set_text (buffer, "", -1);
 	align = gcsv_alignment_new (buffer, delimiter);
 	gtk_text_buffer_set_text (buffer, before, -1);
 	flush_queue ();
 	buffer_text = get_buffer_text (buffer);
-	/* FIXME column_lengths is not updated when new columns are inserted */
-	/*g_assert_cmpstr (buffer_text, ==, after);*/
+	g_assert_cmpstr (buffer_text, ==, after);
 	g_free (buffer_text);
 
 	/* Test copy without alignment */
