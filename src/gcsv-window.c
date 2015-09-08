@@ -368,6 +368,18 @@ create_view (void)
 	gtk_source_view_set_show_line_numbers (view, TRUE);
 	gtk_source_view_set_highlight_current_line (view, TRUE);
 
+	/* Draw all kind of spaces everywhere except CR and LF.
+	 * Line numbers are already displayed, so drawing line breaks would be
+	 * redundant and is not very useful.
+	 */
+	gtk_source_view_set_draw_spaces (view,
+					 GTK_SOURCE_DRAW_SPACES_SPACE |
+					 GTK_SOURCE_DRAW_SPACES_TAB |
+					 GTK_SOURCE_DRAW_SPACES_NBSP |
+					 GTK_SOURCE_DRAW_SPACES_LEADING |
+					 GTK_SOURCE_DRAW_SPACES_TEXT |
+					 GTK_SOURCE_DRAW_SPACES_TRAILING);
+
 	language_manager = gtk_source_language_manager_get_default ();
 	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
 	gtk_source_buffer_set_language (buffer, csv_lang);
@@ -579,7 +591,7 @@ gcsv_window_init (GcsvWindow *window)
 {
 	GtkWidget *vgrid;
 	GtkWidget *scrolled_window;
-	GtkTextBuffer *buffer;
+	GtkSourceBuffer *buffer;
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
@@ -604,7 +616,7 @@ gcsv_window_init (GcsvWindow *window)
 
 	window->file = gtk_source_file_new ();
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
 	window->align = gcsv_alignment_new (buffer, ',');
 
 	add_actions (window);

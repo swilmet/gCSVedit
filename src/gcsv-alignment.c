@@ -904,14 +904,20 @@ disconnect_signals (GcsvAlignment *align)
 }
 
 static void
-set_buffer (GcsvAlignment *align,
-	    GtkTextBuffer *buffer)
+set_buffer (GcsvAlignment   *align,
+	    GtkSourceBuffer *buffer)
 {
 	g_assert (align->buffer == NULL);
 	g_assert (align->tag == NULL);
 
+	g_return_if_fail (GTK_SOURCE_IS_BUFFER (buffer));
 	align->buffer = g_object_ref (buffer);
-	align->tag = gtk_text_buffer_create_tag (buffer, NULL, NULL);
+
+	align->tag = gtk_source_buffer_create_source_tag (buffer,
+							  NULL,
+							  "draw-spaces", FALSE,
+							  NULL);
+	g_object_ref (align->tag);
 
 	if (align->enabled)
 	{
@@ -1018,6 +1024,7 @@ gcsv_alignment_dispose (GObject *object)
 			table = gtk_text_buffer_get_tag_table (align->buffer);
 			gtk_text_tag_table_remove (table, align->tag);
 
+			g_object_unref (align->tag);
 			align->tag = NULL;
 		}
 
@@ -1074,10 +1081,10 @@ gcsv_alignment_init (GcsvAlignment *align)
 }
 
 GcsvAlignment *
-gcsv_alignment_new (GtkTextBuffer *buffer,
-		    gunichar       delimiter)
+gcsv_alignment_new (GtkSourceBuffer *buffer,
+		    gunichar         delimiter)
 {
-	g_return_val_if_fail (GTK_IS_TEXT_BUFFER (buffer), NULL);
+	g_return_val_if_fail (GTK_SOURCE_IS_BUFFER (buffer), NULL);
 
 	return g_object_new (GCSV_TYPE_ALIGNMENT,
 			     "buffer", buffer,

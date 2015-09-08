@@ -31,8 +31,8 @@ G_DECLARE_FINAL_TYPE (GcsvAlignment, gcsv_alignment,
 		      GCSV, ALIGNMENT,
 		      GObject)
 
-GcsvAlignment *	gcsv_alignment_new				(GtkTextBuffer *buffer,
-								 gunichar       delimiter);
+GcsvAlignment *	gcsv_alignment_new				(GtkSourceBuffer *buffer,
+								 gunichar         delimiter);
 
 void		gcsv_alignment_set_enabled			(GcsvAlignment *align,
 								 gboolean       enabled);
