@@ -212,6 +212,8 @@ save_as_activate_cb (GSimpleAction *save_as_action,
 					      _("_Save"), GTK_RESPONSE_ACCEPT,
 					      NULL);
 
+	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+
 	g_signal_connect (dialog,
 			  "response",
 			  G_CALLBACK (save_as_dialog_response_cb),
