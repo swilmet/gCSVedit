@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = src tests po
+SUBDIRS = data src tests po
 
 MAINTAINERCLEANFILES = \
 	ABOUT-NLS \
