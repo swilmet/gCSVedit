@@ -1,20 +1,33 @@
 gCSVedit
 ========
 
+This is version 0.0.1 of gCSVedit.
+
 gCSVedit is under development. The goal is to have a simple CSV editor that
 runs on GNU/Linux and Windows (maybe Mac OS X too).
 
 The editor aligns the columns by adding “virtual” spaces. When saving the file,
 the added spaces are not saved.
 
-It is planned to support any kind of delimiter-separated values (DSV) files,
-not just comma-separated values (CSV) files. The delimiter will be
-auto-detected, but if the guess is wrong, it'll be possible to provide the
-delimiter. The application is called gCSVedit, because “CSV” is commonly used
-to also refer to TSV (tab-separated values) or DSV in general.
+Any kind of delimiter-separated values (DSV) files are supported, not just
+comma-separated values (CSV) files. The application is called gCSVedit, because
+“CSV” is commonly used to also refer to TSV (tab-separated values) or DSV in
+general.
 
 Dependencies
 ------------
 
 - GTK+
 - GtkSourceView
+
+Installation
+------------
+
+Simple install procedure:
+
+  $ ./configure
+  $ make
+  [ Become root if necessary ]
+  $ make install
+
+See the file 'INSTALL' for more detailed information.
