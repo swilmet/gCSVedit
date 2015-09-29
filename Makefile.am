@@ -11,6 +11,7 @@ MAINTAINERCLEANFILES = \
 	config.rpath \
 	config.sub \
 	depcomp \
+	INSTALL \
 	install-sh \
 	ltmain.sh \
 	m4/ax_append_compile_flags.m4 \
