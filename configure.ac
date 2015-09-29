@@ -8,6 +8,7 @@ AC_INIT([gCSVedit],
 	[gcsvedit],
 	[http://catl.ions.ucl.ac.be/git/?p=gcsvedit.git;a=summary])
 
+AX_REQUIRE_DEFINED([AX_IS_RELEASE])
 AX_IS_RELEASE([git-directory])
 
 # Dependencies
@@ -36,9 +37,11 @@ AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
 
 # Compile warnings
+AX_REQUIRE_DEFINED([AX_COMPILER_FLAGS])
 AX_COMPILER_FLAGS([WARN_CFLAGS], [WARN_LDFLAGS])
 
 # pkg-config
+AX_REQUIRE_DEFINED([PKG_CHECK_MODULES])
 PKG_CHECK_MODULES(DEP, [
 	glib-2.0 >= $GLIB_REQUIRED_VERSION
 	gio-2.0 >= $GLIB_REQUIRED_VERSION
