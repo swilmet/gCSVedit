@@ -35,6 +35,8 @@ struct _GcsvWindow
 	GtkSourceView *view;
 	GtkSourceFile *file;
 	GcsvAlignment *align;
+
+	gchar *document_name;
 };
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -330,25 +332,59 @@ get_menubar (void)
 	return gtk_menu_bar_new_from_model (model);
 }
 
+static gchar *
+get_document_title (GcsvWindow *window)
+{
+	GFile *location;
+	GFile *parent;
+	gchar *directory;
+	gchar *document_title;
+
+	location = gtk_source_file_get_location (window->file);
+
+	if (location == NULL)
+	{
+		return g_strdup (window->document_name);
+	}
+
+	parent = g_file_get_parent (location);
+	g_return_val_if_fail (parent != NULL, NULL);
+
+	directory = g_file_get_parse_name (parent);
+
+	document_title = g_strdup_printf ("%s (%s)",
+					  window->document_name,
+					  directory);
+
+	g_object_unref (parent);
+	g_free (directory);
+
+	return document_title;
+}
+
 static void
-set_title (GcsvWindow  *window,
-	   const gchar *file_title)
+update_title (GcsvWindow *window)
 {
 	GtkTextBuffer *buffer;
 	gboolean modified;
 	const gchar *modified_marker;
+	gchar *document_title;
 	gchar *title;
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
 	modified = gtk_text_buffer_get_modified (buffer);
 	modified_marker = modified ? "*" : "";
 
+	document_title = get_document_title (window);
+
 	title = g_strdup_printf ("%s%s - %s",
 				 modified_marker,
-				 file_title,
+				 document_title,
 				 g_get_application_name ());
 
 	gtk_window_set_title (GTK_WINDOW (window), title);
+
+	g_free (document_title);
 	g_free (title);
 }
 
@@ -358,10 +394,6 @@ query_display_name_cb (GFile        *location,
 		       GcsvWindow   *window)
 {
 	GFileInfo *info;
-	const gchar *display_name;
-	GFile *parent = NULL;
-	gchar *directory = NULL;
-	gchar *file_title = NULL;
 	GError *error = NULL;
 
 	info = g_file_query_info_finish (location, result, &error);
@@ -372,33 +404,24 @@ query_display_name_cb (GFile        *location,
 			      _("Error when querying file information: %s"),
 			      error->message);
 
-		g_error_free (error);
-		error = NULL;
+		g_clear_error (&error);
 		goto out;
 	}
 
-	display_name = g_file_info_get_display_name (info);
+	g_free (window->document_name);
+	window->document_name = g_strdup (g_file_info_get_display_name (info));
 
-	parent = g_file_get_parent (location);
-	g_return_if_fail (parent != NULL);
-
-	directory = g_file_get_parse_name (parent);
-
-	file_title = g_strdup_printf ("%s (%s)", display_name, directory);
-	set_title (window, file_title);
+	update_title (window);
 
 out:
 	g_clear_object (&info);
-	g_clear_object (&parent);
-	g_free (directory);
-	g_free (file_title);
 
 	/* Async operation finished */
 	g_object_unref (window);
 }
 
 static void
-update_title (GcsvWindow *window)
+update_document_name (GcsvWindow *window)
 {
 	GFile *location;
 
@@ -406,7 +429,9 @@ update_title (GcsvWindow *window)
 
 	if (location == NULL)
 	{
-		set_title (window, _("Unsaved File"));
+		g_free (window->document_name);
+		window->document_name = g_strdup (_("Unsaved File"));
+		update_title (window);
 	}
 	else
 	{
@@ -433,7 +458,7 @@ location_notify_cb (GtkSourceFile *file,
 		    GParamSpec    *pspec,
 		    GcsvWindow    *window)
 {
-	update_title (window);
+	update_document_name (window);
 	update_save_action_sensitivity (window);
 }
 
@@ -449,11 +474,81 @@ gcsv_window_dispose (GObject *object)
 }
 
 static void
+gcsv_window_finalize (GObject *object)
+{
+	GcsvWindow *window = GCSV_WINDOW (object);
+
+	g_free (window->document_name);
+
+	G_OBJECT_CLASS (gcsv_window_parent_class)->finalize (object);
+}
+
+static void
+close_confirmation_dialog_response_cb (GtkDialog  *dialog,
+				       gint        response_id,
+				       GcsvWindow *window)
+{
+	gtk_widget_destroy (GTK_WIDGET (dialog));
+
+	if (response_id == GTK_RESPONSE_CLOSE)
+	{
+		gtk_widget_destroy (GTK_WIDGET (window));
+	}
+}
+
+static void
+launch_close_confirmation_dialog (GcsvWindow *window)
+{
+	GtkWidget *dialog;
+
+	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
+					 GTK_DIALOG_DESTROY_WITH_PARENT |
+					 GTK_DIALOG_MODAL,
+					 GTK_MESSAGE_WARNING,
+					 GTK_BUTTONS_NONE,
+					 _("The document “%s” has unsaved changes."),
+					 window->document_name);
+
+	gtk_dialog_add_buttons (GTK_DIALOG (dialog),
+				_("Close _without Saving"), GTK_RESPONSE_CLOSE,
+				_("_Don't Close"), GTK_RESPONSE_CANCEL,
+				NULL);
+
+	g_signal_connect (dialog,
+			  "response",
+			  G_CALLBACK (close_confirmation_dialog_response_cb),
+			  window);
+
+	gtk_widget_show (dialog);
+}
+
+static gboolean
+gcsv_window_delete_event (GtkWidget   *widget,
+			  GdkEventAny *event)
+{
+	GcsvWindow *window = GCSV_WINDOW (widget);
+	GtkTextBuffer *buffer;
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	if (gtk_text_buffer_get_modified (buffer))
+	{
+		launch_close_confirmation_dialog (window);
+		return GDK_EVENT_STOP;
+	}
+
+	return GDK_EVENT_PROPAGATE;
+}
+
+static void
 gcsv_window_class_init (GcsvWindowClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
 	object_class->dispose = gcsv_window_dispose;
+	object_class->finalize = gcsv_window_finalize;
+
+	widget_class->delete_event = gcsv_window_delete_event;
 }
 
 static void
@@ -490,7 +585,7 @@ gcsv_window_init (GcsvWindow *window)
 	window->align = gcsv_alignment_new (buffer, ',');
 
 	add_actions (window);
-	update_title (window);
+	update_document_name (window);
 
 	g_signal_connect_object (buffer,
 				 "modified-changed",
