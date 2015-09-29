@@ -25,6 +25,31 @@
 #include <locale.h>
 #include "gcsv-window.h"
 
+static gboolean option_version;
+
+static GOptionEntry options[] = {
+	{ "version", 'v',
+	  G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, &option_version,
+	  N_("Display the version and exit"),
+	  NULL
+	},
+
+        { NULL }
+};
+
+static gint
+handle_local_options_cb (GApplication *app,
+			 GVariantDict *options_dict)
+{
+	if (option_version)
+	{
+		g_print ("%s %s\n", g_get_application_name (), PACKAGE_VERSION);
+		return 0;
+	}
+
+	return -1;
+}
+
 static gchar *
 get_locale_directory (void)
 {
@@ -120,6 +145,13 @@ main (gint    argc,
 
 	g_set_application_name ("gCSVedit");
 	gtk_window_set_default_icon_name ("accessories-text-editor");
+
+	g_application_add_main_option_entries (G_APPLICATION (app), options);
+
+	g_signal_connect (app,
+			  "handle-local-options",
+			  G_CALLBACK (handle_local_options_cb),
+			  NULL);
 
 	g_signal_connect (app,
 			  "startup",
