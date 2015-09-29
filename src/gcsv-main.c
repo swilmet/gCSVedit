@@ -116,9 +116,10 @@ main (gint    argc,
 
 	setup_i18n ();
 
-	g_set_application_name ("gCSVedit");
-
 	app = gtk_application_new ("org.ucl.gcsvedit", G_APPLICATION_HANDLES_OPEN);
+
+	g_set_application_name ("gCSVedit");
+	gtk_window_set_default_icon_name ("accessories-text-editor");
 
 	g_signal_connect (app,
 			  "startup",
