@@ -16,6 +16,12 @@
         <attribute name="accel">&lt;Control&gt;s</attribute>
       </item>
       <item>
+        <attribute name="label" translatable="yes">Save _As</attribute>
+        <attribute name="icon">document-save-as</attribute>
+        <attribute name="action">win.save_as</attribute>
+        <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;s</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">_Quit</attribute>
         <attribute name="icon">application-exit</attribute>
         <attribute name="action">win.quit</attribute>

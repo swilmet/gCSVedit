@@ -133,23 +133,18 @@ save_cb (GtkSourceFileSaver *saver,
 }
 
 static void
-save_activate_cb (GSimpleAction *save_action,
-		  GVariant      *parameter,
-		  gpointer       user_data)
+launch_save (GcsvWindow *window,
+	     GFile      *location)
 {
-	GcsvWindow *window = GCSV_WINDOW (user_data);
-	GFile *location;
 	GtkSourceBuffer *buffer_without_align;
 	GtkSourceFileSaver *saver;
 	GApplication *app;
 
-	location = gtk_source_file_get_location (window->file);
-	g_return_if_fail (location != NULL);
-
 	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
 
-	saver = gtk_source_file_saver_new (buffer_without_align,
-					   window->file);
+	saver = gtk_source_file_saver_new_with_target (buffer_without_align,
+						       window->file,
+						       location);
 
 	app = g_application_get_default ();
 	g_application_hold (app);
@@ -163,6 +158,66 @@ save_activate_cb (GSimpleAction *save_action,
 					  NULL,
 					  (GAsyncReadyCallback) save_cb,
 					  g_object_ref (window));
+}
+
+static void
+save_activate_cb (GSimpleAction *save_action,
+		  GVariant      *parameter,
+		  gpointer       user_data)
+{
+	GcsvWindow *window = GCSV_WINDOW (user_data);
+	GFile *location;
+
+	location = gtk_source_file_get_location (window->file);
+	g_return_if_fail (location != NULL);
+
+	launch_save (window, location);
+}
+
+static void
+save_as_dialog_response_cb (GtkFileChooserDialog *dialog,
+			    gint                  response_id,
+			    GcsvWindow           *window)
+{
+	GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+	GFile *location;
+
+	if (response_id != GTK_RESPONSE_ACCEPT)
+	{
+		goto out;
+	}
+
+	location = gtk_file_chooser_get_file (chooser);
+
+	launch_save (window, location);
+
+	g_object_unref (location);
+
+out:
+	gtk_widget_destroy (GTK_WIDGET (dialog));
+}
+
+static void
+save_as_activate_cb (GSimpleAction *save_as_action,
+		     GVariant      *parameter,
+		     gpointer       user_data)
+{
+	GcsvWindow *window = GCSV_WINDOW (user_data);
+	GtkWidget *dialog;
+
+	dialog = gtk_file_chooser_dialog_new (_("Save File"),
+					      GTK_WINDOW (window),
+					      GTK_FILE_CHOOSER_ACTION_SAVE,
+					      _("_Cancel"), GTK_RESPONSE_CANCEL,
+					      _("_Save"), GTK_RESPONSE_ACCEPT,
+					      NULL);
+
+	g_signal_connect (dialog,
+			  "response",
+			  G_CALLBACK (save_as_dialog_response_cb),
+			  window);
+
+	gtk_widget_show (dialog);
 }
 
 static void
@@ -217,6 +272,7 @@ add_actions (GcsvWindow *window)
 	const GActionEntry entries[] = {
 		{ "open", open_activate_cb },
 		{ "save", save_activate_cb },
+		{ "save_as", save_as_activate_cb },
 		{ "quit", quit_activate_cb },
 		{ "about", about_activate_cb },
 	};
