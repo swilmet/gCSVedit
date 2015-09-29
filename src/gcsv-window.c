@@ -25,6 +25,7 @@
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
 #include "gcsv-delimiter-chooser.h"
+#include "gcsv-utils.h"
 
 struct _GcsvWindow
 {
@@ -112,7 +113,10 @@ save_cb (GtkSourceFileSaver *saver,
 
 	if (error != NULL)
 	{
-		g_warning ("Error when saving file: %s", error->message);
+		gcsv_warning (GTK_WINDOW (window),
+			      _("Error when saving file: %s"),
+			      error->message);
+
 		g_error_free (error);
 		error = NULL;
 	}
@@ -306,7 +310,10 @@ query_display_name_cb (GFile        *location,
 
 	if (error != NULL)
 	{
-		g_warning ("File query info error: %s", error->message);
+		gcsv_warning (GTK_WINDOW (window),
+			      _("Error when querying file information: %s"),
+			      error->message);
+
 		g_error_free (error);
 		error = NULL;
 		goto out;
@@ -461,7 +468,10 @@ load_cb (GtkSourceFileLoader *loader,
 
 	if (error != NULL)
 	{
-		g_warning ("Error when loading file: %s", error->message);
+		gcsv_warning (GTK_WINDOW (window),
+			      _("Error when loading file: %s"),
+			      error->message);
+
 		g_error_free (error);
 		error = NULL;
 	}

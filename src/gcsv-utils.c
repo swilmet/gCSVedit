@@ -144,3 +144,51 @@ gcsv_utils_unblock_signal_handlers (GObject      *instance,
 		g_signal_handler_unblock (instance, handler_ids[i]);
 	}
 }
+
+/* Code taken from gedit-utils.c */
+void
+gcsv_warning (GtkWindow   *parent,
+	      const gchar *format,
+	      ...)
+{
+	va_list args;
+	gchar *str;
+	GtkWidget *dialog;
+	GtkWindowGroup *wg = NULL;
+
+	g_return_if_fail (format != NULL);
+
+	if (parent != NULL)
+	{
+		wg = gtk_window_get_group (parent);
+	}
+
+	va_start (args, format);
+	str = g_strdup_vprintf (format, args);
+	va_end (args);
+
+	dialog = gtk_message_dialog_new_with_markup (parent,
+						     GTK_DIALOG_MODAL |
+						     GTK_DIALOG_DESTROY_WITH_PARENT,
+						     GTK_MESSAGE_ERROR,
+						     GTK_BUTTONS_OK,
+						     "%s", str);
+
+	g_free (str);
+
+	if (wg != NULL)
+	{
+		gtk_window_group_add_window (wg, GTK_WINDOW (dialog));
+	}
+
+	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
+
+	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
+
+	g_signal_connect (dialog,
+			  "response",
+			  G_CALLBACK (gtk_widget_destroy),
+			  NULL);
+
+	gtk_widget_show (dialog);
+}
