@@ -41,12 +41,74 @@ struct _GcsvWindow
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 
+/* Returns whether @window has been closed. */
+static gboolean
+launch_close_confirmation_dialog (GcsvWindow *window)
+{
+	GtkWidget *dialog;
+	gint response_id;
+
+	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
+					 GTK_DIALOG_DESTROY_WITH_PARENT |
+					 GTK_DIALOG_MODAL,
+					 GTK_MESSAGE_WARNING,
+					 GTK_BUTTONS_NONE,
+					 _("The document “%s” has unsaved changes."),
+					 window->document_name);
+
+	gtk_dialog_add_buttons (GTK_DIALOG (dialog),
+				_("Close _without Saving"), GTK_RESPONSE_CLOSE,
+				_("_Don't Close"), GTK_RESPONSE_CANCEL,
+				NULL);
+
+	response_id = gtk_dialog_run (GTK_DIALOG (dialog));
+
+	gtk_widget_destroy (dialog);
+
+	if (response_id == GTK_RESPONSE_CLOSE)
+	{
+		gtk_widget_destroy (GTK_WIDGET (window));
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/* Returns whether the window has been closed. */
+static gboolean
+gcsv_window_close (GcsvWindow *window)
+{
+	GtkTextBuffer *buffer;
+
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	if (gtk_text_buffer_get_modified (buffer))
+	{
+		return launch_close_confirmation_dialog (window);
+	}
+
+	gtk_widget_destroy (GTK_WIDGET (window));
+	return TRUE;
+}
+
 static void
 quit_activate_cb (GSimpleAction *quit_action,
 		  GVariant      *parameter,
 		  gpointer       user_data)
 {
-	g_application_quit (g_application_get_default ());
+	GtkApplication *app = GTK_APPLICATION (g_application_get_default ());
+
+	while (TRUE)
+	{
+		GtkWindow *window = gtk_application_get_active_window (app);
+
+		if (GCSV_IS_WINDOW (window) &&
+		    gcsv_window_close (GCSV_WINDOW (window)))
+		{
+			continue;
+		}
+
+		break;
+	}
 }
 
 static void
@@ -481,45 +543,6 @@ gcsv_window_finalize (GObject *object)
 	g_free (window->document_name);
 
 	G_OBJECT_CLASS (gcsv_window_parent_class)->finalize (object);
-}
-
-static void
-close_confirmation_dialog_response_cb (GtkDialog  *dialog,
-				       gint        response_id,
-				       GcsvWindow *window)
-{
-	gtk_widget_destroy (GTK_WIDGET (dialog));
-
-	if (response_id == GTK_RESPONSE_CLOSE)
-	{
-		gtk_widget_destroy (GTK_WIDGET (window));
-	}
-}
-
-static void
-launch_close_confirmation_dialog (GcsvWindow *window)
-{
-	GtkWidget *dialog;
-
-	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
-					 GTK_DIALOG_DESTROY_WITH_PARENT |
-					 GTK_DIALOG_MODAL,
-					 GTK_MESSAGE_WARNING,
-					 GTK_BUTTONS_NONE,
-					 _("The document “%s” has unsaved changes."),
-					 window->document_name);
-
-	gtk_dialog_add_buttons (GTK_DIALOG (dialog),
-				_("Close _without Saving"), GTK_RESPONSE_CLOSE,
-				_("_Don't Close"), GTK_RESPONSE_CANCEL,
-				NULL);
-
-	g_signal_connect (dialog,
-			  "response",
-			  G_CALLBACK (close_confirmation_dialog_response_cb),
-			  window);
-
-	gtk_widget_show (dialog);
 }
 
 static gboolean
