@@ -27,6 +27,7 @@ struct _GcsvDelimiterChooser
 	GtkGrid parent;
 
 	GtkComboBoxText *combo;
+	GtkEntry *entry;
 };
 
 enum
@@ -37,6 +38,7 @@ enum
 
 #define ROW_ID_COMMA	"comma"
 #define ROW_ID_TAB	"tab"
+#define ROW_ID_OTHER	"other"
 
 G_DEFINE_TYPE (GcsvDelimiterChooser, gcsv_delimiter_chooser, GTK_TYPE_GRID)
 
@@ -100,8 +102,18 @@ gcsv_delimiter_chooser_class_init (GcsvDelimiterChooserClass *klass)
 }
 
 static void
-changed_cb (GtkComboBox          *combo,
-	    GcsvDelimiterChooser *chooser)
+combo_changed_cb (GtkComboBox          *combo,
+		  GcsvDelimiterChooser *chooser)
+{
+	gtk_widget_set_visible (GTK_WIDGET (chooser->entry),
+				g_strcmp0 (gtk_combo_box_get_active_id (combo), ROW_ID_OTHER) == 0);
+
+	g_object_notify (G_OBJECT (chooser), "delimiter");
+}
+
+static void
+entry_changed_cb (GtkEntry             *entry,
+		  GcsvDelimiterChooser *chooser)
 {
 	g_object_notify (G_OBJECT (chooser), "delimiter");
 }
@@ -125,13 +137,21 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_COMMA, _("Comma"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_TAB, _("Tab"));
+	gtk_combo_box_text_append (chooser->combo, ROW_ID_OTHER, _("Other:"));
 
 	g_signal_connect (chooser->combo,
 			  "changed",
-			  G_CALLBACK (changed_cb),
+			  G_CALLBACK (combo_changed_cb),
 			  chooser);
 
-	gtk_widget_show (GTK_WIDGET (chooser->combo));
+	chooser->entry = GTK_ENTRY (gtk_entry_new ());
+	gtk_widget_set_no_show_all (GTK_WIDGET (chooser->entry), TRUE);
+	gtk_container_add (GTK_CONTAINER (chooser), GTK_WIDGET (chooser->entry));
+
+	g_signal_connect (chooser->entry,
+			  "changed",
+			  G_CALLBACK (entry_changed_cb),
+			  chooser);
 }
 
 GcsvDelimiterChooser *
@@ -153,26 +173,6 @@ gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
 	row_id = gtk_combo_box_get_active_id (GTK_COMBO_BOX (chooser->combo));
 	g_return_val_if_fail (row_id != NULL, '\0');
 
-#if 0
-	if (row_id == NULL)
-	{
-		gchar *active_text;
-		gunichar delimiter;
-
-		active_text = gtk_combo_box_text_get_active_text (chooser->combo);
-
-		if (active_text == NULL)
-		{
-			return '\0';
-		}
-
-		delimiter = g_utf8_get_char (active_text);
-
-		g_free (active_text);
-		return delimiter;
-	}
-#endif
-
 	if (g_str_equal (row_id, ROW_ID_COMMA))
 	{
 		return ',';
@@ -181,8 +181,21 @@ gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
 	{
 		return '\t';
 	}
+	if (g_str_equal (row_id, ROW_ID_OTHER))
+	{
+		const gchar *entry_text;
 
-	g_return_val_if_reached ('\0');
+		entry_text = gtk_entry_get_text (chooser->entry);
+
+		if (entry_text == NULL || entry_text[0] == '\0')
+		{
+			return '\0';
+		}
+
+		return g_utf8_get_char (entry_text);
+	}
+
+	g_assert_not_reached ();
 }
 
 void
@@ -201,16 +214,14 @@ gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
 		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
 					     ROW_ID_TAB);
 	}
-#if 0
 	else
 	{
-		GtkEntry *entry;
 		gchar text[6];
 
-		entry = GTK_ENTRY (gtk_bin_get_child (GTK_BIN (chooser->combo)));
-
 		g_unichar_to_utf8 (delimiter, text);
-		gtk_entry_set_text (entry, text);
+		gtk_entry_set_text (chooser->entry, text);
+
+		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+					     ROW_ID_OTHER);
 	}
-#endif
 }
