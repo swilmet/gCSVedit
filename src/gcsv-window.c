@@ -368,6 +368,11 @@ create_view (void)
 	gtk_source_view_set_show_line_numbers (view, TRUE);
 	gtk_source_view_set_highlight_current_line (view, TRUE);
 
+	/* Disable the undo/redo, because it doesn't work well currently with
+	 * the virtual spaces.
+	 */
+	gtk_source_buffer_set_max_undo_levels (buffer, 0);
+
 	/* Draw all kind of spaces everywhere except CR and LF.
 	 * Line numbers are already displayed, so drawing line breaks would be
 	 * redundant and is not very useful.
