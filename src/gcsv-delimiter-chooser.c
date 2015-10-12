@@ -109,10 +109,19 @@ changed_cb (GtkComboBox          *combo,
 static void
 gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 {
+	GtkWidget *label;
+
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (chooser), GTK_ORIENTATION_HORIZONTAL);
+	gtk_grid_set_column_spacing (GTK_GRID (chooser), 6);
+
+	label = gtk_label_new_with_mnemonic (_("_Delimiter:"));
+	gtk_container_add (GTK_CONTAINER (chooser), label);
 
 	chooser->combo = GTK_COMBO_BOX_TEXT (gtk_combo_box_text_new_with_entry ());
 	gtk_container_add (GTK_CONTAINER (chooser), GTK_WIDGET (chooser->combo));
+
+	gtk_label_set_mnemonic_widget (GTK_LABEL (label),
+				       GTK_WIDGET (chooser->combo));
 
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_COMMA, _("Comma"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_TAB, _("Tab"));
