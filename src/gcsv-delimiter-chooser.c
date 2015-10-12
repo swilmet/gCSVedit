@@ -145,6 +145,9 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 			  chooser);
 
 	chooser->entry = GTK_ENTRY (gtk_entry_new ());
+	gtk_entry_set_max_length (chooser->entry, 1);
+	gtk_entry_set_width_chars (chooser->entry, 3);
+	gtk_entry_set_max_width_chars (chooser->entry, 3);
 	gtk_widget_set_no_show_all (GTK_WIDGET (chooser->entry), TRUE);
 	gtk_container_add (GTK_CONTAINER (chooser), GTK_WIDGET (chooser->entry));
 
