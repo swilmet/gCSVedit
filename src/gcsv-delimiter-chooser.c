@@ -117,7 +117,7 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 	label = gtk_label_new_with_mnemonic (_("_Delimiter:"));
 	gtk_container_add (GTK_CONTAINER (chooser), label);
 
-	chooser->combo = GTK_COMBO_BOX_TEXT (gtk_combo_box_text_new_with_entry ());
+	chooser->combo = GTK_COMBO_BOX_TEXT (gtk_combo_box_text_new ());
 	gtk_container_add (GTK_CONTAINER (chooser), GTK_WIDGET (chooser->combo));
 
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label),
@@ -151,7 +151,9 @@ gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
 	g_return_val_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser), '\0');
 
 	row_id = gtk_combo_box_get_active_id (GTK_COMBO_BOX (chooser->combo));
+	g_return_val_if_fail (row_id != NULL, '\0');
 
+#if 0
 	if (row_id == NULL)
 	{
 		gchar *active_text;
@@ -169,6 +171,7 @@ gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
 		g_free (active_text);
 		return delimiter;
 	}
+#endif
 
 	if (g_str_equal (row_id, ROW_ID_COMMA))
 	{
@@ -198,6 +201,7 @@ gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
 		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
 					     ROW_ID_TAB);
 	}
+#if 0
 	else
 	{
 		GtkEntry *entry;
@@ -208,4 +212,5 @@ gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
 		g_unichar_to_utf8 (delimiter, text);
 		gtk_entry_set_text (entry, text);
 	}
+#endif
 }
