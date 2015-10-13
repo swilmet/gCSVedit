@@ -590,7 +590,7 @@ handle_next_chunk (GcsvAlignment       *align,
 		GtkTextIter subregion_start;
 		GtkTextIter subregion_end;
 		guint n_lines;
-		guint line_end;
+		gint line_end;
 
 		gtk_text_region_iterator_get_subregion (&region_iter,
 							&subregion_start,
@@ -619,10 +619,19 @@ handle_next_chunk (GcsvAlignment       *align,
 			return FALSE;
 		}
 
-		gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end);
-		if (!gtk_text_iter_ends_line (&stop))
+		/* FIXME: workaround for bug in gtk_text_buffer_get_iter_at_line():
+		 * https://bugzilla.gnome.org/show_bug.cgi?id=735341
+		 */
+		if ((line_end + 1) < gtk_text_buffer_get_line_count (align->buffer))
 		{
-			gtk_text_iter_forward_to_line_end (&stop);
+			/* We need to take the start of the next line, because
+			 * line_end _included_ has already been handled.
+			 */
+			gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end + 1);
+		}
+		else
+		{
+			gtk_text_buffer_get_end_iter (align->buffer, &stop);
 		}
 
 		n_remaining_lines -= n_lines;
