@@ -1203,3 +1203,14 @@ gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
 
 	return GTK_SOURCE_BUFFER (copy);
 }
+
+gint
+gcsv_alignment_get_csv_column (GcsvAlignment *align)
+{
+	GtkTextIter insert;
+
+	gtk_text_buffer_get_iter_at_mark (align->buffer, &insert,
+					  gtk_text_buffer_get_insert (align->buffer));
+
+	return get_column_num (align, &insert) + 1;
+}
