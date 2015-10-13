@@ -84,6 +84,17 @@ test_delete_text_with_tag (void)
 	g_assert_cmpstr (text_after, ==, "ello ver");
 	g_free (text_after);
 
+	/* Test delete with start and end not at tag toggles. */
+	gtk_text_buffer_set_text (buffer, text_before, -1);
+	gtk_text_buffer_get_bounds (buffer, &start, &end);
+	gtk_text_buffer_apply_tag (buffer, tag, &start, &end);
+	gtk_text_buffer_get_iter_at_offset (buffer, &start, 1);
+	gtk_text_buffer_get_iter_at_offset (buffer, &end, 6);
+	gcsv_utils_delete_text_with_tag (buffer, &start, &end, tag);
+	text_after = get_buffer_text (buffer);
+	g_assert_cmpstr (text_after, ==, "huniverse");
+	g_free (text_after);
+
 	g_object_unref (buffer);
 }
 

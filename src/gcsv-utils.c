@@ -49,7 +49,7 @@ gcsv_utils_delete_text_with_tag (GtkTextBuffer     *buffer,
 		gtk_text_buffer_get_iter_at_mark (buffer, &limit, end_mark);
 
 		chunk_start = iter;
-		if (!gtk_text_iter_begins_tag (&chunk_start, tag))
+		if (!gtk_text_iter_has_tag (&chunk_start, tag))
 		{
 			if (!gtk_text_iter_forward_to_tag_toggle (&chunk_start, tag))
 			{
