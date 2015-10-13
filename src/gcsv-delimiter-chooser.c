@@ -36,6 +36,7 @@ enum
 	PROP_DELIMITER,
 };
 
+#define ROW_ID_DISABLE	"disable"
 #define ROW_ID_COMMA	"comma"
 #define ROW_ID_TAB	"tab"
 #define ROW_ID_OTHER	"other"
@@ -135,6 +136,7 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label),
 				       GTK_WIDGET (chooser->combo));
 
+	gtk_combo_box_text_append (chooser->combo, ROW_ID_DISABLE, _("Disable"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_COMMA, _("Comma"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_TAB, _("Tab"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_OTHER, _("Other:"));
@@ -176,6 +178,10 @@ gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
 	row_id = gtk_combo_box_get_active_id (GTK_COMBO_BOX (chooser->combo));
 	g_return_val_if_fail (row_id != NULL, '\0');
 
+	if (g_str_equal (row_id, ROW_ID_DISABLE))
+	{
+		return '\0';
+	}
 	if (g_str_equal (row_id, ROW_ID_COMMA))
 	{
 		return ',';
@@ -207,7 +213,12 @@ gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
 {
 	g_return_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser));
 
-	if (delimiter == ',')
+	if (delimiter == '\0')
+	{
+		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+					     ROW_ID_DISABLE);
+	}
+	else if (delimiter == ',')
 	{
 		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
 					     ROW_ID_COMMA);
