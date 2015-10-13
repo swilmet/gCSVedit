@@ -49,6 +49,7 @@ struct _GcsvAlignment
 	GtkTextRegion *align_region;
 
 	guint idle_id;
+	guint timeout_id;
 	gulong insert_text_handler_id;
 	gulong delete_range_handler_id;
 
@@ -62,6 +63,12 @@ enum
 	PROP_DELIMITER,
 	PROP_ENABLED,
 };
+
+typedef enum
+{
+	HANDLE_MODE_IDLE,
+	HANDLE_MODE_TIMEOUT,
+} HandleMode;
 
 /* Function to handle a subregion of a GtkTextRegion.
  * Returns TRUE if the subregion was handled normally, and if the next subregion
@@ -79,6 +86,13 @@ typedef gboolean (* HandleSubregionFunc) (GcsvAlignment     *align,
 #define SCANNING_BATCH_SIZE 100
 #define ALIGNING_BATCH_SIZE 50
 
+/* Timeout duration in milliseconds.
+ * By default in GNOME, the key repeat-interval is 30ms.
+ * It would be better to get the value of the
+ * org.gnome.desktop.peripherals.keyboard.repeat-interval gsetting.
+ */
+#define TIMEOUT_DURATION 40
+
 #define ENABLE_DEBUG 0
 
 G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
@@ -86,9 +100,11 @@ G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 /* Prototypes */
 static void add_subregion_to_align (GcsvAlignment *align,
 				    GtkTextIter   *start,
-				    GtkTextIter   *end);
+				    GtkTextIter   *end,
+				    HandleMode     mode);
 
-static void update_all (GcsvAlignment *align);
+static void update_all (GcsvAlignment *align,
+			HandleMode     mode);
 
 #if ENABLE_DEBUG
 static void
@@ -153,7 +169,7 @@ set_column_length (GcsvAlignment *align,
 
 	/* If the column length is updated, we need to re-align the columns. */
 	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-	add_subregion_to_align (align, &start, &end);
+	add_subregion_to_align (align, &start, &end, HANDLE_MODE_IDLE);
 }
 
 /* A TextRegion can contain empty subregions. So checking the number of
@@ -463,7 +479,7 @@ adjust_field_alignment (GcsvAlignment *align,
 
 	if (field_length > column_length)
 	{
-		update_all (align);
+		update_all (align, HANDLE_MODE_IDLE);
 		return FALSE;
 	}
 
@@ -715,16 +731,85 @@ idle_cb (GcsvAlignment *align)
 static void
 install_idle (GcsvAlignment *align)
 {
-	if (align->enabled && align->idle_id == 0)
+	if (!align->enabled)
+	{
+		return;
+	}
+
+	/* If the idle is installed, the timeout is no longer needed. */
+	if (align->timeout_id != 0)
+	{
+		g_source_remove (align->timeout_id);
+		align->timeout_id = 0;
+	}
+
+	if (align->idle_id == 0)
 	{
 		align->idle_id = g_idle_add ((GSourceFunc) idle_cb, align);
+	}
+}
+
+static gboolean
+timeout_cb (GcsvAlignment *align)
+{
+	install_idle (align);
+
+	align->timeout_id = 0;
+	return G_SOURCE_REMOVE;
+}
+
+static void
+install_timeout (GcsvAlignment *align)
+{
+	if (!align->enabled)
+	{
+		return;
+	}
+
+	/* Remove the idle, because if we install a timeout it's because we want
+	 * to be more responsive. If the idle function is running, we loose the
+	 * responsiveness.
+	 */
+	if (align->idle_id != 0)
+	{
+		g_source_remove (align->idle_id);
+		align->idle_id = 0;
+	}
+
+	if (align->timeout_id != 0)
+	{
+		g_source_remove (align->timeout_id);
+	}
+
+	align->timeout_id = g_timeout_add (TIMEOUT_DURATION,
+					   (GSourceFunc) timeout_cb,
+					   align);
+}
+
+static void
+handle_mode (GcsvAlignment *align,
+	     HandleMode     mode)
+{
+	switch (mode)
+	{
+		case HANDLE_MODE_IDLE:
+			install_idle (align);
+			break;
+
+		case HANDLE_MODE_TIMEOUT:
+			install_timeout (align);
+			break;
+
+		default:
+			g_assert_not_reached ();
 	}
 }
 
 static void
 add_subregion_to_scan (GcsvAlignment *align,
 		       GtkTextIter   *start,
-		       GtkTextIter   *end)
+		       GtkTextIter   *end,
+		       HandleMode     mode)
 {
 	adjust_subregion (start, end);
 
@@ -735,13 +820,14 @@ add_subregion_to_scan (GcsvAlignment *align,
 
 	gtk_text_region_add (align->scan_region, start, end);
 
-	install_idle (align);
+	handle_mode (align, mode);
 }
 
 static void
 add_subregion_to_align (GcsvAlignment *align,
 			GtkTextIter   *start,
-			GtkTextIter   *end)
+			GtkTextIter   *end,
+			HandleMode     mode)
 {
 	adjust_subregion (start, end);
 
@@ -752,20 +838,22 @@ add_subregion_to_align (GcsvAlignment *align,
 
 	gtk_text_region_add (align->align_region, start, end);
 
-	install_idle (align);
+	handle_mode (align, mode);
 }
 
 static void
 add_subregion (GcsvAlignment *align,
 	       GtkTextIter   *start,
-	       GtkTextIter   *end)
+	       GtkTextIter   *end,
+	       HandleMode     mode)
 {
-	add_subregion_to_scan (align, start, end);
-	add_subregion_to_align (align, start, end);
+	add_subregion_to_scan (align, start, end, mode);
+	add_subregion_to_align (align, start, end, mode);
 }
 
 static void
-update_all (GcsvAlignment *align)
+update_all (GcsvAlignment *align,
+	    HandleMode     mode)
 {
 	GtkTextIter start;
 	GtkTextIter end;
@@ -783,7 +871,7 @@ update_all (GcsvAlignment *align)
 	align->column_lengths = g_array_new (FALSE, TRUE, sizeof (gint));
 
 	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-	add_subregion (align, &start, &end);
+	add_subregion (align, &start, &end, mode);
 }
 
 static void
@@ -799,7 +887,7 @@ insert_text_after_cb (GtkTextBuffer *buffer,
 	start = end = *location;
 	gtk_text_iter_backward_chars (&start, g_utf8_strlen (text, length));
 
-	add_subregion (align, &start, &end);
+	add_subregion (align, &start, &end, HANDLE_MODE_TIMEOUT);
 }
 
 static void
@@ -820,7 +908,7 @@ delete_range_cb (GtkTextBuffer *buffer,
 
 	if (align->delimiter == '\0')
 	{
-		add_subregion (align, &start_copy, &end_copy);
+		add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
 		return;
 	}
 
@@ -828,7 +916,7 @@ delete_range_cb (GtkTextBuffer *buffer,
 	if (gtk_text_iter_equal (&start_buffer, start) &&
 	    gtk_text_iter_equal (&end_buffer, end))
 	{
-		add_subregion (align, &start_copy, &end_copy);
+		add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
 		return;
 	}
 
@@ -838,7 +926,7 @@ delete_range_cb (GtkTextBuffer *buffer,
 	if (gtk_text_iter_get_line (start) != gtk_text_iter_get_line (end) ||
 	    get_column_num (align, start) != get_column_num (align, end))
 	{
-		update_all (align);
+		update_all (align, HANDLE_MODE_TIMEOUT);
 		return;
 	}
 
@@ -847,7 +935,7 @@ delete_range_cb (GtkTextBuffer *buffer,
 	/* Still not scanned */
 	if (column_num >= align->column_lengths->len)
 	{
-		add_subregion (align, &start_copy, &end_copy);
+		add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
 		return;
 	}
 
@@ -866,11 +954,11 @@ delete_range_cb (GtkTextBuffer *buffer,
 		/* Maybe a column shrinking, we need to re-scan the buffer if it
 		 * was the last field with the maximum length.
 		 */
-		update_all (align);
+		update_all (align, HANDLE_MODE_TIMEOUT);
 	}
 	else
 	{
-		add_subregion (align, &start_copy, &end_copy);
+		add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
 	}
 }
 
@@ -935,7 +1023,7 @@ set_buffer (GcsvAlignment   *align,
 
 	g_object_notify (G_OBJECT (align), "buffer");
 
-	update_all (align);
+	update_all (align, HANDLE_MODE_IDLE);
 }
 
 static void
@@ -1001,6 +1089,12 @@ remove_event_sources (GcsvAlignment *align)
 	{
 		g_source_remove (align->idle_id);
 		align->idle_id = 0;
+	}
+
+	if (align->timeout_id != 0)
+	{
+		g_source_remove (align->timeout_id);
+		align->timeout_id = 0;
 	}
 }
 
@@ -1119,7 +1213,7 @@ gcsv_alignment_set_enabled (GcsvAlignment *align,
 	if (enabled)
 	{
 		connect_signals (align);
-		update_all (align);
+		update_all (align, HANDLE_MODE_IDLE);
 	}
 	else
 	{
@@ -1149,7 +1243,7 @@ gcsv_alignment_set_delimiter (GcsvAlignment *align,
 		align->delimiter = delimiter;
 		g_object_notify (G_OBJECT (align), "delimiter");
 
-		update_all (align);
+		update_all (align, HANDLE_MODE_IDLE);
 	}
 }
 
