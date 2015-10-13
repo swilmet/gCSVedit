@@ -49,6 +49,9 @@ GtkSourceBuffer *
 
 gint		gcsv_alignment_get_csv_column			(GcsvAlignment *align);
 
+void		gcsv_alignment_set_unit_test_mode		(GcsvAlignment *align,
+								 gboolean       unit_test_mode);
+
 G_END_DECLS
 
 #endif /* __GCSV_ALIGNMENT_H__ */

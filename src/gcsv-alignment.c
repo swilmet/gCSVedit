@@ -54,6 +54,7 @@ struct _GcsvAlignment
 	gulong delete_range_handler_id;
 
 	guint enabled : 1;
+	guint unit_test_mode : 1;
 };
 
 enum
@@ -766,6 +767,12 @@ install_timeout (GcsvAlignment *align)
 		return;
 	}
 
+	if (align->unit_test_mode)
+	{
+		install_idle (align);
+		return;
+	}
+
 	/* Remove the idle, because if we install a timeout it's because we want
 	 * to be more responsive. If the idle function is running, we loose the
 	 * responsiveness.
@@ -1316,4 +1323,18 @@ gcsv_alignment_get_csv_column (GcsvAlignment *align)
 					  gtk_text_buffer_get_insert (align->buffer));
 
 	return get_column_num (align, &insert) + 1;
+}
+
+void
+gcsv_alignment_set_unit_test_mode (GcsvAlignment *align,
+				   gboolean       unit_test_mode)
+{
+	g_return_if_fail (GCSV_IS_ALIGNMENT (align));
+
+	align->unit_test_mode = unit_test_mode != FALSE;
+
+	if (align->timeout_id != 0)
+	{
+		install_idle (align);
+	}
 }

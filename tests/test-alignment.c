@@ -58,6 +58,7 @@ check_alignment (const gchar *before,
 	/* Test initial alignment */
 	gtk_text_buffer_set_text (buffer, before, -1);
 	align = gcsv_alignment_new (source_buffer, delimiter);
+	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
 
 	buffer_text = get_buffer_text (buffer);
@@ -75,6 +76,7 @@ check_alignment (const gchar *before,
 	/* Test alignment update, with column insertion */
 	gtk_text_buffer_set_text (buffer, "", -1);
 	align = gcsv_alignment_new (source_buffer, delimiter);
+	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	gtk_text_buffer_set_text (buffer, before, -1);
 	flush_queue ();
 	buffer_text = get_buffer_text (buffer);
@@ -134,6 +136,7 @@ test_column_growing (void)
 				  -1);
 
 	align = gcsv_alignment_new (source_buffer, ',');
+	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
 
 	text_after =
@@ -179,6 +182,7 @@ test_column_shrinking (void)
 				  -1);
 
 	align = gcsv_alignment_new (source_buffer, ',');
+	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
 
 	text_after =
