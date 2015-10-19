@@ -31,3 +31,12 @@ Simple install procedure:
   $ make install
 
 See the file 'INSTALL' for more detailed information.
+
+From the Git repository, the 'configure' script and the 'INSTALL' file are not
+yet generated, so you need to run 'autogen.sh' instead, which takes the same
+arguments as 'configure'.
+
+Developer Documentation
+-----------------------
+
+See the file 'HACKING'.
