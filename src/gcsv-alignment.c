@@ -94,6 +94,7 @@ enum
 
 typedef enum
 {
+	HANDLE_MODE_SYNC, /* Handle directly the next chunk */
 	HANDLE_MODE_IDLE,
 	HANDLE_MODE_TIMEOUT,
 } HandleMode;
@@ -128,11 +129,13 @@ G_DEFINE_TYPE (GcsvAlignment, gcsv_alignment, G_TYPE_OBJECT)
 /* Prototypes */
 static void add_subregion_to_align (GcsvAlignment *align,
 				    GtkTextIter   *start,
-				    GtkTextIter   *end,
-				    HandleMode     mode);
+				    GtkTextIter   *end);
 
 static void update_all (GcsvAlignment *align,
 			HandleMode     mode);
+
+static void handle_mode (GcsvAlignment *align,
+			 HandleMode     mode);
 
 #if ENABLE_DEBUG
 static void
@@ -195,9 +198,10 @@ set_column_length (GcsvAlignment *align,
 		g_array_insert_val (align->column_lengths, column_num, column_length);
 	}
 
-	/* If the column length is updated, we need to re-align the columns. */
+	/* Since the column length is updated, we need to re-align the columns. */
 	gtk_text_buffer_get_bounds (align->buffer, &start, &end);
-	add_subregion_to_align (align, &start, &end, HANDLE_MODE_IDLE);
+	add_subregion_to_align (align, &start, &end);
+	handle_mode (align, HANDLE_MODE_IDLE);
 }
 
 /* A TextRegion can contain empty subregions. So checking the number of
@@ -210,6 +214,11 @@ static gboolean
 is_text_region_empty (GtkTextRegion *region)
 {
 	GtkTextRegionIterator region_iter;
+
+	if (region == NULL)
+	{
+		return TRUE;
+	}
 
 	gtk_text_region_get_iterator (region, &region_iter, 0);
 
@@ -810,12 +819,58 @@ install_timeout (GcsvAlignment *align)
 					   align);
 }
 
+/* Returns whether the scan/align is finished. */
+static gboolean
+sync_scan_and_align (GcsvAlignment *align)
+{
+	if (align->scan_region != NULL)
+	{
+		gboolean finished = scan_next_chunk (align);
+
+		if (!finished)
+		{
+			return FALSE;
+		}
+
+		if (align->scan_region != NULL)
+		{
+			gtk_text_region_destroy (align->scan_region);
+			align->scan_region = NULL;
+		}
+	}
+
+	if (align->align_region != NULL)
+	{
+		gboolean finished = align_next_chunk (align);
+
+		if (!finished)
+		{
+			return FALSE;
+		}
+
+		if (align->align_region != NULL)
+		{
+			gtk_text_region_destroy (align->align_region);
+			align->align_region = NULL;
+		}
+	}
+
+	return TRUE;
+}
+
 static void
 handle_mode (GcsvAlignment *align,
 	     HandleMode     mode)
 {
 	switch (mode)
 	{
+		case HANDLE_MODE_SYNC:
+			if (!sync_scan_and_align (align))
+			{
+				install_timeout (align);
+			}
+			break;
+
 		case HANDLE_MODE_IDLE:
 			install_idle (align);
 			break;
@@ -832,8 +887,7 @@ handle_mode (GcsvAlignment *align,
 static void
 add_subregion_to_scan (GcsvAlignment *align,
 		       GtkTextIter   *start,
-		       GtkTextIter   *end,
-		       HandleMode     mode)
+		       GtkTextIter   *end)
 {
 	adjust_subregion (start, end);
 
@@ -843,15 +897,12 @@ add_subregion_to_scan (GcsvAlignment *align,
 	}
 
 	gtk_text_region_add (align->scan_region, start, end);
-
-	handle_mode (align, mode);
 }
 
 static void
 add_subregion_to_align (GcsvAlignment *align,
 			GtkTextIter   *start,
-			GtkTextIter   *end,
-			HandleMode     mode)
+			GtkTextIter   *end)
 {
 	adjust_subregion (start, end);
 
@@ -861,8 +912,6 @@ add_subregion_to_align (GcsvAlignment *align,
 	}
 
 	gtk_text_region_add (align->align_region, start, end);
-
-	handle_mode (align, mode);
 }
 
 static void
@@ -871,8 +920,9 @@ add_subregion (GcsvAlignment *align,
 	       GtkTextIter   *end,
 	       HandleMode     mode)
 {
-	add_subregion_to_scan (align, start, end, mode);
-	add_subregion_to_align (align, start, end, mode);
+	add_subregion_to_scan (align, start, end);
+	add_subregion_to_align (align, start, end);
+	handle_mode (align, mode);
 }
 
 static void
@@ -905,13 +955,27 @@ insert_text_after_cb (GtkTextBuffer *buffer,
 		      gint           length,
 		      GcsvAlignment *align)
 {
+	glong n_chars;
 	GtkTextIter start;
 	GtkTextIter end;
 
-	start = end = *location;
-	gtk_text_iter_backward_chars (&start, g_utf8_strlen (text, length));
+	n_chars = g_utf8_strlen (text, length);
 
-	add_subregion (align, &start, &end, HANDLE_MODE_TIMEOUT);
+	start = end = *location;
+	gtk_text_iter_backward_chars (&start, n_chars);
+
+	if (align->delimiter != '\0' &&
+	    n_chars == 1 &&
+	    is_text_region_empty (align->scan_region) &&
+	    is_text_region_empty (align->align_region) &&
+	    g_utf8_strchr (text, length, align->delimiter) == NULL)
+	{
+		add_subregion (align, &start, &end, HANDLE_MODE_SYNC);
+	}
+	else
+	{
+		add_subregion (align, &start, &end, HANDLE_MODE_TIMEOUT);
+	}
 }
 
 static void
