@@ -28,10 +28,16 @@ struct _GcsvAlignment
 	GObject parent;
 
 	GtkTextBuffer *buffer;
+
+	/* The delimiter is at most one Unicode character. If it is the nul
+	 * character ('\0'), the alignment is removed.
+	 */
 	gunichar delimiter;
 
-	/* The alignment is surrounded by a tag, so we know where the alignment
-	 * is. It permits to remove it or to not take it into account.
+	/* The alignment is done by inserting spaces to the buffer. The spaces
+	 * are surrounded by a tag, so we know where the alignment is. It
+	 * permits to remove it or to not take it into account for certain
+	 * features like file saving.
 	 */
 	GtkTextTag *tag;
 
@@ -45,15 +51,36 @@ struct _GcsvAlignment
 	 */
 	GtkTextRegion *scan_region;
 
-	/* The region to align, i.e. adjusting the virtual spacing. */
+	/* The region to align, i.e. adjusting the spacing. */
 	GtkTextRegion *align_region;
 
-	guint idle_id;
+	/* When adding a subregion to the scan_region or align_region, the
+	 * subregion is not handled directly/synchronously, instead a timeout or
+	 * idle function is used, to not block the user interface. An idle
+	 * iteration handles just a chunk of the region.
+	 * Using threads would not be convenient because this class uses lots of
+	 * GTK+ functions, and the GTK+ API can be accessed only by the main
+	 * thread.
+	 */
 	guint timeout_id;
+	guint idle_id;
+
 	gulong insert_text_handler_id;
 	gulong delete_range_handler_id;
 
+	/* Whether the alignment is enabled. It is different than setting the
+	 * delimiter to '\0'. Setting the delimiter to '\0' removes the
+	 * alignment. Disabling the GcsvAlignment keep the buffer as-is, and
+	 * when it is enabled again the buffer is re-scanned and re-aligned
+	 * entirely. It is useful to not loose the delimiter setting. Disabling
+	 * the GcsvAlignment can be useful during a file loading, for example.
+	 */
 	guint enabled : 1;
+
+	/* In unit test mode, timeouts aren't used, because it slows down the
+	 * unit tests and it is more difficult to know when an operation is
+	 * finished.
+	 */
 	guint unit_test_mode : 1;
 };
 
