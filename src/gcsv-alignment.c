@@ -663,20 +663,10 @@ handle_next_chunk (GcsvAlignment       *align,
 			return FALSE;
 		}
 
-		/* FIXME: workaround for bug in gtk_text_buffer_get_iter_at_line():
-		 * https://bugzilla.gnome.org/show_bug.cgi?id=735341
+		/* We need to take the start of the next line, because
+		 * line_end _included_ has already been handled.
 		 */
-		if ((line_end + 1) < gtk_text_buffer_get_line_count (align->buffer))
-		{
-			/* We need to take the start of the next line, because
-			 * line_end _included_ has already been handled.
-			 */
-			gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end + 1);
-		}
-		else
-		{
-			gtk_text_buffer_get_end_iter (align->buffer, &stop);
-		}
+		gtk_text_buffer_get_iter_at_line (align->buffer, &stop, line_end + 1);
 
 		n_remaining_lines -= n_lines;
 		gtk_text_region_iterator_next (&region_iter);
