@@ -9,6 +9,7 @@ gCSVedit uses the GLib/GTK+ development platform, with GtkSourceView for
 showing the CSV content:
 
     http://www.gtk.org/
+    https://people.gnome.org/~swilmet/gtk-brochure.pdf
     https://wiki.gnome.org/Projects/GtkSourceView
 
 You can read an introduction about GLib/GTK+ in the following document, which
