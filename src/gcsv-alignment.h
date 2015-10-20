@@ -47,8 +47,6 @@ void		gcsv_alignment_remove_alignment			(GcsvAlignment *align);
 GtkSourceBuffer *
 		gcsv_alignment_copy_buffer_without_alignment	(GcsvAlignment *align);
 
-gint		gcsv_alignment_get_csv_column			(GcsvAlignment *align);
-
 void		gcsv_alignment_set_unit_test_mode		(GcsvAlignment *align,
 								 gboolean       unit_test_mode);
 

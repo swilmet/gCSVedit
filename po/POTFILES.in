@@ -1,6 +1,7 @@
 # List of source files containing translatable strings.
 src/gcsv-alignment.c
 src/gcsv-delimiter-chooser.c
+src/gcsv-dsv-utils.c
 src/gcsv-main.c
 src/gcsv-utils.c
 src/gcsv-window.c

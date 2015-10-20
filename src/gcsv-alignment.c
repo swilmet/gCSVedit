@@ -20,6 +20,7 @@
  */
 
 #include "gcsv-alignment.h"
+#include "gcsv-dsv-utils.h"
 #include "gcsv-utils.h"
 #include "gtktextregion.h"
 
@@ -252,43 +253,6 @@ is_text_region_empty (GtkTextRegion *region)
 }
 
 static guint
-get_column_num (GcsvAlignment     *align,
-		const GtkTextIter *iter)
-{
-	GtkTextIter start_line;
-	guint column_num = 0;
-	gchar *line;
-	gchar *p;
-
-	if (align->delimiter == '\0')
-	{
-		return 0;
-	}
-
-	start_line = *iter;
-	gtk_text_iter_set_line_offset (&start_line, 0);
-
-	line = gtk_text_buffer_get_text (align->buffer, &start_line, iter, TRUE);
-
-	p = line;
-	while (p != NULL && *p != '\0')
-	{
-		gunichar ch;
-
-		ch = g_utf8_get_char (p);
-		if (ch == align->delimiter)
-		{
-			column_num++;
-		}
-
-		p = g_utf8_find_next_char (p, NULL);
-	}
-
-	g_free (line);
-	return column_num;
-}
-
-static guint
 count_columns (GcsvAlignment *align,
 	       guint          at_line)
 {
@@ -301,7 +265,7 @@ count_columns (GcsvAlignment *align,
 		gtk_text_iter_forward_to_line_end (&iter);
 	}
 
-	return get_column_num (align, &iter) + 1;
+	return gcsv_dsv_get_column_num (&iter, align->delimiter) + 1;
 }
 
 static void
@@ -1013,7 +977,8 @@ delete_range_cb (GtkTextBuffer *buffer,
 	GtkTextIter end_buffer;
 	GtkTextIter field_start;
 	GtkTextIter field_end;
-	guint column_num;
+	guint column_num_start;
+	guint column_num_end;
 	gint field_length;
 	gint column_length;
 
@@ -1034,27 +999,27 @@ delete_range_cb (GtkTextBuffer *buffer,
 	/* If the deletion spans multiple fields, it's simpler to update
 	 * everything, because a column can shrink.
 	 */
+	column_num_start = gcsv_dsv_get_column_num (start, align->delimiter);
+	column_num_end = gcsv_dsv_get_column_num (end, align->delimiter);
 	if (gtk_text_iter_get_line (start) != gtk_text_iter_get_line (end) ||
-	    get_column_num (align, start) != get_column_num (align, end))
+	    column_num_start != column_num_end)
 	{
 		update_all (align, HANDLE_MODE_TIMEOUT);
 		return;
 	}
 
-	column_num = get_column_num (align, start);
-
 	/* Still not scanned */
-	if (column_num >= align->column_lengths->len)
+	if (column_num_start >= align->column_lengths->len)
 	{
 		add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
 		return;
 	}
 
-	column_length = get_column_length (align, column_num);
+	column_length = get_column_length (align, column_num_start);
 
 	get_field_bounds (align,
 			  gtk_text_iter_get_line (start),
-			  column_num,
+			  column_num_start,
 			  &field_start,
 			  &field_end);
 
@@ -1450,17 +1415,6 @@ gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
 	}
 
 	return GTK_SOURCE_BUFFER (copy);
-}
-
-gint
-gcsv_alignment_get_csv_column (GcsvAlignment *align)
-{
-	GtkTextIter insert;
-
-	gtk_text_buffer_get_iter_at_mark (align->buffer, &insert,
-					  gtk_text_buffer_get_insert (align->buffer));
-
-	return get_column_num (align, &insert) + 1;
 }
 
 void
