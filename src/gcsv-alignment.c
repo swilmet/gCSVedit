@@ -55,9 +55,12 @@ struct _GcsvAlignment
 	GtkTextRegion *align_region;
 
 	/* When adding a subregion to the scan_region or align_region, the
-	 * subregion is not handled directly/synchronously, instead a timeout or
-	 * idle function is used, to not block the user interface. An idle
-	 * iteration handles just a chunk of the region.
+	 * subregion is sometimes not handled directly/synchronously, instead a
+	 * timeout or idle function is used, to not block the user interface. An
+	 * idle iteration handles just a chunk of the region.
+	 * When possible, the next chunk is scanned/aligned synchronously, so
+	 * the columns don't shift, like in a spreadsheet. But it is possible
+	 * only when the subregion to scan/align is small (e.g. one line).
 	 * Using threads would not be convenient because this class uses lots of
 	 * GTK+ functions, and the GTK+ API can be accessed only by the main
 	 * thread.
@@ -67,6 +70,7 @@ struct _GcsvAlignment
 
 	gulong insert_text_handler_id;
 	gulong delete_range_handler_id;
+	gulong delete_range_after_handler_id;
 
 	/* Whether the alignment is enabled. It is different than setting the
 	 * delimiter to '\0'. Setting the delimiter to '\0' removes the
@@ -82,6 +86,11 @@ struct _GcsvAlignment
 	 * finished.
 	 */
 	guint unit_test_mode : 1;
+
+	/* Whether the scan/align regions need to be handled synchronously (just
+	 * the next chunk) when a delete-range in the buffer is done.
+	 */
+	guint sync_after_delete_range : 1;
 };
 
 enum
@@ -560,6 +569,11 @@ align_subregion (GcsvAlignment     *align,
 		g_signal_handler_block (align->buffer, align->delete_range_handler_id);
 	}
 
+	if (align->delete_range_after_handler_id != 0)
+	{
+		g_signal_handler_block (align->buffer, align->delete_range_after_handler_id);
+	}
+
 	/* Adjust all fields alignment */
 	start_line = gtk_text_iter_get_line (start);
 	end_line = gtk_text_iter_get_line (end);
@@ -589,6 +603,11 @@ out:
 	if (align->delete_range_handler_id != 0)
 	{
 		g_signal_handler_unblock (align->buffer, align->delete_range_handler_id);
+	}
+
+	if (align->delete_range_after_handler_id != 0)
+	{
+		g_signal_handler_unblock (align->buffer, align->delete_range_after_handler_id);
 	}
 
 	gtk_text_buffer_set_modified (align->buffer, modified);
@@ -970,6 +989,10 @@ insert_text_after_cb (GtkTextBuffer *buffer,
 	    is_text_region_empty (align->align_region) &&
 	    g_utf8_strchr (text, length, align->delimiter) == NULL)
 	{
+		/* When possible, it's better to re-align the buffer
+		 * synchronously, so the fields on the right are not shifted,
+		 * like in a spreadsheet.
+		 */
 		add_subregion (align, &start, &end, HANDLE_MODE_SYNC);
 	}
 	else
@@ -1043,10 +1066,29 @@ delete_range_cb (GtkTextBuffer *buffer,
 		 * was the last field with the maximum length.
 		 */
 		update_all (align, HANDLE_MODE_TIMEOUT);
+		return;
 	}
-	else
+
+	align->sync_after_delete_range = (is_text_region_empty (align->scan_region) &&
+					  is_text_region_empty (align->align_region));
+
+	add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
+}
+
+static void
+delete_range_after_cb (GtkTextBuffer *buffer,
+		       GtkTextIter   *start,
+		       GtkTextIter   *end,
+		       GcsvAlignment *align)
+{
+	if (align->sync_after_delete_range)
 	{
-		add_subregion (align, &start_copy, &end_copy, HANDLE_MODE_TIMEOUT);
+		/* When possible, it's better to re-align the buffer
+		 * synchronously, so the fields on the right are not shifted,
+		 * like in a spreadsheet.
+		 */
+		handle_mode (align, HANDLE_MODE_SYNC);
+		align->sync_after_delete_range = FALSE;
 	}
 }
 
@@ -1070,6 +1112,15 @@ connect_signals (GcsvAlignment *align)
 					  G_CALLBACK (delete_range_cb),
 					  align);
 	}
+
+	if (align->delete_range_after_handler_id == 0)
+	{
+		align->delete_range_after_handler_id =
+			g_signal_connect_after (align->buffer,
+						"delete-range",
+						G_CALLBACK (delete_range_after_cb),
+						align);
+	}
 }
 
 static void
@@ -1085,6 +1136,12 @@ disconnect_signals (GcsvAlignment *align)
 	{
 		g_signal_handler_disconnect (align->buffer, align->delete_range_handler_id);
 		align->delete_range_handler_id = 0;
+	}
+
+	if (align->delete_range_after_handler_id != 0)
+	{
+		g_signal_handler_disconnect (align->buffer, align->delete_range_after_handler_id);
+		align->delete_range_after_handler_id = 0;
 	}
 }
 
