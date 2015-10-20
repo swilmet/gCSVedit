@@ -61,3 +61,22 @@ gcsv_dsv_get_column_num (const GtkTextIter *iter,
 	g_free (line);
 	return column_num;
 }
+
+guint
+gcsv_dsv_count_columns (GtkTextBuffer *buffer,
+			guint          at_line,
+			gunichar       delimiter)
+{
+	GtkTextIter iter;
+
+	g_return_val_if_fail (GTK_IS_TEXT_BUFFER (buffer), 1);
+
+	gtk_text_buffer_get_iter_at_line (buffer, &iter, at_line);
+
+	if (!gtk_text_iter_ends_line (&iter))
+	{
+		gtk_text_iter_forward_to_line_end (&iter);
+	}
+
+	return gcsv_dsv_get_column_num (&iter, delimiter) + 1;
+}

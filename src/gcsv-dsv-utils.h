@@ -29,6 +29,10 @@ G_BEGIN_DECLS
 guint		gcsv_dsv_get_column_num			(const GtkTextIter *iter,
 							 gunichar           delimiter);
 
+guint		gcsv_dsv_count_columns			(GtkTextBuffer *buffer,
+							 guint          at_line,
+							 gunichar       delimiter);
+
 G_END_DECLS
 
 #endif /* __GCSV_DSV_UTILS_H__ */

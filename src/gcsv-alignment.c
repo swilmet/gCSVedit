@@ -252,22 +252,6 @@ is_text_region_empty (GtkTextRegion *region)
 	return TRUE;
 }
 
-static guint
-count_columns (GcsvAlignment *align,
-	       guint          at_line)
-{
-	GtkTextIter iter;
-
-	gtk_text_buffer_get_iter_at_line (align->buffer, &iter, at_line);
-
-	if (!gtk_text_iter_ends_line (&iter))
-	{
-		gtk_text_iter_forward_to_line_end (&iter);
-	}
-
-	return gcsv_dsv_get_column_num (&iter, align->delimiter) + 1;
-}
-
 static void
 move_iter_to_nth_column (GcsvAlignment *align,
 			 GtkTextIter   *iter,
@@ -382,7 +366,9 @@ scan_subregion (GcsvAlignment     *align,
 		guint n_columns;
 		guint column_num;
 
-		n_columns = count_columns (align, line_num);
+		n_columns = gcsv_dsv_count_columns (align->buffer,
+						    line_num,
+						    align->delimiter);
 
 		for (column_num = 0; column_num < n_columns; column_num++)
 		{
