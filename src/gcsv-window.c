@@ -753,6 +753,7 @@ load_cb (GtkSourceFileLoader *loader,
 	GError *error = NULL;
 	GtkTextBuffer *buffer;
 	GtkTextIter start;
+	gunichar delimiter;
 
 	gtk_source_file_loader_load_finish (loader, result, &error);
 
@@ -766,9 +767,12 @@ load_cb (GtkSourceFileLoader *loader,
 		error = NULL;
 	}
 
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	delimiter = gcsv_dsv_guess_delimiter (buffer);
+	gcsv_delimiter_chooser_set_delimiter (window->delimiter_chooser, delimiter);
+
 	gcsv_alignment_set_enabled (window->align, TRUE);
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
 	gtk_text_buffer_get_start_iter (buffer, &start);
 	gtk_text_buffer_select_range (buffer, &start, &start);
 

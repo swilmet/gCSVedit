@@ -145,3 +145,26 @@ gcsv_dsv_get_field_bounds (GtkTextBuffer *buffer,
 		gtk_text_iter_forward_char (end);
 	}
 }
+
+gunichar
+gcsv_dsv_guess_delimiter (GtkTextBuffer *buffer)
+{
+	GtkTextIter iter;
+	GtkTextIter limit;
+
+	gtk_text_buffer_get_start_iter (buffer, &iter);
+	gtk_text_buffer_get_iter_at_line (buffer, &limit, 1000);
+
+	/* Really simple guess */
+	if (gtk_text_iter_forward_search (&iter,
+					  "\t",
+					  GTK_TEXT_SEARCH_TEXT_ONLY,
+					  NULL,
+					  NULL,
+					  &limit))
+	{
+		return '\t';
+	}
+
+	return ',';
+}

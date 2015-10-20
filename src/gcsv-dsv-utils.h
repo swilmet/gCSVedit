@@ -40,6 +40,8 @@ void		gcsv_dsv_get_field_bounds		(GtkTextBuffer *buffer,
 							 GtkTextIter   *start,
 							 GtkTextIter   *end);
 
+gunichar	gcsv_dsv_guess_delimiter		(GtkTextBuffer *buffer);
+
 G_END_DECLS
 
 #endif /* __GCSV_DSV_UTILS_H__ */
