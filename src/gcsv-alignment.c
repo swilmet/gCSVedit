@@ -894,11 +894,19 @@ insert_text_after_cb (GtkTextBuffer *buffer,
 	    is_text_region_empty (align->align_region) &&
 	    g_utf8_strchr (text, length, align->delimiter) == NULL)
 	{
+		GtkTextMark *mark;
+
+		mark = gtk_text_buffer_create_mark (buffer, NULL, location, TRUE);
+
 		/* When possible, it's better to re-align the buffer
 		 * synchronously, so the fields on the right are not shifted,
 		 * like in a spreadsheet.
 		 */
 		add_subregion (align, &start, &end, HANDLE_MODE_SYNC);
+
+		/* Restore location */
+		gtk_text_buffer_get_iter_at_mark (buffer, location, mark);
+		gtk_text_buffer_delete_mark (buffer, mark);
 	}
 	else
 	{
@@ -990,12 +998,21 @@ delete_range_after_cb (GtkTextBuffer *buffer,
 {
 	if (align->sync_after_delete_range)
 	{
+		GtkTextMark *mark;
+
+		mark = gtk_text_buffer_create_mark (buffer, NULL, start, TRUE);
+
 		/* When possible, it's better to re-align the buffer
 		 * synchronously, so the fields on the right are not shifted,
 		 * like in a spreadsheet.
 		 */
 		handle_mode (align, HANDLE_MODE_SYNC);
 		align->sync_after_delete_range = FALSE;
+
+		/* Restore location */
+		gtk_text_buffer_get_iter_at_mark (buffer, start, mark);
+		*end = *start;
+		gtk_text_buffer_delete_mark (buffer, mark);
 	}
 }
 
