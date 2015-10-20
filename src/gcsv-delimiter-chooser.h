@@ -38,6 +38,11 @@ gunichar		gcsv_delimiter_chooser_get_delimiter	(GcsvDelimiterChooser *chooser);
 void			gcsv_delimiter_chooser_set_delimiter	(GcsvDelimiterChooser *chooser,
 								 gunichar              delimiter);
 
+guint			gcsv_delimiter_chooser_get_title_line	(GcsvDelimiterChooser *chooser);
+
+void			gcsv_delimiter_chooser_set_title_line	(GcsvDelimiterChooser *chooser,
+								 guint                 title_line);
+
 G_END_DECLS
 
 #endif /* __GCSV_DELIMITER_CHOOSER_H__ */

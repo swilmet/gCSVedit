@@ -26,14 +26,19 @@ struct _GcsvDelimiterChooser
 {
 	GtkGrid parent;
 
+	/* For the delimiter. */
 	GtkComboBoxText *combo;
 	GtkEntry *entry;
+
+	/* For the title line. */
+	GtkSpinButton *title_spinbutton;
 };
 
 enum
 {
 	PROP_0,
 	PROP_DELIMITER,
+	PROP_TITLE_LINE,
 };
 
 #define ROW_ID_DISABLE	"disable"
@@ -57,6 +62,10 @@ gcsv_delimiter_chooser_get_property (GObject    *object,
 			g_value_set_uint (value, gcsv_delimiter_chooser_get_delimiter (chooser));
 			break;
 
+		case PROP_TITLE_LINE:
+			g_value_set_uint (value, gcsv_delimiter_chooser_get_title_line (chooser));
+			break;
+
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 			break;
@@ -75,6 +84,10 @@ gcsv_delimiter_chooser_set_property (GObject      *object,
 	{
 		case PROP_DELIMITER:
 			gcsv_delimiter_chooser_set_delimiter (chooser, g_value_get_uint (value));
+			break;
+
+		case PROP_TITLE_LINE:
+			gcsv_delimiter_chooser_set_title_line (chooser, g_value_get_uint (value));
 			break;
 
 		default:
@@ -100,6 +113,18 @@ gcsv_delimiter_chooser_class_init (GcsvDelimiterChooserClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class,
+					 PROP_TITLE_LINE,
+					 g_param_spec_uint ("title-line",
+							    "Title Line",
+							    "",
+							    0,
+							    G_MAXUINT,
+							    0,
+							    G_PARAM_READWRITE |
+							    G_PARAM_CONSTRUCT |
+							    G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -127,6 +152,7 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (chooser), GTK_ORIENTATION_HORIZONTAL);
 	gtk_grid_set_column_spacing (GTK_GRID (chooser), 6);
 
+	/* Delimiter */
 	label = gtk_label_new_with_mnemonic (_("_Delimiter:"));
 	gtk_container_add (GTK_CONTAINER (chooser), label);
 
@@ -157,6 +183,18 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 			  "changed",
 			  G_CALLBACK (entry_changed_cb),
 			  chooser);
+
+	/* Title line */
+	label = gtk_label_new_with_mnemonic (_("_Column titles line:"));
+	gtk_widget_set_hexpand (label, TRUE);
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_container_add (GTK_CONTAINER (chooser), label);
+
+	chooser->title_spinbutton = GTK_SPIN_BUTTON (gtk_spin_button_new_with_range (1, 9999, 1));
+	gtk_container_add (GTK_CONTAINER (chooser), GTK_WIDGET (chooser->title_spinbutton));
+
+	gtk_label_set_mnemonic_widget (GTK_LABEL (label),
+				       GTK_WIDGET (chooser->title_spinbutton));
 }
 
 GcsvDelimiterChooser *
@@ -237,5 +275,30 @@ gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
 
 		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
 					     ROW_ID_OTHER);
+	}
+}
+
+/* Starts at 0. */
+guint
+gcsv_delimiter_chooser_get_title_line (GcsvDelimiterChooser *chooser)
+{
+	g_return_val_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser), 0);
+
+	return gtk_spin_button_get_value_as_int (chooser->title_spinbutton) - 1;
+}
+
+/* Starts at 0. */
+void
+gcsv_delimiter_chooser_set_title_line (GcsvDelimiterChooser *chooser,
+				       guint                 title_line)
+{
+	g_return_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser));
+
+	if (title_line != gcsv_delimiter_chooser_get_title_line (chooser))
+	{
+		gtk_spin_button_set_value (chooser->title_spinbutton,
+					   title_line + 1);
+
+		g_object_notify (G_OBJECT (chooser), "title-line");
 	}
 }
