@@ -80,3 +80,68 @@ gcsv_dsv_count_columns (GtkTextBuffer *buffer,
 
 	return gcsv_dsv_get_column_num (&iter, delimiter) + 1;
 }
+
+static void
+move_iter_to_nth_column (GtkTextIter *iter,
+			 guint        nth_column,
+			 gunichar     delimiter)
+{
+	guint column_num = 0;
+
+	gtk_text_iter_set_line_offset (iter, 0);
+
+	while (column_num < nth_column &&
+	       !gtk_text_iter_is_end (iter))
+	{
+		gunichar ch;
+
+		ch = gtk_text_iter_get_char (iter);
+		if (ch == delimiter)
+		{
+			column_num++;
+		}
+		else if (ch == '\n' || ch == '\r')
+		{
+			return;
+		}
+
+		gtk_text_iter_forward_char (iter);
+	}
+}
+
+/* Get field bounds, delimiters excluded, virtual spaces included. */
+void
+gcsv_dsv_get_field_bounds (GtkTextBuffer *buffer,
+			   gunichar       delimiter,
+			   guint          line_num,
+			   guint          column_num,
+			   GtkTextIter   *start,
+			   GtkTextIter   *end)
+{
+	g_return_if_fail (GTK_IS_TEXT_BUFFER (buffer));
+	g_return_if_fail (start != NULL);
+	g_return_if_fail (end != NULL);
+
+	gtk_text_buffer_get_iter_at_line (buffer, start, line_num);
+	if (gtk_text_iter_is_end (start))
+	{
+		*end = *start;
+		return;
+	}
+
+	move_iter_to_nth_column (start, column_num, delimiter);
+
+	*end = *start;
+	while (!gtk_text_iter_is_end (end))
+	{
+		gunichar ch;
+
+		ch = gtk_text_iter_get_char (end);
+		if (ch == delimiter || ch == '\n' || ch == '\r')
+		{
+			break;
+		}
+
+		gtk_text_iter_forward_char (end);
+	}
+}

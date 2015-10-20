@@ -33,6 +33,13 @@ guint		gcsv_dsv_count_columns			(GtkTextBuffer *buffer,
 							 guint          at_line,
 							 gunichar       delimiter);
 
+void		gcsv_dsv_get_field_bounds		(GtkTextBuffer *buffer,
+							 gunichar       delimiter,
+							 guint          line_num,
+							 guint          column_num,
+							 GtkTextIter   *start,
+							 GtkTextIter   *end);
+
 G_END_DECLS
 
 #endif /* __GCSV_DSV_UTILS_H__ */

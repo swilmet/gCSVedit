@@ -252,69 +252,6 @@ is_text_region_empty (GtkTextRegion *region)
 	return TRUE;
 }
 
-static void
-move_iter_to_nth_column (GcsvAlignment *align,
-			 GtkTextIter   *iter,
-			 guint          nth_column)
-{
-	guint column_num = 0;
-
-	gtk_text_iter_set_line_offset (iter, 0);
-
-	while (column_num < nth_column &&
-	       !gtk_text_iter_is_end (iter))
-	{
-		gunichar ch;
-
-		ch = gtk_text_iter_get_char (iter);
-		if (ch == align->delimiter)
-		{
-			column_num++;
-		}
-		else if (ch == '\n' || ch == '\r')
-		{
-			return;
-		}
-
-		gtk_text_iter_forward_char (iter);
-	}
-}
-
-/* Get field bounds, delimiters excluded, virtual spaces included. */
-static void
-get_field_bounds (GcsvAlignment *align,
-		  guint          line_num,
-		  guint          column_num,
-		  GtkTextIter   *start,
-		  GtkTextIter   *end)
-{
-	g_assert (start != NULL);
-	g_assert (end != NULL);
-
-	gtk_text_buffer_get_iter_at_line (align->buffer, start, line_num);
-	if (gtk_text_iter_is_end (start))
-	{
-		*end = *start;
-		return;
-	}
-
-	move_iter_to_nth_column (align, start, column_num);
-
-	*end = *start;
-	while (!gtk_text_iter_is_end (end))
-	{
-		gunichar ch;
-
-		ch = gtk_text_iter_get_char (end);
-		if (ch == align->delimiter || ch == '\n' || ch == '\r')
-		{
-			break;
-		}
-
-		gtk_text_iter_forward_char (end);
-	}
-}
-
 /* Length in characters, not in bytes. */
 static guint
 get_field_length (GcsvAlignment     *align,
@@ -384,7 +321,13 @@ scan_subregion (GcsvAlignment     *align,
 				GtkTextIter field_start;
 				GtkTextIter field_end;
 
-				get_field_bounds (align, line_num, column_num, &field_start, &field_end);
+				gcsv_dsv_get_field_bounds (align->buffer,
+							   align->delimiter,
+							   line_num,
+							   column_num,
+							   &field_start,
+							   &field_end);
+
 				field_length = get_field_length (align, &field_start, &field_end, FALSE);
 			}
 
@@ -456,7 +399,13 @@ adjust_field_alignment (GcsvAlignment *align,
 	column_length = get_column_length (align, column_num);
 
 	/* Delete previous alignment */
-	get_field_bounds (align, line_num, column_num, &field_start, &field_end);
+	gcsv_dsv_get_field_bounds (align->buffer,
+				   align->delimiter,
+				   line_num,
+				   column_num,
+				   &field_start,
+				   &field_end);
+
 	gcsv_utils_delete_text_with_tag (align->buffer, &field_start, &field_end, align->tag);
 
 	if (column_length < 0)
@@ -465,7 +414,13 @@ adjust_field_alignment (GcsvAlignment *align,
 	}
 
 	/* Compare field length with column length */
-	get_field_bounds (align, line_num, column_num, &field_start, &field_end);
+	gcsv_dsv_get_field_bounds (align->buffer,
+				   align->delimiter,
+				   line_num,
+				   column_num,
+				   &field_start,
+				   &field_end);
+
 	field_length = get_field_length (align, &field_start, &field_end, TRUE);
 
 	if (field_length == column_length)
@@ -1003,11 +958,12 @@ delete_range_cb (GtkTextBuffer *buffer,
 
 	column_length = get_column_length (align, column_num_start);
 
-	get_field_bounds (align,
-			  gtk_text_iter_get_line (start),
-			  column_num_start,
-			  &field_start,
-			  &field_end);
+	gcsv_dsv_get_field_bounds (align->buffer,
+				   align->delimiter,
+				   gtk_text_iter_get_line (start),
+				   column_num_start,
+				   &field_start,
+				   &field_end);
 
 	field_length = get_field_length (align, &field_start, &field_end, FALSE);
 
