@@ -19,30 +19,30 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#ifndef __GCSV_DELIMITER_CHOOSER_H__
-#define __GCSV_DELIMITER_CHOOSER_H__
+#ifndef __GCSV_PROPERTIES_CHOOSER_H__
+#define __GCSV_PROPERTIES_CHOOSER_H__
 
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-#define GCSV_TYPE_DELIMITER_CHOOSER (gcsv_delimiter_chooser_get_type ())
-G_DECLARE_FINAL_TYPE (GcsvDelimiterChooser, gcsv_delimiter_chooser,
-		      GCSV, DELIMITER_CHOOSER,
+#define GCSV_TYPE_PROPERTIES_CHOOSER (gcsv_properties_chooser_get_type ())
+G_DECLARE_FINAL_TYPE (GcsvPropertiesChooser, gcsv_properties_chooser,
+		      GCSV, PROPERTIES_CHOOSER,
 		      GtkGrid)
 
-GcsvDelimiterChooser *	gcsv_delimiter_chooser_new		(gunichar delimiter);
+GcsvPropertiesChooser *	gcsv_properties_chooser_new		(gunichar delimiter);
 
-gunichar		gcsv_delimiter_chooser_get_delimiter	(GcsvDelimiterChooser *chooser);
+gunichar		gcsv_properties_chooser_get_delimiter	(GcsvPropertiesChooser *chooser);
 
-void			gcsv_delimiter_chooser_set_delimiter	(GcsvDelimiterChooser *chooser,
-								 gunichar              delimiter);
+void			gcsv_properties_chooser_set_delimiter	(GcsvPropertiesChooser *chooser,
+								 gunichar               delimiter);
 
-guint			gcsv_delimiter_chooser_get_title_line	(GcsvDelimiterChooser *chooser);
+guint			gcsv_properties_chooser_get_title_line	(GcsvPropertiesChooser *chooser);
 
-void			gcsv_delimiter_chooser_set_title_line	(GcsvDelimiterChooser *chooser,
-								 guint                 title_line);
+void			gcsv_properties_chooser_set_title_line	(GcsvPropertiesChooser *chooser,
+								 guint                  title_line);
 
 G_END_DECLS
 
-#endif /* __GCSV_DELIMITER_CHOOSER_H__ */
+#endif /* __GCSV_PROPERTIES_CHOOSER_H__ */

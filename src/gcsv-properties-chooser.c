@@ -19,10 +19,10 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#include "gcsv-delimiter-chooser.h"
+#include "gcsv-properties-chooser.h"
 #include <glib/gi18n.h>
 
-struct _GcsvDelimiterChooser
+struct _GcsvPropertiesChooser
 {
 	GtkGrid parent;
 
@@ -46,24 +46,24 @@ enum
 #define ROW_ID_TAB	"tab"
 #define ROW_ID_OTHER	"other"
 
-G_DEFINE_TYPE (GcsvDelimiterChooser, gcsv_delimiter_chooser, GTK_TYPE_GRID)
+G_DEFINE_TYPE (GcsvPropertiesChooser, gcsv_properties_chooser, GTK_TYPE_GRID)
 
 static void
-gcsv_delimiter_chooser_get_property (GObject    *object,
-				     guint       prop_id,
-				     GValue     *value,
-				     GParamSpec *pspec)
+gcsv_properties_chooser_get_property (GObject    *object,
+				      guint       prop_id,
+				      GValue     *value,
+				      GParamSpec *pspec)
 {
-	GcsvDelimiterChooser *chooser = GCSV_DELIMITER_CHOOSER (object);
+	GcsvPropertiesChooser *chooser = GCSV_PROPERTIES_CHOOSER (object);
 
 	switch (prop_id)
 	{
 		case PROP_DELIMITER:
-			g_value_set_uint (value, gcsv_delimiter_chooser_get_delimiter (chooser));
+			g_value_set_uint (value, gcsv_properties_chooser_get_delimiter (chooser));
 			break;
 
 		case PROP_TITLE_LINE:
-			g_value_set_uint (value, gcsv_delimiter_chooser_get_title_line (chooser));
+			g_value_set_uint (value, gcsv_properties_chooser_get_title_line (chooser));
 			break;
 
 		default:
@@ -73,21 +73,21 @@ gcsv_delimiter_chooser_get_property (GObject    *object,
 }
 
 static void
-gcsv_delimiter_chooser_set_property (GObject      *object,
-				     guint         prop_id,
-				     const GValue *value,
-				     GParamSpec   *pspec)
+gcsv_properties_chooser_set_property (GObject      *object,
+				      guint         prop_id,
+				      const GValue *value,
+				      GParamSpec   *pspec)
 {
-	GcsvDelimiterChooser *chooser = GCSV_DELIMITER_CHOOSER (object);
+	GcsvPropertiesChooser *chooser = GCSV_PROPERTIES_CHOOSER (object);
 
 	switch (prop_id)
 	{
 		case PROP_DELIMITER:
-			gcsv_delimiter_chooser_set_delimiter (chooser, g_value_get_uint (value));
+			gcsv_properties_chooser_set_delimiter (chooser, g_value_get_uint (value));
 			break;
 
 		case PROP_TITLE_LINE:
-			gcsv_delimiter_chooser_set_title_line (chooser, g_value_get_uint (value));
+			gcsv_properties_chooser_set_title_line (chooser, g_value_get_uint (value));
 			break;
 
 		default:
@@ -97,12 +97,12 @@ gcsv_delimiter_chooser_set_property (GObject      *object,
 }
 
 static void
-gcsv_delimiter_chooser_class_init (GcsvDelimiterChooserClass *klass)
+gcsv_properties_chooser_class_init (GcsvPropertiesChooserClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-	object_class->get_property = gcsv_delimiter_chooser_get_property;
-	object_class->set_property = gcsv_delimiter_chooser_set_property;
+	object_class->get_property = gcsv_properties_chooser_get_property;
+	object_class->set_property = gcsv_properties_chooser_set_property;
 
 	g_object_class_install_property (object_class,
 					 PROP_DELIMITER,
@@ -128,8 +128,8 @@ gcsv_delimiter_chooser_class_init (GcsvDelimiterChooserClass *klass)
 }
 
 static void
-combo_changed_cb (GtkComboBox          *combo,
-		  GcsvDelimiterChooser *chooser)
+combo_changed_cb (GtkComboBox           *combo,
+		  GcsvPropertiesChooser *chooser)
 {
 	gtk_widget_set_visible (GTK_WIDGET (chooser->entry),
 				g_strcmp0 (gtk_combo_box_get_active_id (combo), ROW_ID_OTHER) == 0);
@@ -138,14 +138,14 @@ combo_changed_cb (GtkComboBox          *combo,
 }
 
 static void
-entry_changed_cb (GtkEntry             *entry,
-		  GcsvDelimiterChooser *chooser)
+entry_changed_cb (GtkEntry              *entry,
+		  GcsvPropertiesChooser *chooser)
 {
 	g_object_notify (G_OBJECT (chooser), "delimiter");
 }
 
 static void
-gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
+gcsv_properties_chooser_init (GcsvPropertiesChooser *chooser)
 {
 	GtkWidget *label;
 
@@ -197,21 +197,21 @@ gcsv_delimiter_chooser_init (GcsvDelimiterChooser *chooser)
 				       GTK_WIDGET (chooser->title_spinbutton));
 }
 
-GcsvDelimiterChooser *
-gcsv_delimiter_chooser_new (gunichar delimiter)
+GcsvPropertiesChooser *
+gcsv_properties_chooser_new (gunichar delimiter)
 {
-	return g_object_new (GCSV_TYPE_DELIMITER_CHOOSER,
+	return g_object_new (GCSV_TYPE_PROPERTIES_CHOOSER,
 			     "delimiter", delimiter,
 			     "margin", 6,
 			     NULL);
 }
 
 gunichar
-gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
+gcsv_properties_chooser_get_delimiter (GcsvPropertiesChooser *chooser)
 {
 	const gchar *row_id;
 
-	g_return_val_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser), '\0');
+	g_return_val_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser), '\0');
 
 	row_id = gtk_combo_box_get_active_id (GTK_COMBO_BOX (chooser->combo));
 	g_return_val_if_fail (row_id != NULL, '\0');
@@ -246,10 +246,10 @@ gcsv_delimiter_chooser_get_delimiter (GcsvDelimiterChooser *chooser)
 }
 
 void
-gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
-				      gunichar              delimiter)
+gcsv_properties_chooser_set_delimiter (GcsvPropertiesChooser *chooser,
+				       gunichar               delimiter)
 {
-	g_return_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser));
+	g_return_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser));
 
 	if (delimiter == '\0')
 	{
@@ -280,21 +280,21 @@ gcsv_delimiter_chooser_set_delimiter (GcsvDelimiterChooser *chooser,
 
 /* Starts at 0. */
 guint
-gcsv_delimiter_chooser_get_title_line (GcsvDelimiterChooser *chooser)
+gcsv_properties_chooser_get_title_line (GcsvPropertiesChooser *chooser)
 {
-	g_return_val_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser), 0);
+	g_return_val_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser), 0);
 
 	return gtk_spin_button_get_value_as_int (chooser->title_spinbutton) - 1;
 }
 
 /* Starts at 0. */
 void
-gcsv_delimiter_chooser_set_title_line (GcsvDelimiterChooser *chooser,
-				       guint                 title_line)
+gcsv_properties_chooser_set_title_line (GcsvPropertiesChooser *chooser,
+					guint                  title_line)
 {
-	g_return_if_fail (GCSV_IS_DELIMITER_CHOOSER (chooser));
+	g_return_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser));
 
-	if (title_line != gcsv_delimiter_chooser_get_title_line (chooser))
+	if (title_line != gcsv_properties_chooser_get_title_line (chooser))
 	{
 		gtk_spin_button_set_value (chooser->title_spinbutton,
 					   title_line + 1);

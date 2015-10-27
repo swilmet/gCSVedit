@@ -24,7 +24,7 @@
 #include <gtksourceview/gtksource.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
-#include "gcsv-delimiter-chooser.h"
+#include "gcsv-properties-chooser.h"
 #include "gcsv-dsv-utils.h"
 #include "gcsv-utils.h"
 
@@ -32,7 +32,7 @@ struct _GcsvWindow
 {
 	GtkApplicationWindow parent;
 
-	GcsvDelimiterChooser *delimiter_chooser;
+	GcsvPropertiesChooser *properties_chooser;
 	GtkSourceView *view;
 	GtkLabel *statusbar_label;
 
@@ -670,9 +670,9 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_container_add (GTK_CONTAINER (vgrid), get_menubar ());
 
 	/* Delimiter chooser */
-	window->delimiter_chooser = gcsv_delimiter_chooser_new (',');
+	window->properties_chooser = gcsv_properties_chooser_new (',');
 	gtk_container_add (GTK_CONTAINER (vgrid),
-			   GTK_WIDGET (window->delimiter_chooser));
+			   GTK_WIDGET (window->properties_chooser));
 
 	/* GtkSourceView */
 	window->view = create_view ();
@@ -728,7 +728,7 @@ gcsv_window_init (GcsvWindow *window)
 				 window,
 				 0);
 
-	g_object_bind_property (window->delimiter_chooser, "delimiter",
+	g_object_bind_property (window->properties_chooser, "delimiter",
 				window->align, "delimiter",
 				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 
@@ -769,7 +769,7 @@ load_cb (GtkSourceFileLoader *loader,
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
 	delimiter = gcsv_dsv_guess_delimiter (buffer);
-	gcsv_delimiter_chooser_set_delimiter (window->delimiter_chooser, delimiter);
+	gcsv_properties_chooser_set_delimiter (window->properties_chooser, delimiter);
 
 	gcsv_alignment_set_enabled (window->align, TRUE);
 
