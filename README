@@ -14,6 +14,14 @@ comma-separated values (CSV) files. The application is called gCSVedit, because
 “CSV” is commonly used to also refer to TSV (tab-separated values) or DSV in
 general.
 
+gCSVedit is a free/libre software (GPLv3+ license) and is hosted on GitHub:
+
+    https://github.com/UCL-CATL/gcsvedit
+
+You are encouraged to report bugs or feature requests at:
+
+    https://github.com/UCL-CATL/gcsvedit/issues
+
 Dependencies
 ------------
 

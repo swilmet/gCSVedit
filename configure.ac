@@ -4,9 +4,9 @@ AC_PREREQ(2.64)
 
 AC_INIT([gCSVedit],
         [0.0.1],
-	[http://catl.ions.ucl.ac.be/index.html],
+	[https://github.com/UCL-CATL/gcsvedit/issues],
 	[gcsvedit],
-	[http://catl.ions.ucl.ac.be/git/?p=gcsvedit.git;a=summary])
+	[https://github.com/UCL-CATL/gcsvedit])
 
 AX_REQUIRE_DEFINED([AX_IS_RELEASE])
 AX_IS_RELEASE([git-directory])
