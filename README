@@ -1,7 +1,7 @@
 gCSVedit
 ========
 
-This is version 0.0.1 of gCSVedit.
+This is version 0.0.2 of gCSVedit.
 
 gCSVedit is under development. The goal is to have a simple CSV editor that
 runs on GNU/Linux and Windows (maybe Mac OS X too).
