@@ -112,6 +112,13 @@ typedef enum
 	HANDLE_MODE_TIMEOUT,
 } HandleMode;
 
+typedef struct _BufferEditData BufferEditData;
+struct _BufferEditData
+{
+	gulong *handler_ids;
+	guint modified : 1;
+};
+
 /* Function to handle a subregion of a GtkTextRegion.
  * Returns TRUE if the subregion was handled normally, and if the next subregion
  * can be handled. Returns FALSE otherwise, for example if the GtkTextRegion has
@@ -253,6 +260,58 @@ is_text_region_empty (GtkTextRegion *region)
 	}
 
 	return TRUE;
+}
+
+static BufferEditData
+begin_buffer_edit (GcsvAlignment *align)
+{
+	BufferEditData data;
+
+	data.handler_ids = gcsv_utils_block_all_signal_handlers (G_OBJECT (align->buffer),
+								 "modified-changed");
+	data.modified = gtk_text_buffer_get_modified (align->buffer);
+
+	if (align->insert_text_handler_id != 0)
+	{
+		g_signal_handler_block (align->buffer, align->insert_text_handler_id);
+	}
+
+	if (align->delete_range_handler_id != 0)
+	{
+		g_signal_handler_block (align->buffer, align->delete_range_handler_id);
+	}
+
+	if (align->delete_range_after_handler_id != 0)
+	{
+		g_signal_handler_block (align->buffer, align->delete_range_after_handler_id);
+	}
+
+	return data;
+}
+
+static void
+end_buffer_edit (GcsvAlignment  *align,
+		 BufferEditData *data)
+{
+	if (align->insert_text_handler_id != 0)
+	{
+		g_signal_handler_unblock (align->buffer, align->insert_text_handler_id);
+	}
+
+	if (align->delete_range_handler_id != 0)
+	{
+		g_signal_handler_unblock (align->buffer, align->delete_range_handler_id);
+	}
+
+	if (align->delete_range_after_handler_id != 0)
+	{
+		g_signal_handler_unblock (align->buffer, align->delete_range_after_handler_id);
+	}
+
+	gtk_text_buffer_set_modified (align->buffer, data->modified);
+	gcsv_utils_unblock_signal_handlers (G_OBJECT (align->buffer),
+					    data->handler_ids);
+	g_free (data->handler_ids);
 }
 
 /* Length in characters, not in bytes. */
@@ -452,8 +511,7 @@ align_subregion (GcsvAlignment     *align,
 		 const GtkTextIter *start,
 		 const GtkTextIter *end)
 {
-	gulong *handler_ids;
-	gboolean modified;
+	BufferEditData edit_data;
 	guint start_line;
 	guint end_line;
 	guint line_num;
@@ -462,25 +520,7 @@ align_subregion (GcsvAlignment     *align,
 	g_assert (gtk_text_iter_starts_line (start));
 	g_assert (gtk_text_iter_ends_line (end));
 
-	/* Block signals, store modified */
-	handler_ids = gcsv_utils_block_all_signal_handlers (G_OBJECT (align->buffer),
-							    "modified-changed");
-	modified = gtk_text_buffer_get_modified (align->buffer);
-
-	if (align->insert_text_handler_id != 0)
-	{
-		g_signal_handler_block (align->buffer, align->insert_text_handler_id);
-	}
-
-	if (align->delete_range_handler_id != 0)
-	{
-		g_signal_handler_block (align->buffer, align->delete_range_handler_id);
-	}
-
-	if (align->delete_range_after_handler_id != 0)
-	{
-		g_signal_handler_block (align->buffer, align->delete_range_after_handler_id);
-	}
+	edit_data = begin_buffer_edit (align);
 
 	/* Adjust all fields alignment */
 	start_line = gtk_text_iter_get_line (start);
@@ -502,26 +542,7 @@ align_subregion (GcsvAlignment     *align,
 	}
 
 out:
-	/* Unblock signals, restore modified */
-	if (align->insert_text_handler_id != 0)
-	{
-		g_signal_handler_unblock (align->buffer, align->insert_text_handler_id);
-	}
-
-	if (align->delete_range_handler_id != 0)
-	{
-		g_signal_handler_unblock (align->buffer, align->delete_range_handler_id);
-	}
-
-	if (align->delete_range_after_handler_id != 0)
-	{
-		g_signal_handler_unblock (align->buffer, align->delete_range_after_handler_id);
-	}
-
-	gtk_text_buffer_set_modified (align->buffer, modified);
-	gcsv_utils_unblock_signal_handlers (G_OBJECT (align->buffer),
-					    handler_ids);
-	g_free (handler_ids);
+	end_buffer_edit (align, &edit_data);
 
 	return finished;
 }
@@ -1124,6 +1145,7 @@ static void
 set_title_line (GcsvAlignment *align,
 		guint          title_line)
 {
+	BufferEditData edit_data;
 	GtkTextIter start;
 	GtkTextIter header_end;
 
@@ -1134,9 +1156,14 @@ set_title_line (GcsvAlignment *align,
 
 	align->title_line = title_line;
 
+	/* Remove alignment in the header. It is done synchronously, but it
+	 * should not be a problem because a header is usually small.
+	 */
+	edit_data = begin_buffer_edit (align);
 	gtk_text_buffer_get_start_iter (align->buffer, &start);
 	gtk_text_buffer_get_iter_at_line (align->buffer, &header_end, align->title_line);
 	gcsv_utils_delete_text_with_tag (align->buffer, &start, &header_end, align->tag);
+	end_buffer_edit (align, &edit_data);
 
 	update_all (align, HANDLE_MODE_TIMEOUT);
 
