@@ -732,6 +732,10 @@ gcsv_window_init (GcsvWindow *window)
 				window->align, "delimiter",
 				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 
+	g_object_bind_property (window->properties_chooser, "title-line",
+				window->align, "title-line",
+				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
+
 	g_signal_connect_object (window->align,
 				 "notify::delimiter",
 				 G_CALLBACK (alignment_notify_delimiter_cb),

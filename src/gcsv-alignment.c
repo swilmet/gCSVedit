@@ -35,6 +35,8 @@ struct _GcsvAlignment
 	 */
 	gunichar delimiter;
 
+	guint title_line;
+
 	/* The alignment is done by inserting spaces to the buffer. The spaces
 	 * are surrounded by a tag, so we know where the alignment is. It
 	 * permits to remove it or to not take it into account for certain
@@ -99,6 +101,7 @@ enum
 	PROP_0,
 	PROP_BUFFER,
 	PROP_DELIMITER,
+	PROP_TITLE_LINE,
 	PROP_ENABLED,
 };
 
@@ -809,6 +812,24 @@ handle_mode (GcsvAlignment *align,
 }
 
 static void
+remove_header (GcsvAlignment *align,
+	       GtkTextRegion *region)
+{
+	GtkTextIter start;
+	GtkTextIter header_end;
+
+	if (align->title_line == 0)
+	{
+		return;
+	}
+
+	gtk_text_buffer_get_start_iter (align->buffer, &start);
+	gtk_text_buffer_get_iter_at_line (align->buffer, &header_end, align->title_line);
+
+	gtk_text_region_subtract (region, &start, &header_end);
+}
+
+static void
 add_subregion_to_scan (GcsvAlignment *align,
 		       GtkTextIter   *start,
 		       GtkTextIter   *end)
@@ -821,6 +842,8 @@ add_subregion_to_scan (GcsvAlignment *align,
 	}
 
 	gtk_text_region_add (align->scan_region, start, end);
+
+	remove_header (align, align->scan_region);
 }
 
 static void
@@ -836,6 +859,8 @@ add_subregion_to_align (GcsvAlignment *align,
 	}
 
 	gtk_text_region_add (align->align_region, start, end);
+
+	remove_header (align, align->align_region);
 }
 
 static void
@@ -1096,6 +1121,20 @@ set_buffer (GcsvAlignment   *align,
 }
 
 static void
+set_title_line (GcsvAlignment *align,
+		guint          title_line)
+{
+	if (align->title_line != title_line)
+	{
+		align->title_line = title_line;
+
+		update_all (align, HANDLE_MODE_TIMEOUT);
+
+		g_object_notify (G_OBJECT (align), "title-line");
+	}
+}
+
+static void
 gcsv_alignment_get_property (GObject    *object,
 			     guint       prop_id,
 			     GValue     *value,
@@ -1111,6 +1150,10 @@ gcsv_alignment_get_property (GObject    *object,
 
 		case PROP_DELIMITER:
 			g_value_set_uint (value, align->delimiter);
+			break;
+
+		case PROP_TITLE_LINE:
+			g_value_set_uint (value, align->title_line);
 			break;
 
 		case PROP_ENABLED:
@@ -1139,6 +1182,10 @@ gcsv_alignment_set_property (GObject      *object,
 
 		case PROP_DELIMITER:
 			gcsv_alignment_set_delimiter (align, g_value_get_uint (value));
+			break;
+
+		case PROP_TITLE_LINE:
+			set_title_line (align, g_value_get_uint (value));
 			break;
 
 		case PROP_ENABLED:
@@ -1235,6 +1282,18 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class,
+					 PROP_TITLE_LINE,
+					 g_param_spec_uint ("title-line",
+							    "Title Line",
+							    "",
+							    0,
+							    G_MAXUINT,
+							    0,
+							    G_PARAM_READWRITE |
+							    G_PARAM_CONSTRUCT |
+							    G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (object_class,
 					 PROP_ENABLED,
