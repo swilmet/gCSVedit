@@ -145,6 +145,13 @@ entry_changed_cb (GtkEntry              *entry,
 }
 
 static void
+title_spinbutton_value_changed_cb (GtkSpinButton         *title_spinbutton,
+				   GcsvPropertiesChooser *chooser)
+{
+	g_object_notify (G_OBJECT (chooser), "title-line");
+}
+
+static void
 gcsv_properties_chooser_init (GcsvPropertiesChooser *chooser)
 {
 	GtkWidget *label;
@@ -195,6 +202,11 @@ gcsv_properties_chooser_init (GcsvPropertiesChooser *chooser)
 
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label),
 				       GTK_WIDGET (chooser->title_spinbutton));
+
+	g_signal_connect (chooser->title_spinbutton,
+			  "value-changed",
+			  G_CALLBACK (title_spinbutton_value_changed_cb),
+			  chooser);
 }
 
 GcsvPropertiesChooser *
