@@ -1124,14 +1124,23 @@ static void
 set_title_line (GcsvAlignment *align,
 		guint          title_line)
 {
-	if (align->title_line != title_line)
+	GtkTextIter start;
+	GtkTextIter header_end;
+
+	if (align->title_line == title_line)
 	{
-		align->title_line = title_line;
-
-		update_all (align, HANDLE_MODE_TIMEOUT);
-
-		g_object_notify (G_OBJECT (align), "title-line");
+		return;
 	}
+
+	align->title_line = title_line;
+
+	gtk_text_buffer_get_start_iter (align->buffer, &start);
+	gtk_text_buffer_get_iter_at_line (align->buffer, &header_end, align->title_line);
+	gcsv_utils_delete_text_with_tag (align->buffer, &start, &header_end, align->tag);
+
+	update_all (align, HANDLE_MODE_TIMEOUT);
+
+	g_object_notify (G_OBJECT (align), "title-line");
 }
 
 static void
