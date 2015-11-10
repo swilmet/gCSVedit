@@ -24,6 +24,7 @@
 #include <gtksourceview/gtksource.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
+#include "gcsv-buffer.h"
 #include "gcsv-properties-chooser.h"
 #include "gcsv-dsv-utils.h"
 #include "gcsv-utils.h"
@@ -357,15 +358,17 @@ add_actions (GcsvWindow *window)
 static GtkSourceView *
 create_view (void)
 {
+	GcsvBuffer *buffer;
+	GtkSourceBuffer *source_buffer;
 	GtkSourceView *view;
-	GtkSourceBuffer *buffer;
 	GtkSourceLanguageManager *language_manager;
 	GtkSourceLanguage *csv_lang;
 	GtkSourceStyleSchemeManager *scheme_manager;
 	GtkSourceStyleScheme *scheme;
 
-	view = GTK_SOURCE_VIEW (gtk_source_view_new ());
-	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
+	buffer = gcsv_buffer_new ();
+	source_buffer = GTK_SOURCE_BUFFER (buffer);
+	view = GTK_SOURCE_VIEW (gtk_source_view_new_with_buffer (source_buffer));
 
 	gtk_text_view_set_monospace (GTK_TEXT_VIEW (view), TRUE);
 	gtk_source_view_set_show_line_numbers (view, TRUE);
@@ -374,7 +377,7 @@ create_view (void)
 	/* Disable the undo/redo, because it doesn't work well currently with
 	 * the virtual spaces.
 	 */
-	gtk_source_buffer_set_max_undo_levels (buffer, 0);
+	gtk_source_buffer_set_max_undo_levels (source_buffer, 0);
 
 	/* Draw all kind of spaces everywhere except CR and LF.
 	 * Line numbers are already displayed, so drawing line breaks would be
@@ -390,11 +393,11 @@ create_view (void)
 
 	language_manager = gtk_source_language_manager_get_default ();
 	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
-	gtk_source_buffer_set_language (buffer, csv_lang);
+	gtk_source_buffer_set_language (source_buffer, csv_lang);
 
 	scheme_manager = gtk_source_style_scheme_manager_get_default ();
 	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
-	gtk_source_buffer_set_style_scheme (buffer, scheme);
+	gtk_source_buffer_set_style_scheme (source_buffer, scheme);
 
 	gtk_widget_set_hexpand (GTK_WIDGET (view), TRUE);
 	gtk_widget_set_vexpand (GTK_WIDGET (view), TRUE);

@@ -20,7 +20,7 @@
  */
 
 #include "gcsv-alignment.h"
-#include <gtksourceview/gtksource.h>
+#include "gcsv-buffer.h"
 
 static gchar *
 get_buffer_text (GtkTextBuffer *buffer)
@@ -52,7 +52,7 @@ check_alignment (const gchar *before,
 	GcsvAlignment *align;
 	gchar *buffer_text;
 
-	source_buffer = gtk_source_buffer_new (NULL);
+	source_buffer = GTK_SOURCE_BUFFER (gcsv_buffer_new ());
 	buffer = GTK_TEXT_BUFFER (source_buffer);
 
 	/* Test initial alignment */
@@ -128,7 +128,7 @@ test_column_growing (void)
 	gchar *buffer_text;
 	GtkTextIter iter;
 
-	source_buffer = gtk_source_buffer_new (NULL);
+	source_buffer = GTK_SOURCE_BUFFER (gcsv_buffer_new ());
 	buffer = GTK_TEXT_BUFFER (source_buffer);
 	gtk_text_buffer_set_text (buffer,
 				  "aa,bb\n"
@@ -174,7 +174,7 @@ test_column_shrinking (void)
 	GtkTextIter start;
 	GtkTextIter end;
 
-	source_buffer = gtk_source_buffer_new (NULL);
+	source_buffer = GTK_SOURCE_BUFFER (gcsv_buffer_new ());
 	buffer = GTK_TEXT_BUFFER (source_buffer);
 	gtk_text_buffer_set_text (buffer,
 				  "daa,bb\n"
