@@ -26,7 +26,6 @@
 #include "gcsv-alignment.h"
 #include "gcsv-buffer.h"
 #include "gcsv-properties-chooser.h"
-#include "gcsv-dsv-utils.h"
 #include "gcsv-utils.h"
 
 struct _GcsvWindow
@@ -554,7 +553,6 @@ update_statusbar_label (GcsvWindow *window)
 	GtkTextIter insert;
 	gint line_num;
 	gint csv_column_num;
-	gunichar delimiter;
 	gchar *label_text;
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
@@ -562,8 +560,7 @@ update_statusbar_label (GcsvWindow *window)
 					  gtk_text_buffer_get_insert (buffer));
 	line_num = gtk_text_iter_get_line (&insert) + 1;
 
-	delimiter = gcsv_buffer_get_delimiter (GCSV_BUFFER (buffer));
-	csv_column_num = gcsv_dsv_get_column_num (&insert, delimiter) + 1;
+	csv_column_num = gcsv_buffer_get_column_num (GCSV_BUFFER (buffer), &insert) + 1;
 
 	label_text = g_strdup_printf (_("Line: %d   CSV Column: %d"),
 				      line_num,
@@ -775,7 +772,8 @@ load_cb (GtkSourceFileLoader *loader,
 	}
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	delimiter = gcsv_dsv_guess_delimiter (buffer);
+	gcsv_buffer_guess_delimiter (GCSV_BUFFER (buffer));
+	delimiter = gcsv_buffer_get_delimiter (GCSV_BUFFER (buffer));
 	gcsv_properties_chooser_set_delimiter (window->properties_chooser, delimiter);
 
 	gcsv_alignment_set_enabled (window->align, TRUE);

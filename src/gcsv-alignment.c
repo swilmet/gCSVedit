@@ -20,7 +20,6 @@
  */
 
 #include "gcsv-alignment.h"
-#include "gcsv-dsv-utils.h"
 #include "gcsv-utils.h"
 #include "gtktextregion.h"
 
@@ -345,12 +344,15 @@ scan_subregion (GcsvAlignment     *align,
 		const GtkTextIter *start,
 		const GtkTextIter *end)
 {
+	gunichar delimiter;
 	guint start_line;
 	guint end_line;
 	guint line_num;
 
 	g_assert (gtk_text_iter_starts_line (start));
 	g_assert (gtk_text_iter_ends_line (end));
+
+	delimiter = gcsv_buffer_get_delimiter (align->buffer);
 
 	start_line = gtk_text_iter_get_line (start);
 	end_line = gtk_text_iter_get_line (end);
@@ -359,12 +361,8 @@ scan_subregion (GcsvAlignment     *align,
 	{
 		guint n_columns;
 		guint column_num;
-		gunichar delimiter;
 
-		delimiter = gcsv_buffer_get_delimiter (align->buffer);
-		n_columns = gcsv_dsv_count_columns (GTK_TEXT_BUFFER (align->buffer),
-						    line_num,
-						    delimiter);
+		n_columns = gcsv_buffer_count_columns_at_line (align->buffer, line_num);
 
 		for (column_num = 0; column_num < n_columns; column_num++)
 		{
@@ -380,12 +378,11 @@ scan_subregion (GcsvAlignment     *align,
 				GtkTextIter field_start;
 				GtkTextIter field_end;
 
-				gcsv_dsv_get_field_bounds (GTK_TEXT_BUFFER (align->buffer),
-							   delimiter,
-							   line_num,
-							   column_num,
-							   &field_start,
-							   &field_end);
+				gcsv_buffer_get_field_bounds (align->buffer,
+							      line_num,
+							      column_num,
+							      &field_start,
+							      &field_end);
 
 				field_length = get_field_length (align, &field_start, &field_end, FALSE);
 			}
@@ -456,19 +453,15 @@ adjust_field_alignment (GcsvAlignment *align,
 	gint column_length;
 	gint field_length;
 	guint n_spaces;
-	gunichar delimiter;
 
 	column_length = get_column_length (align, column_num);
 
-	delimiter = gcsv_buffer_get_delimiter (align->buffer);
-
 	/* Delete previous alignment */
-	gcsv_dsv_get_field_bounds (GTK_TEXT_BUFFER (align->buffer),
-				   delimiter,
-				   line_num,
-				   column_num,
-				   &field_start,
-				   &field_end);
+	gcsv_buffer_get_field_bounds (align->buffer,
+				      line_num,
+				      column_num,
+				      &field_start,
+				      &field_end);
 
 	gcsv_utils_delete_text_with_tag (GTK_TEXT_BUFFER (align->buffer),
 					 &field_start,
@@ -481,12 +474,11 @@ adjust_field_alignment (GcsvAlignment *align,
 	}
 
 	/* Compare field length with column length */
-	gcsv_dsv_get_field_bounds (GTK_TEXT_BUFFER (align->buffer),
-				   delimiter,
-				   line_num,
-				   column_num,
-				   &field_start,
-				   &field_end);
+	gcsv_buffer_get_field_bounds (align->buffer,
+				      line_num,
+				      column_num,
+				      &field_start,
+				      &field_end);
 
 	field_length = get_field_length (align, &field_start, &field_end, TRUE);
 
@@ -986,6 +978,7 @@ delete_range_cb (GtkTextBuffer *buffer,
 		 GtkTextIter   *end,
 		 GcsvAlignment *align)
 {
+	gunichar delimiter;
 	GtkTextIter start_copy = *start;
 	GtkTextIter end_copy = *end;
 	GtkTextIter start_buffer;
@@ -996,7 +989,6 @@ delete_range_cb (GtkTextBuffer *buffer,
 	guint column_num_end;
 	gint field_length;
 	gint column_length;
-	gunichar delimiter;
 
 	delimiter = gcsv_buffer_get_delimiter (align->buffer);
 
@@ -1017,8 +1009,8 @@ delete_range_cb (GtkTextBuffer *buffer,
 	/* If the deletion spans multiple fields, it's simpler to update
 	 * everything, because a column can shrink.
 	 */
-	column_num_start = gcsv_dsv_get_column_num (start, delimiter);
-	column_num_end = gcsv_dsv_get_column_num (end, delimiter);
+	column_num_start = gcsv_buffer_get_column_num (align->buffer, start);
+	column_num_end = gcsv_buffer_get_column_num (align->buffer, end);
 	if (gtk_text_iter_get_line (start) != gtk_text_iter_get_line (end) ||
 	    column_num_start != column_num_end)
 	{
@@ -1035,12 +1027,11 @@ delete_range_cb (GtkTextBuffer *buffer,
 
 	column_length = get_column_length (align, column_num_start);
 
-	gcsv_dsv_get_field_bounds (GTK_TEXT_BUFFER (align->buffer),
-				   delimiter,
-				   gtk_text_iter_get_line (start),
-				   column_num_start,
-				   &field_start,
-				   &field_end);
+	gcsv_buffer_get_field_bounds (align->buffer,
+				      gtk_text_iter_get_line (start),
+				      column_num_start,
+				      &field_start,
+				      &field_end);
 
 	field_length = get_field_length (align, &field_start, &field_end, FALSE);
 

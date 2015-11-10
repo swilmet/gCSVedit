@@ -19,8 +19,6 @@ libgcsvedit_la_SOURCES =		\
 	gcsv-alignment.h		\
 	gcsv-buffer.c			\
 	gcsv-buffer.h			\
-	gcsv-dsv-utils.c		\
-	gcsv-dsv-utils.h		\
 	gcsv-properties-chooser.c	\
 	gcsv-properties-chooser.h	\
 	gcsv-utils.c			\

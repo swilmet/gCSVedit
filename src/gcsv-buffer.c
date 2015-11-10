@@ -137,3 +137,152 @@ gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
 		g_object_notify (G_OBJECT (buffer), "delimiter");
 	}
 }
+
+guint
+gcsv_buffer_get_column_num (GcsvBuffer        *buffer,
+			    const GtkTextIter *iter)
+{
+	GtkTextIter start_line;
+	guint column_num = 0;
+	gchar *line;
+	gchar *p;
+
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), 0);
+	g_return_val_if_fail (iter != NULL, 0);
+	g_return_val_if_fail (gtk_text_iter_get_buffer (iter) == GTK_TEXT_BUFFER (buffer), 0);
+
+	if (buffer->delimiter == '\0')
+	{
+		return 0;
+	}
+
+	start_line = *iter;
+	gtk_text_iter_set_line_offset (&start_line, 0);
+
+	line = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (buffer),
+					 &start_line,
+					 iter,
+					 TRUE);
+
+	p = line;
+	while (p != NULL && *p != '\0')
+	{
+		gunichar ch;
+
+		ch = g_utf8_get_char (p);
+		if (ch == buffer->delimiter)
+		{
+			column_num++;
+		}
+
+		p = g_utf8_find_next_char (p, NULL);
+	}
+
+	g_free (line);
+	return column_num;
+}
+
+guint
+gcsv_buffer_count_columns_at_line (GcsvBuffer *buffer,
+				   guint       at_line)
+{
+	GtkTextIter iter;
+
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), 1);
+
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer), &iter, at_line);
+
+	if (!gtk_text_iter_ends_line (&iter))
+	{
+		gtk_text_iter_forward_to_line_end (&iter);
+	}
+
+	return gcsv_buffer_get_column_num (buffer, &iter) + 1;
+}
+
+static void
+move_iter_to_nth_column (GcsvBuffer  *buffer,
+			 GtkTextIter *iter,
+			 guint        nth_column)
+{
+	guint column_num = 0;
+
+	gtk_text_iter_set_line_offset (iter, 0);
+
+	while (column_num < nth_column &&
+	       !gtk_text_iter_is_end (iter))
+	{
+		gunichar ch;
+
+		ch = gtk_text_iter_get_char (iter);
+		if (ch == buffer->delimiter)
+		{
+			column_num++;
+		}
+		else if (ch == '\n' || ch == '\r')
+		{
+			return;
+		}
+
+		gtk_text_iter_forward_char (iter);
+	}
+}
+
+/* Get field bounds, delimiters excluded, virtual spaces included. */
+void
+gcsv_buffer_get_field_bounds (GcsvBuffer  *buffer,
+			      guint        line_num,
+			      guint        column_num,
+			      GtkTextIter *start,
+			      GtkTextIter *end)
+{
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+	g_return_if_fail (start != NULL);
+	g_return_if_fail (end != NULL);
+
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer), start, line_num);
+	if (gtk_text_iter_is_end (start))
+	{
+		*end = *start;
+		return;
+	}
+
+	move_iter_to_nth_column (buffer, start, column_num);
+
+	*end = *start;
+	while (!gtk_text_iter_is_end (end))
+	{
+		gunichar ch;
+
+		ch = gtk_text_iter_get_char (end);
+		if (ch == buffer->delimiter || ch == '\n' || ch == '\r')
+		{
+			break;
+		}
+
+		gtk_text_iter_forward_char (end);
+	}
+}
+
+void
+gcsv_buffer_guess_delimiter (GcsvBuffer *buffer)
+{
+	GtkTextIter iter;
+	GtkTextIter limit;
+
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &iter);
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer), &limit, 1000);
+
+	/* Really simple guess */
+	if (gtk_text_iter_forward_search (&iter,
+					  "\t",
+					  GTK_TEXT_SEARCH_TEXT_ONLY,
+					  NULL,
+					  NULL,
+					  &limit))
+	{
+		gcsv_buffer_set_delimiter (buffer, '\t');
+	}
+
+	gcsv_buffer_set_delimiter (buffer, ',');
+}
