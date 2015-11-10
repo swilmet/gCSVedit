@@ -1330,7 +1330,7 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 					 g_param_spec_object ("buffer",
 							      "Buffer",
 							      "",
-							      GTK_TYPE_TEXT_BUFFER,
+							      GCSV_TYPE_BUFFER,
 							      G_PARAM_READWRITE |
 							      G_PARAM_CONSTRUCT_ONLY |
 							      G_PARAM_STATIC_STRINGS));
