@@ -40,7 +40,6 @@ enum
 {
 	PROP_0,
 	PROP_BUFFER,
-	PROP_TITLE_LINE,
 };
 
 #define ROW_ID_DISABLE	"disable"
@@ -98,6 +97,10 @@ update_chooser_delimiter (GcsvPropertiesChooser *chooser)
 
 	if (buffer_delimiter == chooser_delimiter)
 	{
+		/* The same delimiter can be set differently in the properties
+		 * chooser, for example the comma can be set as a ComboBox item
+		 * or in the GtkEntry. So we should not change that state.
+		 */
 		return;
 	}
 
@@ -136,6 +139,30 @@ delimiter_notify_cb (GcsvBuffer            *buffer,
 	update_chooser_delimiter (chooser);
 }
 
+/* Starts at 0. */
+static guint
+get_chooser_title_line (GcsvPropertiesChooser *chooser)
+{
+	return gtk_spin_button_get_value_as_int (chooser->title_spinbutton) - 1;
+}
+
+static void
+update_chooser_title_line (GcsvPropertiesChooser *chooser)
+{
+	guint title_line = gcsv_buffer_get_title_line (chooser->buffer);
+
+	gtk_spin_button_set_value (chooser->title_spinbutton,
+				   title_line + 1);
+}
+
+static void
+title_line_notify_cb (GcsvBuffer            *buffer,
+		      GParamSpec            *pspec,
+		      GcsvPropertiesChooser *chooser)
+{
+	update_chooser_title_line (chooser);
+}
+
 static void
 set_buffer (GcsvPropertiesChooser *chooser,
 	    GcsvBuffer            *buffer)
@@ -151,7 +178,14 @@ set_buffer (GcsvPropertiesChooser *chooser,
 				 chooser,
 				 0);
 
+	g_signal_connect_object (buffer,
+				 "notify::title-line",
+				 G_CALLBACK (title_line_notify_cb),
+				 chooser,
+				 0);
+
 	update_chooser_delimiter (chooser);
+	update_chooser_title_line (chooser);
 
 	g_object_notify (G_OBJECT (chooser), "buffer");
 }
@@ -168,10 +202,6 @@ gcsv_properties_chooser_get_property (GObject    *object,
 	{
 		case PROP_BUFFER:
 			g_value_set_object (value, chooser->buffer);
-			break;
-
-		case PROP_TITLE_LINE:
-			g_value_set_uint (value, gcsv_properties_chooser_get_title_line (chooser));
 			break;
 
 		default:
@@ -192,10 +222,6 @@ gcsv_properties_chooser_set_property (GObject      *object,
 	{
 		case PROP_BUFFER:
 			set_buffer (chooser, g_value_get_object (value));
-			break;
-
-		case PROP_TITLE_LINE:
-			gcsv_properties_chooser_set_title_line (chooser, g_value_get_uint (value));
 			break;
 
 		default:
@@ -232,18 +258,6 @@ gcsv_properties_chooser_class_init (GcsvPropertiesChooserClass *klass)
 							      G_PARAM_READWRITE |
 							      G_PARAM_CONSTRUCT_ONLY |
 							      G_PARAM_STATIC_STRINGS));
-
-	g_object_class_install_property (object_class,
-					 PROP_TITLE_LINE,
-					 g_param_spec_uint ("title-line",
-							    "Title Line",
-							    "",
-							    0,
-							    G_MAXUINT,
-							    0,
-							    G_PARAM_READWRITE |
-							    G_PARAM_CONSTRUCT |
-							    G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -269,7 +283,8 @@ static void
 title_spinbutton_value_changed_cb (GtkSpinButton         *title_spinbutton,
 				   GcsvPropertiesChooser *chooser)
 {
-	g_object_notify (G_OBJECT (chooser), "title-line");
+	gcsv_buffer_set_title_line (chooser->buffer,
+				    get_chooser_title_line (chooser));
 }
 
 static void
@@ -342,29 +357,4 @@ gcsv_properties_chooser_new (GcsvBuffer *buffer)
 			     "buffer", buffer,
 			     "margin", 6,
 			     NULL);
-}
-
-/* Starts at 0. */
-guint
-gcsv_properties_chooser_get_title_line (GcsvPropertiesChooser *chooser)
-{
-	g_return_val_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser), 0);
-
-	return gtk_spin_button_get_value_as_int (chooser->title_spinbutton) - 1;
-}
-
-/* Starts at 0. */
-void
-gcsv_properties_chooser_set_title_line (GcsvPropertiesChooser *chooser,
-					guint                  title_line)
-{
-	g_return_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser));
-
-	if (title_line != gcsv_properties_chooser_get_title_line (chooser))
-	{
-		gtk_spin_button_set_value (chooser->title_spinbutton,
-					   title_line + 1);
-
-		g_object_notify (G_OBJECT (chooser), "title-line");
-	}
 }

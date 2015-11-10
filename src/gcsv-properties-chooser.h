@@ -34,11 +34,6 @@ G_DECLARE_FINAL_TYPE (GcsvPropertiesChooser, gcsv_properties_chooser,
 
 GcsvPropertiesChooser *	gcsv_properties_chooser_new		(GcsvBuffer *buffer);
 
-guint			gcsv_properties_chooser_get_title_line	(GcsvPropertiesChooser *chooser);
-
-void			gcsv_properties_chooser_set_title_line	(GcsvPropertiesChooser *chooser,
-								 guint                  title_line);
-
 G_END_DECLS
 
 #endif /* __GCSV_PROPERTIES_CHOOSER_H__ */

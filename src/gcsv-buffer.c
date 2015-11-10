@@ -161,6 +161,7 @@ gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
 	}
 }
 
+/* Starts at 0. */
 guint
 gcsv_buffer_get_title_line (GcsvBuffer *buffer)
 {
@@ -169,6 +170,7 @@ gcsv_buffer_get_title_line (GcsvBuffer *buffer)
 	return buffer->title_line;
 }
 
+/* Starts at 0. */
 void
 gcsv_buffer_set_title_line (GcsvBuffer *buffer,
 			    guint       title_line)
