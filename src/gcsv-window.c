@@ -562,7 +562,7 @@ update_statusbar_label (GcsvWindow *window)
 					  gtk_text_buffer_get_insert (buffer));
 	line_num = gtk_text_iter_get_line (&insert) + 1;
 
-	delimiter = gcsv_alignment_get_delimiter (window->align);
+	delimiter = gcsv_buffer_get_delimiter (GCSV_BUFFER (buffer));
 	csv_column_num = gcsv_dsv_get_column_num (&insert, delimiter) + 1;
 
 	label_text = g_strdup_printf (_("Line: %d   CSV Column: %d"),
@@ -662,7 +662,7 @@ gcsv_window_init (GcsvWindow *window)
 	GtkWidget *vgrid;
 	GtkWidget *scrolled_window;
 	GtkWidget *statusbar;
-	GtkSourceBuffer *buffer;
+	GcsvBuffer *buffer;
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
@@ -700,8 +700,8 @@ gcsv_window_init (GcsvWindow *window)
 
 	window->file = gtk_source_file_new ();
 
-	buffer = GTK_SOURCE_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
-	window->align = gcsv_alignment_new (buffer, ',');
+	buffer = GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
+	window->align = gcsv_alignment_new (buffer);
 
 	add_actions (window);
 	update_document_name (window);
@@ -732,7 +732,7 @@ gcsv_window_init (GcsvWindow *window)
 				 0);
 
 	g_object_bind_property (window->properties_chooser, "delimiter",
-				window->align, "delimiter",
+				buffer, "delimiter",
 				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 
 	g_object_bind_property (window->properties_chooser, "title-line",

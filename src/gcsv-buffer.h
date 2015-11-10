@@ -33,6 +33,11 @@ G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 
 GcsvBuffer *		gcsv_buffer_new				(void);
 
+gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
+
+void			gcsv_buffer_set_delimiter		(GcsvBuffer *buffer,
+								 gunichar    delimiter);
+
 G_END_DECLS
 
 #endif /* __GCSV_BUFFER_H__ */

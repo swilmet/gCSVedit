@@ -23,6 +23,7 @@
 #define __GCSV_ALIGNMENT_H__
 
 #include <gtksourceview/gtksource.h>
+#include "gcsv-buffer.h"
 
 G_BEGIN_DECLS
 
@@ -31,18 +32,10 @@ G_DECLARE_FINAL_TYPE (GcsvAlignment, gcsv_alignment,
 		      GCSV, ALIGNMENT,
 		      GObject)
 
-GcsvAlignment *	gcsv_alignment_new				(GtkSourceBuffer *buffer,
-								 gunichar         delimiter);
+GcsvAlignment *	gcsv_alignment_new				(GcsvBuffer *buffer);
 
 void		gcsv_alignment_set_enabled			(GcsvAlignment *align,
 								 gboolean       enabled);
-
-gunichar	gcsv_alignment_get_delimiter			(GcsvAlignment *align);
-
-void		gcsv_alignment_set_delimiter			(GcsvAlignment *align,
-								 gunichar       delimiter);
-
-void		gcsv_alignment_remove_alignment			(GcsvAlignment *align);
 
 GtkSourceBuffer *
 		gcsv_alignment_copy_buffer_without_alignment	(GcsvAlignment *align);

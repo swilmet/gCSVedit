@@ -50,7 +50,7 @@ gcsv_buffer_get_property (GObject    *object,
 	switch (prop_id)
 	{
 		case PROP_DELIMITER:
-			g_value_set_uint (value, buffer->delimiter);
+			g_value_set_uint (value, gcsv_buffer_get_delimiter (buffer));
 			break;
 
 		default:
@@ -70,7 +70,7 @@ gcsv_buffer_set_property (GObject      *object,
 	switch (prop_id)
 	{
 		case PROP_DELIMITER:
-			buffer->delimiter = g_value_get_uint (value);
+			gcsv_buffer_set_delimiter (buffer, g_value_get_uint (value));
 			break;
 
 		default:
@@ -115,4 +115,25 @@ GcsvBuffer *
 gcsv_buffer_new (void)
 {
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
+}
+
+gunichar
+gcsv_buffer_get_delimiter (GcsvBuffer *buffer)
+{
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), '\0');
+
+	return buffer->delimiter;
+}
+
+void
+gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
+			   gunichar    delimiter)
+{
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	if (buffer->delimiter != delimiter)
+	{
+		buffer->delimiter = delimiter;
+		g_object_notify (G_OBJECT (buffer), "delimiter");
+	}
 }

@@ -46,18 +46,20 @@ check_alignment (const gchar *before,
 		 const gchar *after,
 		 gunichar     delimiter)
 {
-	GtkSourceBuffer *source_buffer;
+	GcsvBuffer *csv_buffer;
 	GtkTextBuffer *buffer;
 	GtkSourceBuffer *copy_without_align;
 	GcsvAlignment *align;
 	gchar *buffer_text;
 
-	source_buffer = GTK_SOURCE_BUFFER (gcsv_buffer_new ());
-	buffer = GTK_TEXT_BUFFER (source_buffer);
+	csv_buffer = gcsv_buffer_new ();
+	buffer = GTK_TEXT_BUFFER (csv_buffer);
+
+	gcsv_buffer_set_delimiter (csv_buffer, delimiter);
 
 	/* Test initial alignment */
 	gtk_text_buffer_set_text (buffer, before, -1);
-	align = gcsv_alignment_new (source_buffer, delimiter);
+	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
 
@@ -66,7 +68,7 @@ check_alignment (const gchar *before,
 	g_free (buffer_text);
 
 	/* Test unalignment */
-	gcsv_alignment_remove_alignment (align);
+	gcsv_buffer_set_delimiter (csv_buffer, '\0');
 	flush_queue ();
 	g_object_unref (align);
 	buffer_text = get_buffer_text (buffer);
@@ -75,7 +77,8 @@ check_alignment (const gchar *before,
 
 	/* Test alignment update, with column insertion */
 	gtk_text_buffer_set_text (buffer, "", -1);
-	align = gcsv_alignment_new (source_buffer, delimiter);
+	gcsv_buffer_set_delimiter (csv_buffer, delimiter);
+	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	gtk_text_buffer_set_text (buffer, before, -1);
 	flush_queue ();
@@ -91,7 +94,7 @@ check_alignment (const gchar *before,
 	g_object_unref (copy_without_align);
 
 	g_object_unref (align);
-	g_object_unref (source_buffer);
+	g_object_unref (csv_buffer);
 }
 
 static void
@@ -121,21 +124,22 @@ test_commas (void)
 static void
 test_column_growing (void)
 {
-	GtkSourceBuffer *source_buffer;
+	GcsvBuffer *csv_buffer;
 	GtkTextBuffer *buffer;
 	GcsvAlignment *align;
 	const gchar *text_after;
 	gchar *buffer_text;
 	GtkTextIter iter;
 
-	source_buffer = GTK_SOURCE_BUFFER (gcsv_buffer_new ());
-	buffer = GTK_TEXT_BUFFER (source_buffer);
+	csv_buffer = gcsv_buffer_new ();
+	buffer = GTK_TEXT_BUFFER (csv_buffer);
 	gtk_text_buffer_set_text (buffer,
 				  "aa,bb\n"
 				  "1,2",
 				  -1);
 
-	align = gcsv_alignment_new (source_buffer, ',');
+	gcsv_buffer_set_delimiter (csv_buffer, ',');
+	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
 
@@ -159,14 +163,14 @@ test_column_growing (void)
 	g_assert_cmpstr (buffer_text, ==, text_after);
 	g_free (buffer_text);
 
-	g_object_unref (source_buffer);
+	g_object_unref (csv_buffer);
 	g_object_unref (align);
 }
 
 static void
 test_column_shrinking (void)
 {
-	GtkSourceBuffer *source_buffer;
+	GcsvBuffer *csv_buffer;
 	GtkTextBuffer *buffer;
 	GcsvAlignment *align;
 	const gchar *text_after;
@@ -174,14 +178,15 @@ test_column_shrinking (void)
 	GtkTextIter start;
 	GtkTextIter end;
 
-	source_buffer = GTK_SOURCE_BUFFER (gcsv_buffer_new ());
-	buffer = GTK_TEXT_BUFFER (source_buffer);
+	csv_buffer = gcsv_buffer_new ();
+	buffer = GTK_TEXT_BUFFER (csv_buffer);
 	gtk_text_buffer_set_text (buffer,
 				  "daa,bb\n"
 				  "1,2",
 				  -1);
 
-	align = gcsv_alignment_new (source_buffer, ',');
+	gcsv_buffer_set_delimiter (csv_buffer, ',');
+	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
 
@@ -207,7 +212,7 @@ test_column_shrinking (void)
 	g_assert_cmpstr (buffer_text, ==, text_after);
 	g_free (buffer_text);
 
-	g_object_unref (source_buffer);
+	g_object_unref (csv_buffer);
 	g_object_unref (align);
 }
 
