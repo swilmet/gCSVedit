@@ -29,12 +29,15 @@ struct _GcsvBuffer
 	 * character ('\0'), there is no alignment.
 	 */
 	gunichar delimiter;
+
+	guint title_line;
 };
 
 enum
 {
 	PROP_0,
 	PROP_DELIMITER,
+	PROP_TITLE_LINE,
 };
 
 G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTK_SOURCE_TYPE_BUFFER)
@@ -51,6 +54,10 @@ gcsv_buffer_get_property (GObject    *object,
 	{
 		case PROP_DELIMITER:
 			g_value_set_uint (value, gcsv_buffer_get_delimiter (buffer));
+			break;
+
+		case PROP_TITLE_LINE:
+			g_value_set_uint (value, gcsv_buffer_get_title_line (buffer));
 			break;
 
 		default:
@@ -71,6 +78,10 @@ gcsv_buffer_set_property (GObject      *object,
 	{
 		case PROP_DELIMITER:
 			gcsv_buffer_set_delimiter (buffer, g_value_get_uint (value));
+			break;
+
+		case PROP_TITLE_LINE:
+			gcsv_buffer_set_title_line (buffer, g_value_get_uint (value));
 			break;
 
 		default:
@@ -104,6 +115,18 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (object_class,
+					 PROP_TITLE_LINE,
+					 g_param_spec_uint ("title-line",
+							    "Title Line",
+							    "",
+							    0,
+							    G_MAXUINT,
+							    0,
+							    G_PARAM_READWRITE |
+							    G_PARAM_CONSTRUCT |
+							    G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -135,6 +158,27 @@ gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
 	{
 		buffer->delimiter = delimiter;
 		g_object_notify (G_OBJECT (buffer), "delimiter");
+	}
+}
+
+guint
+gcsv_buffer_get_title_line (GcsvBuffer *buffer)
+{
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), 0);
+
+	return buffer->title_line;
+}
+
+void
+gcsv_buffer_set_title_line (GcsvBuffer *buffer,
+			    guint       title_line)
+{
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	if (buffer->title_line != title_line)
+	{
+		buffer->title_line = title_line;
+		g_object_notify (G_OBJECT (buffer), "title-line");
 	}
 }
 

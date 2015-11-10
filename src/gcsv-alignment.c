@@ -29,8 +29,6 @@ struct _GcsvAlignment
 
 	GcsvBuffer *buffer;
 
-	guint title_line;
-
 	/* The alignment is done by inserting spaces to the buffer. The spaces
 	 * are surrounded by a tag, so we know where the alignment is. It
 	 * permits to remove it or to not take it into account for certain
@@ -95,7 +93,6 @@ enum
 {
 	PROP_0,
 	PROP_BUFFER,
-	PROP_TITLE_LINE,
 	PROP_ENABLED,
 };
 
@@ -835,10 +832,12 @@ static void
 remove_header (GcsvAlignment *align,
 	       GtkTextRegion *region)
 {
+	guint title_line;
 	GtkTextIter start;
 	GtkTextIter header_end;
 
-	if (align->title_line == 0)
+	title_line = gcsv_buffer_get_title_line (align->buffer);
+	if (title_line == 0)
 	{
 		return;
 	}
@@ -846,7 +845,7 @@ remove_header (GcsvAlignment *align,
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
 	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (align->buffer),
 					  &header_end,
-					  align->title_line);
+					  title_line);
 
 	gtk_text_region_subtract (region, &start, &header_end);
 }
@@ -1145,6 +1144,35 @@ disconnect_signals (GcsvAlignment *align)
 }
 
 static void
+title_line_notify_cb (GcsvBuffer    *buffer,
+		      GParamSpec    *pspec,
+		      GcsvAlignment *align)
+{
+	guint title_line;
+	BufferEditData edit_data;
+	GtkTextIter start;
+	GtkTextIter header_end;
+
+	title_line = gcsv_buffer_get_title_line (buffer);
+
+	/* Remove alignment in the header. It is done synchronously, but it
+	 * should not be a problem because a header is usually small.
+	 */
+	edit_data = begin_buffer_edit (align);
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer),
+					  &header_end,
+					  title_line);
+	gcsv_utils_delete_text_with_tag (GTK_TEXT_BUFFER (buffer),
+					 &start,
+					 &header_end,
+					 align->tag);
+	end_buffer_edit (align, &edit_data);
+
+	update_all (align, HANDLE_MODE_TIMEOUT);
+}
+
+static void
 set_buffer (GcsvAlignment *align,
 	    GcsvBuffer    *buffer)
 {
@@ -1165,43 +1193,18 @@ set_buffer (GcsvAlignment *align,
 		connect_signals (align);
 	}
 
+	/* This signal must always be connected, to remove the alignment in the
+	 * header.
+	 */
+	g_signal_connect_object (buffer,
+				 "notify::title-line",
+				 G_CALLBACK (title_line_notify_cb),
+				 align,
+				 0);
+
 	g_object_notify (G_OBJECT (align), "buffer");
 
 	update_all (align, HANDLE_MODE_IDLE);
-}
-
-static void
-set_title_line (GcsvAlignment *align,
-		guint          title_line)
-{
-	BufferEditData edit_data;
-	GtkTextIter start;
-	GtkTextIter header_end;
-
-	if (align->title_line == title_line)
-	{
-		return;
-	}
-
-	align->title_line = title_line;
-
-	/* Remove alignment in the header. It is done synchronously, but it
-	 * should not be a problem because a header is usually small.
-	 */
-	edit_data = begin_buffer_edit (align);
-	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
-	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (align->buffer),
-					  &header_end,
-					  align->title_line);
-	gcsv_utils_delete_text_with_tag (GTK_TEXT_BUFFER (align->buffer),
-					 &start,
-					 &header_end,
-					 align->tag);
-	end_buffer_edit (align, &edit_data);
-
-	update_all (align, HANDLE_MODE_TIMEOUT);
-
-	g_object_notify (G_OBJECT (align), "title-line");
 }
 
 static void
@@ -1216,10 +1219,6 @@ gcsv_alignment_get_property (GObject    *object,
 	{
 		case PROP_BUFFER:
 			g_value_set_object (value, align->buffer);
-			break;
-
-		case PROP_TITLE_LINE:
-			g_value_set_uint (value, align->title_line);
 			break;
 
 		case PROP_ENABLED:
@@ -1244,10 +1243,6 @@ gcsv_alignment_set_property (GObject      *object,
 	{
 		case PROP_BUFFER:
 			set_buffer (align, g_value_get_object (value));
-			break;
-
-		case PROP_TITLE_LINE:
-			set_title_line (align, g_value_get_uint (value));
 			break;
 
 		case PROP_ENABLED:
@@ -1334,18 +1329,6 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 							      G_PARAM_READWRITE |
 							      G_PARAM_CONSTRUCT_ONLY |
 							      G_PARAM_STATIC_STRINGS));
-
-	g_object_class_install_property (object_class,
-					 PROP_TITLE_LINE,
-					 g_param_spec_uint ("title-line",
-							    "Title Line",
-							    "",
-							    0,
-							    G_MAXUINT,
-							    0,
-							    G_PARAM_READWRITE |
-							    G_PARAM_CONSTRUCT |
-							    G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (object_class,
 					 PROP_ENABLED,

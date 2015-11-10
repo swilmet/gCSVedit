@@ -38,6 +38,11 @@ gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 void			gcsv_buffer_set_delimiter		(GcsvBuffer *buffer,
 								 gunichar    delimiter);
 
+guint			gcsv_buffer_get_title_line		(GcsvBuffer *buffer);
+
+void			gcsv_buffer_set_title_line		(GcsvBuffer *buffer,
+								 guint       title_line);
+
 guint			gcsv_buffer_get_column_num		(GcsvBuffer        *buffer,
 								 const GtkTextIter *iter);
 

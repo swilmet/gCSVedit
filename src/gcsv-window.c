@@ -735,7 +735,7 @@ gcsv_window_init (GcsvWindow *window)
 				 0);
 
 	g_object_bind_property (window->properties_chooser, "title-line",
-				window->align, "title-line",
+				buffer, "title-line",
 				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 }
 
