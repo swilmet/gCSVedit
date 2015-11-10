@@ -26,6 +26,8 @@ struct _GcsvPropertiesChooser
 {
 	GtkGrid parent;
 
+	GcsvBuffer *buffer;
+
 	/* For the delimiter. */
 	GtkComboBoxText *combo;
 	GtkEntry *entry;
@@ -37,7 +39,7 @@ struct _GcsvPropertiesChooser
 enum
 {
 	PROP_0,
-	PROP_DELIMITER,
+	PROP_BUFFER,
 	PROP_TITLE_LINE,
 };
 
@@ -47,6 +49,112 @@ enum
 #define ROW_ID_OTHER	"other"
 
 G_DEFINE_TYPE (GcsvPropertiesChooser, gcsv_properties_chooser, GTK_TYPE_GRID)
+
+static gunichar
+get_chooser_delimiter (GcsvPropertiesChooser *chooser)
+{
+	const gchar *row_id;
+
+	row_id = gtk_combo_box_get_active_id (GTK_COMBO_BOX (chooser->combo));
+	g_return_val_if_fail (row_id != NULL, '\0');
+
+	if (g_str_equal (row_id, ROW_ID_DISABLE))
+	{
+		return '\0';
+	}
+	if (g_str_equal (row_id, ROW_ID_COMMA))
+	{
+		return ',';
+	}
+	if (g_str_equal (row_id, ROW_ID_TAB))
+	{
+		return '\t';
+	}
+	if (g_str_equal (row_id, ROW_ID_OTHER))
+	{
+		const gchar *entry_text;
+
+		entry_text = gtk_entry_get_text (chooser->entry);
+
+		if (entry_text == NULL || entry_text[0] == '\0')
+		{
+			return '\0';
+		}
+
+		return g_utf8_get_char (entry_text);
+	}
+
+	g_assert_not_reached ();
+}
+
+static void
+update_chooser_delimiter (GcsvPropertiesChooser *chooser)
+{
+	gunichar buffer_delimiter;
+	gunichar chooser_delimiter;
+
+	buffer_delimiter = gcsv_buffer_get_delimiter (chooser->buffer);
+	chooser_delimiter = get_chooser_delimiter (chooser);
+
+	if (buffer_delimiter == chooser_delimiter)
+	{
+		return;
+	}
+
+	if (buffer_delimiter == '\0')
+	{
+		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+					     ROW_ID_DISABLE);
+	}
+	else if (buffer_delimiter == ',')
+	{
+		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+					     ROW_ID_COMMA);
+	}
+	else if (buffer_delimiter == '\t')
+	{
+		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+					     ROW_ID_TAB);
+	}
+	else
+	{
+		gchar text[6];
+
+		g_unichar_to_utf8 (buffer_delimiter, text);
+		gtk_entry_set_text (chooser->entry, text);
+
+		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+					     ROW_ID_OTHER);
+	}
+}
+
+static void
+delimiter_notify_cb (GcsvBuffer            *buffer,
+		     GParamSpec            *pspec,
+		     GcsvPropertiesChooser *chooser)
+{
+	update_chooser_delimiter (chooser);
+}
+
+static void
+set_buffer (GcsvPropertiesChooser *chooser,
+	    GcsvBuffer            *buffer)
+{
+	g_assert (chooser->buffer == NULL);
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+	chooser->buffer = g_object_ref (buffer);
+
+	g_signal_connect_object (buffer,
+				 "notify::delimiter",
+				 G_CALLBACK (delimiter_notify_cb),
+				 chooser,
+				 0);
+
+	update_chooser_delimiter (chooser);
+
+	g_object_notify (G_OBJECT (chooser), "buffer");
+}
 
 static void
 gcsv_properties_chooser_get_property (GObject    *object,
@@ -58,8 +166,8 @@ gcsv_properties_chooser_get_property (GObject    *object,
 
 	switch (prop_id)
 	{
-		case PROP_DELIMITER:
-			g_value_set_uint (value, gcsv_properties_chooser_get_delimiter (chooser));
+		case PROP_BUFFER:
+			g_value_set_object (value, chooser->buffer);
 			break;
 
 		case PROP_TITLE_LINE:
@@ -82,8 +190,8 @@ gcsv_properties_chooser_set_property (GObject      *object,
 
 	switch (prop_id)
 	{
-		case PROP_DELIMITER:
-			gcsv_properties_chooser_set_delimiter (chooser, g_value_get_uint (value));
+		case PROP_BUFFER:
+			set_buffer (chooser, g_value_get_object (value));
 			break;
 
 		case PROP_TITLE_LINE:
@@ -97,22 +205,33 @@ gcsv_properties_chooser_set_property (GObject      *object,
 }
 
 static void
+gcsv_properties_chooser_dispose (GObject *object)
+{
+	GcsvPropertiesChooser *chooser = GCSV_PROPERTIES_CHOOSER (object);
+
+	g_clear_object (&chooser->buffer);
+
+	G_OBJECT_CLASS (gcsv_properties_chooser_parent_class)->dispose (object);
+}
+
+static void
 gcsv_properties_chooser_class_init (GcsvPropertiesChooserClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	object_class->get_property = gcsv_properties_chooser_get_property;
 	object_class->set_property = gcsv_properties_chooser_set_property;
+	object_class->dispose = gcsv_properties_chooser_dispose;
 
 	g_object_class_install_property (object_class,
-					 PROP_DELIMITER,
-					 g_param_spec_unichar ("delimiter",
-							       "Delimiter",
-							       "",
-							       ',',
-							       G_PARAM_READWRITE |
-							       G_PARAM_CONSTRUCT |
-							       G_PARAM_STATIC_STRINGS));
+					 PROP_BUFFER,
+					 g_param_spec_object ("buffer",
+							      "Buffer",
+							      "",
+							      GCSV_TYPE_BUFFER,
+							      G_PARAM_READWRITE |
+							      G_PARAM_CONSTRUCT_ONLY |
+							      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (object_class,
 					 PROP_TITLE_LINE,
@@ -134,14 +253,16 @@ combo_changed_cb (GtkComboBox           *combo,
 	gtk_widget_set_visible (GTK_WIDGET (chooser->entry),
 				g_strcmp0 (gtk_combo_box_get_active_id (combo), ROW_ID_OTHER) == 0);
 
-	g_object_notify (G_OBJECT (chooser), "delimiter");
+	gcsv_buffer_set_delimiter (chooser->buffer,
+				   get_chooser_delimiter (chooser));
 }
 
 static void
 entry_changed_cb (GtkEntry              *entry,
 		  GcsvPropertiesChooser *chooser)
 {
-	g_object_notify (G_OBJECT (chooser), "delimiter");
+	gcsv_buffer_set_delimiter (chooser->buffer,
+				   get_chooser_delimiter (chooser));
 }
 
 static void
@@ -173,6 +294,9 @@ gcsv_properties_chooser_init (GcsvPropertiesChooser *chooser)
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_COMMA, _("Comma"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_TAB, _("Tab"));
 	gtk_combo_box_text_append (chooser->combo, ROW_ID_OTHER, _("Other:"));
+
+	gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
+				     ROW_ID_DISABLE);
 
 	g_signal_connect (chooser->combo,
 			  "changed",
@@ -210,84 +334,14 @@ gcsv_properties_chooser_init (GcsvPropertiesChooser *chooser)
 }
 
 GcsvPropertiesChooser *
-gcsv_properties_chooser_new (gunichar delimiter)
+gcsv_properties_chooser_new (GcsvBuffer *buffer)
 {
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
+
 	return g_object_new (GCSV_TYPE_PROPERTIES_CHOOSER,
-			     "delimiter", delimiter,
+			     "buffer", buffer,
 			     "margin", 6,
 			     NULL);
-}
-
-gunichar
-gcsv_properties_chooser_get_delimiter (GcsvPropertiesChooser *chooser)
-{
-	const gchar *row_id;
-
-	g_return_val_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser), '\0');
-
-	row_id = gtk_combo_box_get_active_id (GTK_COMBO_BOX (chooser->combo));
-	g_return_val_if_fail (row_id != NULL, '\0');
-
-	if (g_str_equal (row_id, ROW_ID_DISABLE))
-	{
-		return '\0';
-	}
-	if (g_str_equal (row_id, ROW_ID_COMMA))
-	{
-		return ',';
-	}
-	if (g_str_equal (row_id, ROW_ID_TAB))
-	{
-		return '\t';
-	}
-	if (g_str_equal (row_id, ROW_ID_OTHER))
-	{
-		const gchar *entry_text;
-
-		entry_text = gtk_entry_get_text (chooser->entry);
-
-		if (entry_text == NULL || entry_text[0] == '\0')
-		{
-			return '\0';
-		}
-
-		return g_utf8_get_char (entry_text);
-	}
-
-	g_assert_not_reached ();
-}
-
-void
-gcsv_properties_chooser_set_delimiter (GcsvPropertiesChooser *chooser,
-				       gunichar               delimiter)
-{
-	g_return_if_fail (GCSV_IS_PROPERTIES_CHOOSER (chooser));
-
-	if (delimiter == '\0')
-	{
-		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
-					     ROW_ID_DISABLE);
-	}
-	else if (delimiter == ',')
-	{
-		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
-					     ROW_ID_COMMA);
-	}
-	else if (delimiter == '\t')
-	{
-		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
-					     ROW_ID_TAB);
-	}
-	else
-	{
-		gchar text[6];
-
-		g_unichar_to_utf8 (delimiter, text);
-		gtk_entry_set_text (chooser->entry, text);
-
-		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
-					     ROW_ID_OTHER);
-	}
 }
 
 /* Starts at 0. */

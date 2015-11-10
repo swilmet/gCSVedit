@@ -596,9 +596,9 @@ buffer_changed_cb (GtkTextBuffer *buffer,
 }
 
 static void
-alignment_notify_delimiter_cb (GcsvAlignment *align,
-			       GParamSpec    *pspec,
-			       GcsvWindow    *window)
+buffer_notify_delimiter_cb (GcsvAlignment *align,
+			    GParamSpec    *pspec,
+			    GcsvWindow    *window)
 {
 	update_statusbar_label (window);
 }
@@ -661,6 +661,9 @@ gcsv_window_init (GcsvWindow *window)
 	GtkWidget *statusbar;
 	GcsvBuffer *buffer;
 
+	window->view = create_view ();
+	buffer = GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
+
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
 	vgrid = gtk_grid_new ();
@@ -669,14 +672,12 @@ gcsv_window_init (GcsvWindow *window)
 	/* Menubar */
 	gtk_container_add (GTK_CONTAINER (vgrid), get_menubar ());
 
-	/* Delimiter chooser */
-	window->properties_chooser = gcsv_properties_chooser_new (',');
+	/* Properties chooser */
+	window->properties_chooser = gcsv_properties_chooser_new (buffer);
 	gtk_container_add (GTK_CONTAINER (vgrid),
 			   GTK_WIDGET (window->properties_chooser));
 
 	/* GtkSourceView */
-	window->view = create_view ();
-
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (window->view));
 	gtk_container_add (GTK_CONTAINER (vgrid), scrolled_window);
@@ -697,7 +698,6 @@ gcsv_window_init (GcsvWindow *window)
 
 	window->file = gtk_source_file_new ();
 
-	buffer = GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
 	window->align = gcsv_alignment_new (buffer);
 
 	add_actions (window);
@@ -722,25 +722,21 @@ gcsv_window_init (GcsvWindow *window)
 				 window,
 				 0);
 
+	g_signal_connect_object (buffer,
+				 "notify::delimiter",
+				 G_CALLBACK (buffer_notify_delimiter_cb),
+				 window,
+				 0);
+
 	g_signal_connect_object (window->file,
 				 "notify::location",
 				 G_CALLBACK (location_notify_cb),
 				 window,
 				 0);
 
-	g_object_bind_property (window->properties_chooser, "delimiter",
-				buffer, "delimiter",
-				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
-
 	g_object_bind_property (window->properties_chooser, "title-line",
 				window->align, "title-line",
 				G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
-
-	g_signal_connect_object (window->align,
-				 "notify::delimiter",
-				 G_CALLBACK (alignment_notify_delimiter_cb),
-				 window,
-				 0);
 }
 
 GcsvWindow *
@@ -757,7 +753,6 @@ load_cb (GtkSourceFileLoader *loader,
 	GError *error = NULL;
 	GtkTextBuffer *buffer;
 	GtkTextIter start;
-	gunichar delimiter;
 
 	gtk_source_file_loader_load_finish (loader, result, &error);
 
@@ -773,8 +768,6 @@ load_cb (GtkSourceFileLoader *loader,
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
 	gcsv_buffer_guess_delimiter (GCSV_BUFFER (buffer));
-	delimiter = gcsv_buffer_get_delimiter (GCSV_BUFFER (buffer));
-	gcsv_properties_chooser_set_delimiter (window->properties_chooser, delimiter);
 
 	gcsv_alignment_set_enabled (window->align, TRUE);
 

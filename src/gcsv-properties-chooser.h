@@ -23,6 +23,7 @@
 #define __GCSV_PROPERTIES_CHOOSER_H__
 
 #include <gtk/gtk.h>
+#include "gcsv-buffer.h"
 
 G_BEGIN_DECLS
 
@@ -31,12 +32,7 @@ G_DECLARE_FINAL_TYPE (GcsvPropertiesChooser, gcsv_properties_chooser,
 		      GCSV, PROPERTIES_CHOOSER,
 		      GtkGrid)
 
-GcsvPropertiesChooser *	gcsv_properties_chooser_new		(gunichar delimiter);
-
-gunichar		gcsv_properties_chooser_get_delimiter	(GcsvPropertiesChooser *chooser);
-
-void			gcsv_properties_chooser_set_delimiter	(GcsvPropertiesChooser *chooser,
-								 gunichar               delimiter);
+GcsvPropertiesChooser *	gcsv_properties_chooser_new		(GcsvBuffer *buffer);
 
 guint			gcsv_properties_chooser_get_title_line	(GcsvPropertiesChooser *chooser);
 
