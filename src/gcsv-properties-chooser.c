@@ -149,16 +149,37 @@ get_chooser_title_line (GcsvPropertiesChooser *chooser)
 static void
 update_chooser_title_line (GcsvPropertiesChooser *chooser)
 {
-	guint title_line = gcsv_buffer_get_title_line (chooser->buffer);
+	GtkTextMark *title_mark;
+	GtkTextIter title_iter;
+	gint title_line;
+
+	title_mark = gcsv_buffer_get_title_mark (chooser->buffer);
+
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (chooser->buffer),
+					  &title_iter,
+					  title_mark);
+
+	title_line = gtk_text_iter_get_line (&title_iter);
 
 	gtk_spin_button_set_value (chooser->title_spinbutton,
 				   title_line + 1);
 }
 
 static void
-title_line_notify_cb (GcsvBuffer            *buffer,
-		      GParamSpec            *pspec,
-		      GcsvPropertiesChooser *chooser)
+mark_set_cb (GcsvBuffer            *buffer,
+	     GtkTextIter           *location,
+	     GtkTextMark           *mark,
+	     GcsvPropertiesChooser *chooser)
+{
+	if (mark == gcsv_buffer_get_title_mark (buffer))
+	{
+		update_chooser_title_line (chooser);
+	}
+}
+
+static void
+buffer_changed_cb (GcsvBuffer            *buffer,
+		   GcsvPropertiesChooser *chooser)
 {
 	update_chooser_title_line (chooser);
 }
@@ -179,8 +200,14 @@ set_buffer (GcsvPropertiesChooser *chooser,
 				 0);
 
 	g_signal_connect_object (buffer,
-				 "notify::title-line",
-				 G_CALLBACK (title_line_notify_cb),
+				 "mark-set",
+				 G_CALLBACK (mark_set_cb),
+				 chooser,
+				 0);
+
+	g_signal_connect_object (buffer,
+				 "changed",
+				 G_CALLBACK (buffer_changed_cb),
 				 chooser,
 				 0);
 
@@ -283,8 +310,21 @@ static void
 title_spinbutton_value_changed_cb (GtkSpinButton         *title_spinbutton,
 				   GcsvPropertiesChooser *chooser)
 {
-	gcsv_buffer_set_title_line (chooser->buffer,
-				    get_chooser_title_line (chooser));
+	guint title_line;
+	GtkTextIter title_iter;
+	GtkTextMark *title_mark;
+
+	title_line = get_chooser_title_line (chooser);
+
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (chooser->buffer),
+					  &title_iter,
+					  title_line);
+
+	title_mark = gcsv_buffer_get_title_mark (chooser->buffer);
+
+	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (chooser->buffer),
+				   title_mark,
+				   &title_iter);
 }
 
 static void

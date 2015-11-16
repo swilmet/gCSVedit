@@ -832,20 +832,16 @@ static void
 remove_header (GcsvAlignment *align,
 	       GtkTextRegion *region)
 {
-	guint title_line;
+	GtkTextMark *title_mark;
 	GtkTextIter start;
 	GtkTextIter header_end;
 
-	title_line = gcsv_buffer_get_title_line (align->buffer);
-	if (title_line == 0)
-	{
-		return;
-	}
+	title_mark = gcsv_buffer_get_title_mark (align->buffer);
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
-	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (align->buffer),
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (align->buffer),
 					  &header_end,
-					  title_line);
+					  title_mark);
 
 	gtk_text_region_subtract (region, &start, &header_end);
 }
@@ -1144,25 +1140,28 @@ disconnect_signals (GcsvAlignment *align)
 }
 
 static void
-title_line_notify_cb (GcsvBuffer    *buffer,
-		      GParamSpec    *pspec,
-		      GcsvAlignment *align)
+mark_set_cb (GcsvBuffer    *buffer,
+	     GtkTextIter   *location,
+	     GtkTextMark   *mark,
+	     GcsvAlignment *align)
 {
-	guint title_line;
 	BufferEditData edit_data;
 	GtkTextIter start;
 	GtkTextIter header_end;
 
-	title_line = gcsv_buffer_get_title_line (buffer);
+	if (mark != gcsv_buffer_get_title_mark (buffer))
+	{
+		return;
+	}
 
 	/* Remove alignment in the header. It is done synchronously, but it
 	 * should not be a problem because a header is usually small.
 	 */
 	edit_data = begin_buffer_edit (align);
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
-	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer),
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
 					  &header_end,
-					  title_line);
+					  mark);
 	gcsv_utils_delete_text_with_tag (GTK_TEXT_BUFFER (buffer),
 					 &start,
 					 &header_end,
@@ -1197,8 +1196,8 @@ set_buffer (GcsvAlignment *align,
 	 * header.
 	 */
 	g_signal_connect_object (buffer,
-				 "notify::title-line",
-				 G_CALLBACK (title_line_notify_cb),
+				 "mark-set",
+				 G_CALLBACK (mark_set_cb),
 				 align,
 				 0);
 

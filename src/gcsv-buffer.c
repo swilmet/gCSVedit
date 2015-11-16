@@ -30,14 +30,13 @@ struct _GcsvBuffer
 	 */
 	gunichar delimiter;
 
-	guint title_line;
+	GtkTextMark *title_mark;
 };
 
 enum
 {
 	PROP_0,
 	PROP_DELIMITER,
-	PROP_TITLE_LINE,
 };
 
 G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTK_SOURCE_TYPE_BUFFER)
@@ -54,10 +53,6 @@ gcsv_buffer_get_property (GObject    *object,
 	{
 		case PROP_DELIMITER:
 			g_value_set_uint (value, gcsv_buffer_get_delimiter (buffer));
-			break;
-
-		case PROP_TITLE_LINE:
-			g_value_set_uint (value, gcsv_buffer_get_title_line (buffer));
 			break;
 
 		default:
@@ -80,10 +75,6 @@ gcsv_buffer_set_property (GObject      *object,
 			gcsv_buffer_set_delimiter (buffer, g_value_get_uint (value));
 			break;
 
-		case PROP_TITLE_LINE:
-			gcsv_buffer_set_title_line (buffer, g_value_get_uint (value));
-			break;
-
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 			break;
@@ -91,10 +82,19 @@ gcsv_buffer_set_property (GObject      *object,
 }
 
 static void
-gcsv_buffer_dispose (GObject *object)
+gcsv_buffer_constructed (GObject *object)
 {
+	GcsvBuffer *buffer = GCSV_BUFFER (object);
+	GtkTextIter start;
 
-	G_OBJECT_CLASS (gcsv_buffer_parent_class)->dispose (object);
+	G_OBJECT_CLASS (gcsv_buffer_parent_class)->constructed (object);
+
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
+
+	buffer->title_mark = gtk_text_buffer_create_mark (GTK_TEXT_BUFFER (buffer),
+							  NULL,
+							  &start,
+							  FALSE);
 }
 
 static void
@@ -104,7 +104,7 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 
 	object_class->get_property = gcsv_buffer_get_property;
 	object_class->set_property = gcsv_buffer_set_property;
-	object_class->dispose = gcsv_buffer_dispose;
+	object_class->constructed = gcsv_buffer_constructed;
 
 	g_object_class_install_property (object_class,
 					 PROP_DELIMITER,
@@ -115,18 +115,6 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
-
-	g_object_class_install_property (object_class,
-					 PROP_TITLE_LINE,
-					 g_param_spec_uint ("title-line",
-							    "Title Line",
-							    "",
-							    0,
-							    G_MAXUINT,
-							    0,
-							    G_PARAM_READWRITE |
-							    G_PARAM_CONSTRUCT |
-							    G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -161,27 +149,19 @@ gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
 	}
 }
 
-/* Starts at 0. */
-guint
-gcsv_buffer_get_title_line (GcsvBuffer *buffer)
+/**
+ * gcsv_buffer_get_title_mark:
+ * @buffer: a #GcsvBuffer.
+ *
+ * Returns: (transfer none): the #GtkTextMark located at the start of the DSV
+ * column titles.
+ */
+GtkTextMark *
+gcsv_buffer_get_title_mark (GcsvBuffer *buffer)
 {
-	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), 0);
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
 
-	return buffer->title_line;
-}
-
-/* Starts at 0. */
-void
-gcsv_buffer_set_title_line (GcsvBuffer *buffer,
-			    guint       title_line)
-{
-	g_return_if_fail (GCSV_IS_BUFFER (buffer));
-
-	if (buffer->title_line != title_line)
-	{
-		buffer->title_line = title_line;
-		g_object_notify (G_OBJECT (buffer), "title-line");
-	}
+	return buffer->title_mark;
 }
 
 guint
@@ -333,4 +313,17 @@ gcsv_buffer_guess_delimiter (GcsvBuffer *buffer)
 	{
 		gcsv_buffer_set_delimiter (buffer, ',');
 	}
+}
+
+/* @line begins at 0. */
+void
+gcsv_buffer_set_title_line (GcsvBuffer *buffer,
+			    guint       line_number)
+{
+	GtkTextIter iter;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer), &iter, line_number);
+	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (buffer), buffer->title_mark, &iter);
 }

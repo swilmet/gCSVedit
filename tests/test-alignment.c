@@ -59,6 +59,7 @@ check_alignment (const gchar *before,
 
 	/* Test initial alignment */
 	gtk_text_buffer_set_text (buffer, before, -1);
+	gcsv_buffer_set_title_line (csv_buffer, 0);
 	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
@@ -81,6 +82,7 @@ check_alignment (const gchar *before,
 	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	gtk_text_buffer_set_text (buffer, before, -1);
+	gcsv_buffer_set_title_line (csv_buffer, 0); /* TODO remove */
 	flush_queue ();
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, after);
@@ -139,6 +141,7 @@ test_column_growing (void)
 				  -1);
 
 	gcsv_buffer_set_delimiter (csv_buffer, ',');
+	gcsv_buffer_set_title_line (csv_buffer, 0);
 	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();
@@ -186,6 +189,7 @@ test_column_shrinking (void)
 				  -1);
 
 	gcsv_buffer_set_delimiter (csv_buffer, ',');
+	gcsv_buffer_set_title_line (csv_buffer, 0);
 	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	flush_queue ();

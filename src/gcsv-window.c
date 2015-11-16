@@ -763,12 +763,14 @@ load_cb (GtkSourceFileLoader *loader,
 	}
 
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	gcsv_buffer_guess_delimiter (GCSV_BUFFER (buffer));
-
-	gcsv_alignment_set_enabled (window->align, TRUE);
 
 	gtk_text_buffer_get_start_iter (buffer, &start);
 	gtk_text_buffer_select_range (buffer, &start, &start);
+
+	gcsv_buffer_guess_delimiter (GCSV_BUFFER (buffer));
+	gcsv_buffer_set_title_line (GCSV_BUFFER (buffer), 0);
+
+	gcsv_alignment_set_enabled (window->align, TRUE);
 
 	g_signal_handlers_unblock_by_func (buffer, buffer_mark_set_after_cb, window);
 	g_signal_handlers_unblock_by_func (buffer, buffer_changed_cb, window);
