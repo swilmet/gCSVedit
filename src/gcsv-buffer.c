@@ -329,6 +329,8 @@ gcsv_buffer_guess_delimiter (GcsvBuffer *buffer)
 	{
 		gcsv_buffer_set_delimiter (buffer, '\t');
 	}
-
-	gcsv_buffer_set_delimiter (buffer, ',');
+	else
+	{
+		gcsv_buffer_set_delimiter (buffer, ',');
+	}
 }
