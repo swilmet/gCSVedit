@@ -268,6 +268,7 @@ gcsv_buffer_is_untouched (GcsvBuffer *buffer)
 	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), FALSE);
 
 	return (gtk_text_buffer_get_char_count (GTK_TEXT_BUFFER (buffer)) == 0 &&
+		!gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)) &&
 		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
 		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
 		gtk_source_file_get_location (buffer->file) == NULL);
