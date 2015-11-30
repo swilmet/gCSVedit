@@ -192,7 +192,7 @@ save_cb (GtkSourceFileSaver *saver,
 	if (error != NULL)
 	{
 		gcsv_warning (GTK_WINDOW (window),
-			      _("Error when saving file: %s"),
+			      _("Error when saving the file: %s"),
 			      error->message);
 
 		g_error_free (error);
