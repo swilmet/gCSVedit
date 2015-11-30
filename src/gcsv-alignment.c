@@ -945,7 +945,9 @@ insert_text_after_cb (GtkTextBuffer *buffer,
 	    n_chars == 1 &&
 	    is_text_region_empty (align->scan_region) &&
 	    is_text_region_empty (align->align_region) &&
-	    g_utf8_strchr (text, length, delimiter) == NULL)
+	    g_utf8_strchr (text, length, delimiter) == NULL &&
+	    g_utf8_strchr (text, length, '\n') == NULL &&
+	    g_utf8_strchr (text, length, '\r') == NULL)
 	{
 		GtkTextMark *mark;
 
