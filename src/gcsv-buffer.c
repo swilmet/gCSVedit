@@ -94,9 +94,21 @@ static void
 gcsv_buffer_constructed (GObject *object)
 {
 	GcsvBuffer *buffer = GCSV_BUFFER (object);
+	GtkSourceLanguageManager *language_manager;
+	GtkSourceLanguage *csv_lang;
+	GtkSourceStyleSchemeManager *scheme_manager;
+	GtkSourceStyleScheme *scheme;
 	GtkTextIter start;
 
 	G_OBJECT_CLASS (gcsv_buffer_parent_class)->constructed (object);
+
+	language_manager = gtk_source_language_manager_get_default ();
+	csv_lang = gtk_source_language_manager_get_language (language_manager, "csv");
+	gtk_source_buffer_set_language (GTK_SOURCE_BUFFER (buffer), csv_lang);
+
+	scheme_manager = gtk_source_style_scheme_manager_get_default ();
+	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
+	gtk_source_buffer_set_style_scheme (GTK_SOURCE_BUFFER (buffer), scheme);
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
 
@@ -238,6 +250,11 @@ static void
 gcsv_buffer_init (GcsvBuffer *buffer)
 {
 	buffer->file = gtk_source_file_new ();
+
+	/* Disable the undo/redo, because it doesn't work well currently with
+	 * the virtual spaces.
+	 */
+	gtk_source_buffer_set_max_undo_levels (GTK_SOURCE_BUFFER (buffer), 0);
 
 	update_short_name (buffer);
 
