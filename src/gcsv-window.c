@@ -526,7 +526,7 @@ update_document_name (GcsvWindow *window)
 	if (location == NULL)
 	{
 		g_free (window->document_name);
-		window->document_name = g_strdup (_("Unsaved File"));
+		window->document_name = g_strdup (_("Untitled File"));
 		update_title (window);
 	}
 	else
