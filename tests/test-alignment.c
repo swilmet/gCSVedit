@@ -180,6 +180,7 @@ test_column_shrinking (void)
 	gchar *buffer_text;
 	GtkTextIter start;
 	GtkTextIter end;
+	GtkTextIter iter;
 
 	csv_buffer = gcsv_buffer_new ();
 	buffer = GTK_TEXT_BUFFER (csv_buffer);
@@ -210,6 +211,35 @@ test_column_shrinking (void)
 
 	text_after =
 		"aa,bb\n"
+		"1 ,2 ";
+
+	buffer_text = get_buffer_text (buffer);
+	g_assert_cmpstr (buffer_text, ==, text_after);
+	g_free (buffer_text);
+
+	/* Inserting a newline */
+	gtk_text_buffer_set_text (buffer,
+				  "aad,bb\n"
+				  "1,2",
+				  -1);
+	gcsv_buffer_set_title_line (csv_buffer, 0);
+	flush_queue ();
+
+	text_after =
+		"aad,bb\n"
+		"1  ,2 ";
+
+	buffer_text = get_buffer_text (buffer);
+	g_assert_cmpstr (buffer_text, ==, text_after);
+	g_free (buffer_text);
+
+	gtk_text_buffer_get_iter_at_offset (buffer, &iter, 2);
+	gtk_text_buffer_insert (buffer, &iter, "\n", -1);
+	flush_queue ();
+
+	text_after =
+		"aa  \n" /* FIXME trailing spaces */
+		"d ,bb\n"
 		"1 ,2 ";
 
 	buffer_text = get_buffer_text (buffer);
