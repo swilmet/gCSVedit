@@ -37,6 +37,10 @@ GtkSourceFile *		gcsv_buffer_get_file			(GcsvBuffer *buffer);
 
 gboolean		gcsv_buffer_is_untouched		(GcsvBuffer *buffer);
 
+const gchar *		gcsv_buffer_get_short_name		(GcsvBuffer *buffer);
+
+gchar *			gcsv_buffer_get_title			(GcsvBuffer *buffer);
+
 gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 
 void			gcsv_buffer_set_delimiter		(GcsvBuffer *buffer,

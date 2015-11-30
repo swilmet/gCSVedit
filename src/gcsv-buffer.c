@@ -20,12 +20,14 @@
  */
 
 #include "gcsv-buffer.h"
+#include <glib/gi18n.h>
 
 struct _GcsvBuffer
 {
 	GtkSourceBuffer parent;
 
 	GtkSourceFile *file;
+	gchar *short_name;
 
 	/* The delimiter is at most one Unicode character. If it is the nul
 	 * character ('\0'), there is no alignment.
@@ -38,6 +40,7 @@ struct _GcsvBuffer
 enum
 {
 	PROP_0,
+	PROP_TITLE,
 	PROP_DELIMITER,
 };
 
@@ -53,6 +56,10 @@ gcsv_buffer_get_property (GObject    *object,
 
 	switch (prop_id)
 	{
+		case PROP_TITLE:
+			g_value_take_string (value, gcsv_buffer_get_title (buffer));
+			break;
+
 		case PROP_DELIMITER:
 			g_value_set_uint (value, gcsv_buffer_get_delimiter (buffer));
 			break;
@@ -110,14 +117,48 @@ gcsv_buffer_dispose (GObject *object)
 }
 
 static void
+gcsv_buffer_finalize (GObject *object)
+{
+	GcsvBuffer *buffer = GCSV_BUFFER (object);
+
+	g_free (buffer->short_name);
+
+	G_OBJECT_CLASS (gcsv_buffer_parent_class)->finalize (object);
+}
+
+static void
+gcsv_buffer_modified_changed (GtkTextBuffer *text_buffer)
+{
+	if (GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->modified_changed != NULL)
+	{
+		GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->modified_changed (text_buffer);
+	}
+
+	g_object_notify (G_OBJECT (text_buffer), "title");
+}
+
+static void
 gcsv_buffer_class_init (GcsvBufferClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GtkTextBufferClass *text_buffer_class = GTK_TEXT_BUFFER_CLASS (klass);
 
 	object_class->get_property = gcsv_buffer_get_property;
 	object_class->set_property = gcsv_buffer_set_property;
 	object_class->constructed = gcsv_buffer_constructed;
 	object_class->dispose = gcsv_buffer_dispose;
+	object_class->finalize = gcsv_buffer_finalize;
+
+	text_buffer_class->modified_changed = gcsv_buffer_modified_changed;
+
+	g_object_class_install_property (object_class,
+					 PROP_TITLE,
+					 g_param_spec_string ("title",
+							      "Title",
+							      "",
+							      NULL,
+							      G_PARAM_READABLE |
+							      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (object_class,
 					 PROP_DELIMITER,
@@ -131,9 +172,80 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 }
 
 static void
+query_display_name_cb (GFile        *location,
+		       GAsyncResult *result,
+		       GcsvBuffer   *buffer)
+{
+	GFileInfo *info;
+	GError *error = NULL;
+
+	info = g_file_query_info_finish (location, result, &error);
+
+	if (error != NULL)
+	{
+		g_warning (_("Error when querying file information: %s"), error->message);
+		g_clear_error (&error);
+		goto out;
+	}
+
+	g_free (buffer->short_name);
+	buffer->short_name = g_strdup (g_file_info_get_display_name (info));
+
+	g_object_notify (G_OBJECT (buffer), "title");
+
+out:
+	g_clear_object (&info);
+
+	/* Async operation finished */
+	g_object_unref (buffer);
+}
+
+static void
+update_short_name (GcsvBuffer *buffer)
+{
+	GFile *location;
+
+	location = gtk_source_file_get_location (buffer->file);
+
+	if (location == NULL)
+	{
+		g_free (buffer->short_name);
+		buffer->short_name = g_strdup (_("Untitled File"));
+
+		g_object_notify (G_OBJECT (buffer), "title");
+	}
+	else
+	{
+		g_file_query_info_async (location,
+					 G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME,
+					 G_FILE_QUERY_INFO_NONE,
+					 G_PRIORITY_DEFAULT,
+					 NULL,
+					 (GAsyncReadyCallback) query_display_name_cb,
+					 g_object_ref (buffer));
+	}
+}
+
+static void
+location_notify_cb (GtkSourceFile *file,
+		    GParamSpec    *pspec,
+		    GcsvBuffer    *buffer)
+{
+	update_short_name (buffer);
+}
+
+static void
 gcsv_buffer_init (GcsvBuffer *buffer)
 {
 	buffer->file = gtk_source_file_new ();
+
+	update_short_name (buffer);
+
+	g_signal_connect_object (buffer->file,
+				 "notify::location",
+				 G_CALLBACK (location_notify_cb),
+				 buffer,
+				 0);
 }
 
 GcsvBuffer *
@@ -159,6 +271,63 @@ gcsv_buffer_is_untouched (GcsvBuffer *buffer)
 		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
 		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
 		gtk_source_file_get_location (buffer->file) == NULL);
+}
+
+/* Gets the document's short name. If the GFile location is non-NULL, returns
+ * its display-name.
+ */
+const gchar *
+gcsv_buffer_get_short_name (GcsvBuffer *buffer)
+{
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
+
+	return buffer->short_name;
+}
+
+/* Returns a title suitable for a GtkWindow title. It contains '*' if the buffer
+ * is modified. The short name, plus the directory name in parenthesis if the
+ * buffer is saved.
+ * Free the return value with g_free().
+ */
+gchar *
+gcsv_buffer_get_title (GcsvBuffer *buffer)
+{
+	GFile *location;
+	gchar *title;
+	gchar *full_title;
+	gboolean modified;
+	const gchar *modified_marker;
+
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
+
+	location = gtk_source_file_get_location (buffer->file);
+
+	if (location == NULL)
+	{
+		title = g_strdup (buffer->short_name);
+	}
+	else
+	{
+		GFile *parent;
+		gchar *directory;
+
+		parent = g_file_get_parent (location);
+		g_return_val_if_fail (parent != NULL, NULL);
+
+		directory = g_file_get_parse_name (parent);
+		g_object_unref (parent);
+
+		title = g_strdup_printf ("%s (%s)", buffer->short_name, directory);
+		g_free (directory);
+	}
+
+	modified = gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer));
+	modified_marker = modified ? "*" : "";
+
+	full_title = g_strconcat (modified_marker, title, NULL);
+	g_free (title);
+
+	return full_title;
 }
 
 gunichar
