@@ -36,13 +36,25 @@ struct _GcsvWindow
 	GtkSourceView *view;
 	GtkLabel *statusbar_label;
 
-	GtkSourceFile *file;
 	GcsvAlignment *align;
 
 	gchar *document_name;
 };
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
+
+static GcsvBuffer *
+get_buffer (GcsvWindow *window)
+{
+	return GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
+}
+
+static GtkSourceFile *
+get_file (GcsvWindow *window)
+{
+	GcsvBuffer *buffer = get_buffer (window);
+	return gcsv_buffer_get_file (buffer);
+}
 
 /* Returns whether @window has been closed. */
 static gboolean
@@ -81,10 +93,10 @@ launch_close_confirmation_dialog (GcsvWindow *window)
 static gboolean
 gcsv_window_close (GcsvWindow *window)
 {
-	GtkTextBuffer *buffer;
+	GcsvBuffer *buffer;
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	if (gtk_text_buffer_get_modified (buffer))
+	buffer = get_buffer (window);
+	if (gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)))
 	{
 		return launch_close_confirmation_dialog (window);
 	}
@@ -172,10 +184,8 @@ save_cb (GtkSourceFileSaver *saver,
 
 	if (gtk_source_file_saver_save_finish (saver, result, &error))
 	{
-		GtkTextBuffer *buffer;
-
-		buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-		gtk_text_buffer_set_modified (buffer, FALSE);
+		GcsvBuffer *buffer = get_buffer (window);
+		gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (buffer), FALSE);
 	}
 
 	if (error != NULL)
@@ -210,7 +220,7 @@ launch_save (GcsvWindow *window,
 	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
 
 	saver = gtk_source_file_saver_new_with_target (buffer_without_align,
-						       window->file,
+						       get_file (window),
 						       location);
 
 	app = g_application_get_default ();
@@ -235,7 +245,7 @@ save_activate_cb (GSimpleAction *save_action,
 	GcsvWindow *window = GCSV_WINDOW (user_data);
 	GFile *location;
 
-	location = gtk_source_file_get_location (window->file);
+	location = gtk_source_file_get_location (get_file (window));
 	g_return_if_fail (location != NULL);
 
 	launch_save (window, location);
@@ -319,14 +329,16 @@ static void
 update_save_action_sensitivity (GcsvWindow *window)
 {
 	GAction *action;
-	GtkTextBuffer *buffer;
+	GcsvBuffer *buffer;
+	GtkSourceFile *file;
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	buffer = get_buffer (window);
+	file = get_file (window);
 
 	action = g_action_map_lookup_action (G_ACTION_MAP (window), "save");
 	g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
-				     gtk_source_file_get_location (window->file) != NULL &&
-				     gtk_text_buffer_get_modified (buffer));
+				     gtk_source_file_get_location (file) != NULL &&
+				     gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)));
 }
 
 static void
@@ -424,7 +436,7 @@ get_document_title (GcsvWindow *window)
 	gchar *directory;
 	gchar *document_title;
 
-	location = gtk_source_file_get_location (window->file);
+	location = gtk_source_file_get_location (get_file (window));
 
 	if (location == NULL)
 	{
@@ -449,14 +461,14 @@ get_document_title (GcsvWindow *window)
 static void
 update_title (GcsvWindow *window)
 {
-	GtkTextBuffer *buffer;
+	GcsvBuffer *buffer;
 	gboolean modified;
 	const gchar *modified_marker;
 	gchar *document_title;
 	gchar *title;
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	modified = gtk_text_buffer_get_modified (buffer);
+	buffer = get_buffer (window);
+	modified = gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer));
 	modified_marker = modified ? "*" : "";
 
 	document_title = get_document_title (window);
@@ -509,7 +521,7 @@ update_document_name (GcsvWindow *window)
 {
 	GFile *location;
 
-	location = gtk_source_file_get_location (window->file);
+	location = gtk_source_file_get_location (get_file (window));
 
 	if (location == NULL)
 	{
@@ -549,18 +561,21 @@ location_notify_cb (GtkSourceFile *file,
 static void
 update_statusbar_label (GcsvWindow *window)
 {
-	GtkTextBuffer *buffer;
-	GtkTextIter insert;
+	GcsvBuffer *buffer;
+	GtkTextMark *insert_mark;
+	GtkTextIter insert_iter;
 	gint line_num;
 	gint csv_column_num;
 	gchar *label_text;
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	gtk_text_buffer_get_iter_at_mark (buffer, &insert,
-					  gtk_text_buffer_get_insert (buffer));
-	line_num = gtk_text_iter_get_line (&insert) + 1;
+	buffer = get_buffer (window);
+	insert_mark = gtk_text_buffer_get_insert (GTK_TEXT_BUFFER (buffer));
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
+					  &insert_iter,
+					  insert_mark);
+	line_num = gtk_text_iter_get_line (&insert_iter) + 1;
 
-	csv_column_num = gcsv_buffer_get_column_num (GCSV_BUFFER (buffer), &insert) + 1;
+	csv_column_num = gcsv_buffer_get_column_num (buffer, &insert_iter) + 1;
 
 	label_text = g_strdup_printf (_("Line: %d   CSV Column: %d"),
 				      line_num,
@@ -609,7 +624,6 @@ gcsv_window_dispose (GObject *object)
 	GcsvWindow *window = GCSV_WINDOW (object);
 
 	g_clear_object (&window->align);
-	g_clear_object (&window->file);
 
 	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
 }
@@ -629,10 +643,10 @@ gcsv_window_delete_event (GtkWidget   *widget,
 			  GdkEventAny *event)
 {
 	GcsvWindow *window = GCSV_WINDOW (widget);
-	GtkTextBuffer *buffer;
+	GcsvBuffer *buffer;
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-	if (gtk_text_buffer_get_modified (buffer))
+	buffer = get_buffer (window);
+	if (gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)))
 	{
 		launch_close_confirmation_dialog (window);
 		return GDK_EVENT_STOP;
@@ -662,7 +676,7 @@ gcsv_window_init (GcsvWindow *window)
 	GcsvBuffer *buffer;
 
 	window->view = create_view ();
-	buffer = GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
+	buffer = get_buffer (window);
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
@@ -696,8 +710,6 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_widget_grab_focus (GTK_WIDGET (window->view));
 	gtk_widget_show_all (GTK_WIDGET (window));
 
-	window->file = gtk_source_file_new ();
-
 	window->align = gcsv_alignment_new (buffer);
 
 	add_actions (window);
@@ -728,7 +740,7 @@ gcsv_window_init (GcsvWindow *window)
 				 window,
 				 0);
 
-	g_signal_connect_object (window->file,
+	g_signal_connect_object (get_file (window),
 				 "notify::location",
 				 G_CALLBACK (location_notify_cb),
 				 window,
@@ -747,7 +759,7 @@ load_cb (GtkSourceFileLoader *loader,
 	 GcsvWindow          *window)
 {
 	GError *error = NULL;
-	GtkTextBuffer *buffer;
+	GcsvBuffer *buffer;
 	GtkTextIter start;
 
 	gtk_source_file_loader_load_finish (loader, result, &error);
@@ -762,13 +774,13 @@ load_cb (GtkSourceFileLoader *loader,
 		error = NULL;
 	}
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	buffer = get_buffer (window);
 
-	gtk_text_buffer_get_start_iter (buffer, &start);
-	gtk_text_buffer_select_range (buffer, &start, &start);
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
+	gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &start, &start);
 
-	gcsv_buffer_guess_delimiter (GCSV_BUFFER (buffer));
-	gcsv_buffer_set_title_line (GCSV_BUFFER (buffer), 0);
+	gcsv_buffer_guess_delimiter (buffer);
+	gcsv_buffer_set_title_line (buffer, 0);
 
 	gcsv_alignment_set_enabled (window->align, TRUE);
 
@@ -784,18 +796,19 @@ void
 gcsv_window_load_file (GcsvWindow *window,
 		       GFile      *location)
 {
-	GtkTextBuffer *buffer;
+	GcsvBuffer *buffer;
+	GtkSourceFile *file;
 	GtkSourceFileLoader *loader;
 
 	g_return_if_fail (GCSV_IS_WINDOW (window));
 	g_return_if_fail (G_IS_FILE (location));
 
-	gtk_source_file_set_location (window->file, location);
+	buffer = get_buffer (window);
+	file = gcsv_buffer_get_file (buffer);
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
+	gtk_source_file_set_location (file, location);
 
-	loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (buffer),
-					     window->file);
+	loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (buffer), file);
 
 	gcsv_alignment_set_enabled (window->align, FALSE);
 	g_signal_handlers_block_by_func (buffer, buffer_mark_set_after_cb, window);
@@ -814,12 +827,7 @@ gcsv_window_load_file (GcsvWindow *window,
 gboolean
 gcsv_window_is_untouched (GcsvWindow *window)
 {
-	GtkTextBuffer *buffer;
+	g_return_val_if_fail (GCSV_IS_WINDOW (window), FALSE);
 
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view));
-
-	return (gtk_text_buffer_get_char_count (buffer) == 0 &&
-		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
-		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
-		gtk_source_file_get_location (window->file) == NULL);
+	return gcsv_buffer_is_untouched (get_buffer (window));
 }

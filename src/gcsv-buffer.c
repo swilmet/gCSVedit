@@ -25,6 +25,8 @@ struct _GcsvBuffer
 {
 	GtkSourceBuffer parent;
 
+	GtkSourceFile *file;
+
 	/* The delimiter is at most one Unicode character. If it is the nul
 	 * character ('\0'), there is no alignment.
 	 */
@@ -98,6 +100,16 @@ gcsv_buffer_constructed (GObject *object)
 }
 
 static void
+gcsv_buffer_dispose (GObject *object)
+{
+	GcsvBuffer *buffer = GCSV_BUFFER (object);
+
+	g_clear_object (&buffer->file);
+
+	G_OBJECT_CLASS (gcsv_buffer_parent_class)->dispose (object);
+}
+
+static void
 gcsv_buffer_class_init (GcsvBufferClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -105,6 +117,7 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 	object_class->get_property = gcsv_buffer_get_property;
 	object_class->set_property = gcsv_buffer_set_property;
 	object_class->constructed = gcsv_buffer_constructed;
+	object_class->dispose = gcsv_buffer_dispose;
 
 	g_object_class_install_property (object_class,
 					 PROP_DELIMITER,
@@ -120,12 +133,32 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 static void
 gcsv_buffer_init (GcsvBuffer *buffer)
 {
+	buffer->file = gtk_source_file_new ();
 }
 
 GcsvBuffer *
 gcsv_buffer_new (void)
 {
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
+}
+
+GtkSourceFile *
+gcsv_buffer_get_file (GcsvBuffer *buffer)
+{
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
+
+	return buffer->file;
+}
+
+gboolean
+gcsv_buffer_is_untouched (GcsvBuffer *buffer)
+{
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), FALSE);
+
+	return (gtk_text_buffer_get_char_count (GTK_TEXT_BUFFER (buffer)) == 0 &&
+		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
+		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
+		gtk_source_file_get_location (buffer->file) == NULL);
 }
 
 gunichar

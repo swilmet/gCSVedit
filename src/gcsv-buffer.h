@@ -33,6 +33,10 @@ G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 
 GcsvBuffer *		gcsv_buffer_new				(void);
 
+GtkSourceFile *		gcsv_buffer_get_file			(GcsvBuffer *buffer);
+
+gboolean		gcsv_buffer_is_untouched		(GcsvBuffer *buffer);
+
 gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 
 void			gcsv_buffer_set_delimiter		(GcsvBuffer *buffer,
