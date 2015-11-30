@@ -296,6 +296,8 @@ gcsv_buffer_guess_delimiter (GcsvBuffer *buffer)
 	GtkTextIter iter;
 	GtkTextIter limit;
 
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &iter);
 	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer), &limit, 1000);
 
