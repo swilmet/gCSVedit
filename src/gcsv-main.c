@@ -77,7 +77,7 @@ startup_cb (GtkApplication *app)
 	GtkBuilder *builder;
 	GMenuModel *menubar;
 
-	builder = gtk_builder_new_from_resource ("/org/ucl/gcsvedit/menu.ui");
+	builder = gtk_builder_new_from_resource ("/be/uclouvain/gcsvedit/menu.ui");
 	gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
 	menubar = G_MENU_MODEL (gtk_builder_get_object (builder, "menubar"));
 
@@ -141,7 +141,7 @@ main (gint    argc,
 
 	setup_i18n ();
 
-	app = gtk_application_new ("org.ucl.gcsvedit", G_APPLICATION_HANDLES_OPEN);
+	app = gtk_application_new ("be.uclouvain.gcsvedit", G_APPLICATION_HANDLES_OPEN);
 
 	g_set_application_name ("gCSVedit");
 	gtk_window_set_default_icon_name ("accessories-text-editor");
