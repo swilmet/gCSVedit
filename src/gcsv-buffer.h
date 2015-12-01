@@ -68,9 +68,6 @@ void			gcsv_buffer_get_field_bounds		(GcsvBuffer  *buffer,
 
 void			gcsv_buffer_guess_delimiter		(GcsvBuffer *buffer);
 
-void			gcsv_buffer_set_title_line		(GcsvBuffer *buffer,
-								 guint       line_number);
-
 G_END_DECLS
 
 #endif /* __GCSV_BUFFER_H__ */

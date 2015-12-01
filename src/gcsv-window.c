@@ -668,7 +668,7 @@ load_cb (GtkSourceFileLoader *loader,
 	gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &start, &start);
 
 	gcsv_buffer_guess_delimiter (buffer);
-	gcsv_buffer_set_title_line (buffer, 0);
+	gcsv_buffer_set_column_titles_line (buffer, 0);
 
 	gcsv_alignment_set_enabled (window->align, TRUE);
 
