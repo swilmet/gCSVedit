@@ -51,6 +51,9 @@ GtkTextMark *		gcsv_buffer_get_title_mark		(GcsvBuffer *buffer);
 void			gcsv_buffer_get_column_titles_location	(GcsvBuffer  *buffer,
 								 GtkTextIter *iter);
 
+void			gcsv_buffer_set_column_titles_line	(GcsvBuffer *buffer,
+								 guint       line);
+
 guint			gcsv_buffer_get_column_num		(GcsvBuffer        *buffer,
 								 const GtkTextIter *iter);
 
