@@ -147,6 +147,27 @@ get_chooser_title_line (GcsvPropertiesChooser *chooser)
 }
 
 static void
+title_spinbutton_value_changed_cb (GtkSpinButton         *title_spinbutton,
+				   GcsvPropertiesChooser *chooser)
+{
+	guint title_line;
+	GtkTextIter title_iter;
+	GtkTextMark *title_mark;
+
+	title_line = get_chooser_title_line (chooser);
+
+	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (chooser->buffer),
+					  &title_iter,
+					  title_line);
+
+	title_mark = gcsv_buffer_get_title_mark (chooser->buffer);
+
+	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (chooser->buffer),
+				   title_mark,
+				   &title_iter);
+}
+
+static void
 update_chooser_title_line (GcsvPropertiesChooser *chooser)
 {
 	GtkTextMark *title_mark;
@@ -161,8 +182,16 @@ update_chooser_title_line (GcsvPropertiesChooser *chooser)
 
 	title_line = gtk_text_iter_get_line (&title_iter);
 
+	g_signal_handlers_block_by_func (chooser->title_spinbutton,
+					 title_spinbutton_value_changed_cb,
+					 chooser);
+
 	gtk_spin_button_set_value (chooser->title_spinbutton,
 				   title_line + 1);
+
+	g_signal_handlers_unblock_by_func (chooser->title_spinbutton,
+					   title_spinbutton_value_changed_cb,
+					   chooser);
 }
 
 static void
@@ -304,27 +333,6 @@ entry_changed_cb (GtkEntry              *entry,
 {
 	gcsv_buffer_set_delimiter (chooser->buffer,
 				   get_chooser_delimiter (chooser));
-}
-
-static void
-title_spinbutton_value_changed_cb (GtkSpinButton         *title_spinbutton,
-				   GcsvPropertiesChooser *chooser)
-{
-	guint title_line;
-	GtkTextIter title_iter;
-	GtkTextMark *title_mark;
-
-	title_line = get_chooser_title_line (chooser);
-
-	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (chooser->buffer),
-					  &title_iter,
-					  title_line);
-
-	title_mark = gcsv_buffer_get_title_mark (chooser->buffer);
-
-	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (chooser->buffer),
-				   title_mark,
-				   &title_iter);
 }
 
 static void
