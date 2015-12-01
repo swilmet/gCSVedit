@@ -151,18 +151,40 @@ gcsv_buffer_modified_changed (GtkTextBuffer *text_buffer)
 }
 
 static void
-gcsv_buffer_mark_set (GtkTextBuffer     *buffer,
+gcsv_buffer_mark_set (GtkTextBuffer     *text_buffer,
 		      const GtkTextIter *location,
 		      GtkTextMark       *mark)
 {
+	GcsvBuffer *buffer = GCSV_BUFFER (text_buffer);
+
 	if (GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->mark_set != NULL)
 	{
-		GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->mark_set (buffer, location, mark);
+		GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->mark_set (text_buffer, location, mark);
 	}
 
-	if (mark == gtk_text_buffer_get_insert (buffer))
+	if (mark == gtk_text_buffer_get_insert (text_buffer))
 	{
 		g_signal_emit (buffer, signals[SIGNAL_CURSOR_MOVED], 0);
+
+		/* Sets the title_mark to be at the beginning of the line. Since
+		 * the cursor moved (without a buffer change), change the header
+		 * boundary to be at the beginning of a line instead of keeping
+		 * the location at a random place.
+		 *
+		 * If later the user places the cursor at that random place and
+		 * presses Enter, it would be awkward if the column titles line
+		 * changed. On the other hand, at the beginning of the line is
+		 * not awkward.
+		 */
+		if (buffer->title_mark != NULL)
+		{
+			GtkTextIter iter;
+			guint line;
+
+			gcsv_buffer_get_column_titles_location (buffer, &iter);
+			line = gtk_text_iter_get_line (&iter);
+			gcsv_buffer_set_column_titles_line (buffer, line);
+		}
 	}
 }
 
