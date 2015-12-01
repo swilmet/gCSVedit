@@ -417,26 +417,25 @@ void
 gcsv_buffer_set_column_titles_line (GcsvBuffer *buffer,
 				    guint       line)
 {
-	GtkTextIter current_location;
+	GtkTextIter old_location;
 	GtkTextIter new_location;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
 	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
-					  &current_location,
+					  &old_location,
 					  buffer->title_mark);
 
 	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer),
 					  &new_location,
 					  line);
 
-	/* FIXME compare lines instead? */
-	if (!gtk_text_iter_equal (&current_location, &new_location))
-	{
-		gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (buffer),
-					   buffer->title_mark,
-					   &new_location);
+	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (buffer),
+				   buffer->title_mark,
+				   &new_location);
 
+	if (gtk_text_iter_get_line (&old_location) != gtk_text_iter_get_line (&new_location))
+	{
 		g_signal_emit (buffer, signals[SIGNAL_COLUMN_TITLES_SET], 0);
 	}
 }
