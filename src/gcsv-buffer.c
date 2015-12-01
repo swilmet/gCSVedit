@@ -44,6 +44,14 @@ enum
 	PROP_DELIMITER,
 };
 
+enum
+{
+	SIGNAL_COLUMN_TITLES_SET,
+	LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
+
 G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTK_SOURCE_TYPE_BUFFER)
 
 static void
@@ -116,6 +124,7 @@ gcsv_buffer_constructed (GObject *object)
 							  NULL,
 							  &start,
 							  FALSE);
+	g_signal_emit (buffer, signals[SIGNAL_COLUMN_TITLES_SET], 0);
 }
 
 static void
@@ -181,6 +190,24 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GcsvBuffer::column-titles-set:
+	 * @buffer: the #GcsvBuffer who emits the signal.
+	 *
+	 * The ::column-titles-set signal is emitted when the column titles line
+	 * is set to a different line. The signal is not emitted when the column
+	 * titles line changes due to text insertion or deletion, it is emitted
+	 * only when the column titles line is set externally, for example by
+	 * the #GcsvPropertiesChooser.
+	 */
+	signals[SIGNAL_COLUMN_TITLES_SET] =
+		g_signal_new ("column-titles-set",
+			      G_TYPE_FROM_CLASS (klass),
+			      G_SIGNAL_RUN_FIRST,
+			      0,
+			      NULL, NULL, NULL,
+			      G_TYPE_NONE, 0);
 }
 
 static void
@@ -405,17 +432,28 @@ void
 gcsv_buffer_set_column_titles_line (GcsvBuffer *buffer,
 				    guint       line)
 {
-	GtkTextIter iter;
+	GtkTextIter current_location;
+	GtkTextIter new_location;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
+					  &current_location,
+					  buffer->title_mark);
+
 	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer),
-					  &iter,
+					  &new_location,
 					  line);
 
-	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (buffer),
-				   buffer->title_mark,
-				   &iter);
+	/* FIXME compare lines instead? */
+	if (!gtk_text_iter_equal (&current_location, &new_location))
+	{
+		gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (buffer),
+					   buffer->title_mark,
+					   &new_location);
+
+		g_signal_emit (buffer, signals[SIGNAL_COLUMN_TITLES_SET], 0);
+	}
 }
 
 guint

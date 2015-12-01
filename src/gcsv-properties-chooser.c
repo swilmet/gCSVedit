@@ -176,15 +176,10 @@ update_chooser_title_line (GcsvPropertiesChooser *chooser)
 }
 
 static void
-mark_set_cb (GcsvBuffer            *buffer,
-	     GtkTextIter           *location,
-	     GtkTextMark           *mark,
-	     GcsvPropertiesChooser *chooser)
+column_titles_set_cb (GcsvBuffer            *buffer,
+		      GcsvPropertiesChooser *chooser)
 {
-	if (mark == gcsv_buffer_get_title_mark (buffer))
-	{
-		update_chooser_title_line (chooser);
-	}
+	update_chooser_title_line (chooser);
 }
 
 static void
@@ -210,8 +205,8 @@ set_buffer (GcsvPropertiesChooser *chooser,
 				 0);
 
 	g_signal_connect_object (buffer,
-				 "mark-set",
-				 G_CALLBACK (mark_set_cb),
+				 "column-titles-set",
+				 G_CALLBACK (column_titles_set_cb),
 				 chooser,
 				 0);
 

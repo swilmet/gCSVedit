@@ -1144,19 +1144,12 @@ disconnect_signals (GcsvAlignment *align)
 }
 
 static void
-mark_set_cb (GcsvBuffer    *buffer,
-	     GtkTextIter   *location,
-	     GtkTextMark   *mark,
-	     GcsvAlignment *align)
+column_titles_set_cb (GcsvBuffer    *buffer,
+		      GcsvAlignment *align)
 {
 	BufferEditData edit_data;
 	GtkTextIter start;
 	GtkTextIter header_end;
-
-	if (mark != gcsv_buffer_get_title_mark (buffer))
-	{
-		return;
-	}
 
 	/* Remove alignment in the header. It is done synchronously, but it
 	 * should not be a problem because a header is usually small.
@@ -1198,8 +1191,8 @@ set_buffer (GcsvAlignment *align,
 	 * header.
 	 */
 	g_signal_connect_object (buffer,
-				 "mark-set",
-				 G_CALLBACK (mark_set_cb),
+				 "column-titles-set",
+				 G_CALLBACK (column_titles_set_cb),
 				 align,
 				 0);
 
