@@ -106,7 +106,6 @@ gcsv_buffer_constructed (GObject *object)
 	GtkSourceLanguage *csv_lang;
 	GtkSourceStyleSchemeManager *scheme_manager;
 	GtkSourceStyleScheme *scheme;
-	GtkTextIter start;
 
 	G_OBJECT_CLASS (gcsv_buffer_parent_class)->constructed (object);
 
@@ -117,14 +116,6 @@ gcsv_buffer_constructed (GObject *object)
 	scheme_manager = gtk_source_style_scheme_manager_get_default ();
 	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
 	gtk_source_buffer_set_style_scheme (GTK_SOURCE_BUFFER (buffer), scheme);
-
-	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
-
-	buffer->title_mark = gtk_text_buffer_create_mark (GTK_TEXT_BUFFER (buffer),
-							  NULL,
-							  &start,
-							  FALSE);
-	g_signal_emit (buffer, signals[SIGNAL_COLUMN_TITLES_SET], 0);
 }
 
 static void
@@ -405,11 +396,18 @@ gcsv_buffer_get_column_titles_location (GcsvBuffer  *buffer,
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 	g_return_if_fail (iter != NULL);
 
-	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
-					  iter,
-					  buffer->title_mark);
+	if (buffer->title_mark == NULL)
+	{
+		gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), iter);
+	}
+	else
+	{
+		gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
+						  iter,
+						  buffer->title_mark);
 
-	gtk_text_iter_set_line_offset (iter, 0);
+		gtk_text_iter_set_line_offset (iter, 0);
+	}
 }
 
 /* @line starts at 0. */
@@ -417,18 +415,34 @@ void
 gcsv_buffer_set_column_titles_line (GcsvBuffer *buffer,
 				    guint       line)
 {
-	GtkTextIter old_location;
 	GtkTextIter new_location;
+	GtkTextIter old_location;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
-
-	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
-					  &old_location,
-					  buffer->title_mark);
 
 	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer),
 					  &new_location,
 					  line);
+
+	if (buffer->title_mark == NULL)
+	{
+		/* Create the mark lazily, so that for a new file, the column
+		 * titles are kept at the first line by default. Once this
+		 * function is called, it means that the column titles are
+		 * known, so we can keep track of them.
+		 */
+		buffer->title_mark = gtk_text_buffer_create_mark (GTK_TEXT_BUFFER (buffer),
+								  NULL,
+								  &new_location,
+								  FALSE);
+
+		g_signal_emit (buffer, signals[SIGNAL_COLUMN_TITLES_SET], 0);
+		return;
+	}
+
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
+					  &old_location,
+					  buffer->title_mark);
 
 	gtk_text_buffer_move_mark (GTK_TEXT_BUFFER (buffer),
 				   buffer->title_mark,
