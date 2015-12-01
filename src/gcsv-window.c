@@ -485,25 +485,6 @@ cursor_moved (GcsvWindow *window)
 }
 
 static void
-buffer_mark_set_after_cb (GtkTextBuffer *buffer,
-			  GtkTextIter   *location,
-			  GtkTextMark   *mark,
-			  GcsvWindow    *window)
-{
-	if (mark == gtk_text_buffer_get_insert (buffer))
-	{
-		cursor_moved (window);
-	}
-}
-
-static void
-buffer_changed_cb (GtkTextBuffer *buffer,
-		   GcsvWindow    *window)
-{
-	cursor_moved (window);
-}
-
-static void
 buffer_notify_delimiter_cb (GcsvAlignment *align,
 			    GParamSpec    *pspec,
 			    GcsvWindow    *window)
@@ -611,16 +592,10 @@ gcsv_window_init (GcsvWindow *window)
 				 0);
 
 	g_signal_connect_object (buffer,
-				 "mark-set",
-				 G_CALLBACK (buffer_mark_set_after_cb),
+				 "cursor-moved",
+				 G_CALLBACK (cursor_moved),
 				 window,
-				 G_CONNECT_AFTER);
-
-	g_signal_connect_object (buffer,
-				 "changed",
-				 G_CALLBACK (buffer_changed_cb),
-				 window,
-				 0);
+				 G_CONNECT_SWAPPED);
 
 	g_signal_connect_object (buffer,
 				 "notify::delimiter",
@@ -672,8 +647,7 @@ load_cb (GtkSourceFileLoader *loader,
 
 	gcsv_alignment_set_enabled (window->align, TRUE);
 
-	g_signal_handlers_unblock_by_func (buffer, buffer_mark_set_after_cb, window);
-	g_signal_handlers_unblock_by_func (buffer, buffer_changed_cb, window);
+	g_signal_handlers_unblock_by_func (buffer, cursor_moved, window);
 	cursor_moved (window);
 
 	g_object_unref (loader);
@@ -699,8 +673,7 @@ gcsv_window_load_file (GcsvWindow *window,
 	loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (buffer), file);
 
 	gcsv_alignment_set_enabled (window->align, FALSE);
-	g_signal_handlers_block_by_func (buffer, buffer_mark_set_after_cb, window);
-	g_signal_handlers_block_by_func (buffer, buffer_changed_cb, window);
+	g_signal_handlers_block_by_func (buffer, cursor_moved, window);
 
 	gtk_source_file_loader_load_async (loader,
 					   G_PRIORITY_DEFAULT,
