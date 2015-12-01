@@ -177,7 +177,7 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 					 g_param_spec_unichar ("delimiter",
 							       "Delimiter",
 							       "",
-							       ',',
+							       '\0',
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
