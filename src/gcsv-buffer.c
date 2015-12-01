@@ -40,7 +40,7 @@ struct _GcsvBuffer
 enum
 {
 	PROP_0,
-	PROP_TITLE,
+	PROP_DOCUMENT_TITLE,
 	PROP_DELIMITER,
 };
 
@@ -56,8 +56,8 @@ gcsv_buffer_get_property (GObject    *object,
 
 	switch (prop_id)
 	{
-		case PROP_TITLE:
-			g_value_take_string (value, gcsv_buffer_get_title (buffer));
+		case PROP_DOCUMENT_TITLE:
+			g_value_take_string (value, gcsv_buffer_get_document_title (buffer));
 			break;
 
 		case PROP_DELIMITER:
@@ -146,7 +146,7 @@ gcsv_buffer_modified_changed (GtkTextBuffer *text_buffer)
 		GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->modified_changed (text_buffer);
 	}
 
-	g_object_notify (G_OBJECT (text_buffer), "title");
+	g_object_notify (G_OBJECT (text_buffer), "document-title");
 }
 
 static void
@@ -164,9 +164,9 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 	text_buffer_class->modified_changed = gcsv_buffer_modified_changed;
 
 	g_object_class_install_property (object_class,
-					 PROP_TITLE,
-					 g_param_spec_string ("title",
-							      "Title",
+					 PROP_DOCUMENT_TITLE,
+					 g_param_spec_string ("document-title",
+							      "Document Title",
 							      "",
 							      NULL,
 							      G_PARAM_READABLE |
@@ -203,7 +203,7 @@ query_display_name_cb (GFile        *location,
 	g_free (buffer->short_name);
 	buffer->short_name = g_strdup (g_file_info_get_display_name (info));
 
-	g_object_notify (G_OBJECT (buffer), "title");
+	g_object_notify (G_OBJECT (buffer), "document-title");
 
 out:
 	g_clear_object (&info);
@@ -224,7 +224,7 @@ update_short_name (GcsvBuffer *buffer)
 		g_free (buffer->short_name);
 		buffer->short_name = g_strdup (_("Untitled File"));
 
-		g_object_notify (G_OBJECT (buffer), "title");
+		g_object_notify (G_OBJECT (buffer), "document-title");
 	}
 	else
 	{
@@ -302,13 +302,15 @@ gcsv_buffer_get_short_name (GcsvBuffer *buffer)
 	return buffer->short_name;
 }
 
-/* Returns a title suitable for a GtkWindow title. It contains '*' if the buffer
- * is modified. The short name, plus the directory name in parenthesis if the
- * buffer is saved.
+/* Returns a title suitable for a GtkWindow title. It contains (in that order):
+ * - '*' if the buffer is modified;
+ * - the short name;
+ * - the directory name in parenthesis if the GFile location isn't NULL.
+ *
  * Free the return value with g_free().
  */
 gchar *
-gcsv_buffer_get_title (GcsvBuffer *buffer)
+gcsv_buffer_get_document_title (GcsvBuffer *buffer)
 {
 	GFile *location;
 	gchar *title;

@@ -416,7 +416,7 @@ update_title (GcsvWindow *window)
 	gchar *document_title;
 	gchar *title;
 
-	document_title = gcsv_buffer_get_title (get_buffer (window));
+	document_title = gcsv_buffer_get_document_title (get_buffer (window));
 
 	title = g_strdup_printf ("%s - %s",
 				 document_title,
@@ -429,9 +429,9 @@ update_title (GcsvWindow *window)
 }
 
 static void
-buffer_title_notify_cb (GcsvBuffer *buffer,
-			GParamSpec *pspec,
-			GcsvWindow *window)
+document_title_notify_cb (GcsvBuffer *buffer,
+			  GParamSpec *pspec,
+			  GcsvWindow *window)
 {
 	update_title (window);
 }
@@ -599,8 +599,8 @@ gcsv_window_init (GcsvWindow *window)
 	update_statusbar_label (window);
 
 	g_signal_connect_object (buffer,
-				 "notify::title",
-				 G_CALLBACK (buffer_title_notify_cb),
+				 "notify::document-title",
+				 G_CALLBACK (document_title_notify_cb),
 				 window,
 				 0);
 
