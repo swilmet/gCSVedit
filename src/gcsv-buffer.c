@@ -386,6 +386,20 @@ gcsv_buffer_get_title_mark (GcsvBuffer *buffer)
 	return buffer->title_mark;
 }
 
+void
+gcsv_buffer_get_column_titles_location (GcsvBuffer  *buffer,
+					GtkTextIter *iter)
+{
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+	g_return_if_fail (iter != NULL);
+
+	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
+					  iter,
+					  buffer->title_mark);
+
+	gtk_text_iter_set_line_offset (iter, 0);
+}
+
 guint
 gcsv_buffer_get_column_num (GcsvBuffer        *buffer,
 			    const GtkTextIter *iter)

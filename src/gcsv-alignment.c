@@ -832,16 +832,11 @@ static void
 remove_header (GcsvAlignment *align,
 	       GtkTextRegion *region)
 {
-	GtkTextMark *title_mark;
 	GtkTextIter start;
 	GtkTextIter header_end;
 
-	title_mark = gcsv_buffer_get_title_mark (align->buffer);
-
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
-	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (align->buffer),
-					  &header_end,
-					  title_mark);
+	gcsv_buffer_get_column_titles_location (align->buffer, &header_end);
 
 	gtk_text_region_subtract (region, &start, &header_end);
 }
@@ -1168,9 +1163,7 @@ mark_set_cb (GcsvBuffer    *buffer,
 	 */
 	edit_data = begin_buffer_edit (align);
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
-	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (buffer),
-					  &header_end,
-					  mark);
+	gcsv_buffer_get_column_titles_location (buffer, &header_end);
 	gcsv_utils_delete_text_with_tag (GTK_TEXT_BUFFER (buffer),
 					 &start,
 					 &header_end,

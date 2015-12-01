@@ -170,16 +170,10 @@ title_spinbutton_value_changed_cb (GtkSpinButton         *title_spinbutton,
 static void
 update_chooser_title_line (GcsvPropertiesChooser *chooser)
 {
-	GtkTextMark *title_mark;
 	GtkTextIter title_iter;
 	gint title_line;
 
-	title_mark = gcsv_buffer_get_title_mark (chooser->buffer);
-
-	gtk_text_buffer_get_iter_at_mark (GTK_TEXT_BUFFER (chooser->buffer),
-					  &title_iter,
-					  title_mark);
-
+	gcsv_buffer_get_column_titles_location (chooser->buffer, &title_iter);
 	title_line = gtk_text_iter_get_line (&title_iter);
 
 	g_signal_handlers_block_by_func (chooser->title_spinbutton,
