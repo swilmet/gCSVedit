@@ -34,6 +34,7 @@ struct _GcsvBuffer
 	 */
 	gunichar delimiter;
 
+	/* The column titles location, i.e. the header end boundary. */
 	GtkTextMark *title_mark;
 };
 
