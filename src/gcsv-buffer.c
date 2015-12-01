@@ -398,21 +398,6 @@ gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
 	}
 }
 
-/**
- * gcsv_buffer_get_title_mark:
- * @buffer: a #GcsvBuffer.
- *
- * Returns: (transfer none): the #GtkTextMark located at the start of the DSV
- * column titles.
- */
-GtkTextMark *
-gcsv_buffer_get_title_mark (GcsvBuffer *buffer)
-{
-	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
-
-	return buffer->title_mark;
-}
-
 void
 gcsv_buffer_get_column_titles_location (GcsvBuffer  *buffer,
 					GtkTextIter *iter)
