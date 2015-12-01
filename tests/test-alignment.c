@@ -76,13 +76,16 @@ check_alignment (const gchar *before,
 	g_assert_cmpstr (buffer_text, ==, before);
 	g_free (buffer_text);
 
+	g_object_unref (csv_buffer);
+
 	/* Test alignment update, with column insertion */
-	gtk_text_buffer_set_text (buffer, "", -1);
+	csv_buffer = gcsv_buffer_new ();
+	buffer = GTK_TEXT_BUFFER (csv_buffer);
+
 	gcsv_buffer_set_delimiter (csv_buffer, delimiter);
 	align = gcsv_alignment_new (csv_buffer);
 	gcsv_alignment_set_unit_test_mode (align, TRUE);
 	gtk_text_buffer_set_text (buffer, before, -1);
-	gcsv_buffer_set_column_titles_line (csv_buffer, 0); /* TODO remove */
 	flush_queue ();
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, after);
