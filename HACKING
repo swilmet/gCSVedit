@@ -22,3 +22,7 @@ For the build system, the Autotools (Autoconf, Automake and Libtool) are used.
 See the following blog post to know the reasons:
 
     https://blogs.gnome.org/swilmet/2012/09/05/switch-from-cmake-to-autotools/
+
+It is recommended to use Jhbuild to develop gCSVedit:
+
+    https://wiki.gnome.org/Projects/Jhbuild

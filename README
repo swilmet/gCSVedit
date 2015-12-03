@@ -3,11 +3,21 @@ gCSVedit
 
 This is version 0.0.2 of gCSVedit.
 
-gCSVedit is under development. The goal is to have a simple CSV editor that
-runs on GNU/Linux and Windows (maybe Mac OS X too).
+gCSVedit is under development. The goal is to have a simple CSV text editor
+that runs on GNU/Linux and Windows (maybe Mac OS X too).
 
-The editor aligns the columns by adding “virtual” spaces. When saving the file,
-the added spaces are not saved.
+Announcement:
+
+    https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/
+
+Currently, the main features of gCSVedit are:
+* Columns alignment
+* File loading and saving (the virtual spaces added for the alignment are
+  removed when saving the file).
+* Syntax highlighting
+* Draw spaces and tabs (only those present in the file).
+* Header support: specify on which line the column titles are located, so that
+  the header is not taken into account for the alignment.
 
 Any kind of delimiter-separated values (DSV) files are supported, not just
 comma-separated values (CSV) files. The application is called gCSVedit, because
@@ -22,11 +32,23 @@ You are encouraged to report bugs or feature requests at:
 
     https://github.com/UCL-CATL/gcsvedit/issues
 
+Note that currently gCSVedit depends on unstable versions of GtkSourceView and
+GTK+. It can therefore be a bit difficult to install gCSVedit. We use Jhbuild
+for the development, see the file HACKING.
+
+A stable version of gCSVedit will be released at the same time as GNOME 3.20,
+in March 2016. gCSVedit is not yet meant for mass adoption, it's still under
+development.
+
 Dependencies
 ------------
 
-- GTK+
-- GtkSourceView
+- GLib >= 2.44
+- GTK+ >= 3.19.0
+- GtkSourceView >= 3.19.0
+- gettext
+
+Note that you need the autoconf-archive for building the sources from Git.
 
 Installation
 ------------
