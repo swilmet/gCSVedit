@@ -6,9 +6,7 @@ This is version 0.0.2 of gCSVedit.
 gCSVedit is under development. The goal is to have a simple CSV text editor
 that runs on GNU/Linux and Windows (maybe Mac OS X too).
 
-Announcement:
-
-    [https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/]
+See the [announcement](https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/).
 
 Currently, the main features of gCSVedit are:
 - Columns alignment
@@ -24,17 +22,15 @@ comma-separated values (CSV) files. The application is called gCSVedit, because
 “CSV” is commonly used to also refer to TSV (tab-separated values) or DSV in
 general.
 
-gCSVedit is a free/libre software (GPLv3+ license) and is hosted on GitHub:
+gCSVedit is a free/libre software (GPLv3+ license) and is [hosted on
+GitHub](https://github.com/UCL-CATL/gcsvedit).
 
-    [https://github.com/UCL-CATL/gcsvedit]
-
-You are encouraged to report bugs or feature requests at:
-
-    [https://github.com/UCL-CATL/gcsvedit/issues]
+You are encouraged to [report bugs or feature
+requests](https://github.com/UCL-CATL/gcsvedit/issues).
 
 Note that currently gCSVedit depends on unstable versions of GtkSourceView and
 GTK+. It can therefore be a bit difficult to install gCSVedit. We use Jhbuild
-for the development, see the file HACKING.
+for the development, see the file _HACKING_.
 
 A stable version of gCSVedit will be released at the same time as GNOME 3.20,
 in March 2016. gCSVedit is not yet meant for mass adoption, it's still under
@@ -56,19 +52,19 @@ Installation
 Simple install procedure:
 
 ```
-  $ ./configure
-  $ make
-  [ Become root if necessary ]
-  $ make install
+$ ./configure
+$ make
+[ Become root if necessary ]
+$ make install
 ```
 
-See the file 'INSTALL' for more detailed information.
+See the file _INSTALL_ for more detailed information.
 
-From the Git repository, the 'configure' script and the 'INSTALL' file are not
-yet generated, so you need to run 'autogen.sh' instead, which takes the same
-arguments as 'configure'.
+From the Git repository, the _configure_ script and the _INSTALL_ file are not
+yet generated, so you need to run _autogen.sh_ instead, which takes the same
+arguments as _configure_.
 
 Developer Documentation
 -----------------------
 
-See the file 'HACKING'.
+See the file _HACKING_.
