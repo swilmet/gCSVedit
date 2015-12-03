@@ -8,15 +8,15 @@ that runs on GNU/Linux and Windows (maybe Mac OS X too).
 
 Announcement:
 
-    https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/
+    [https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/]
 
 Currently, the main features of gCSVedit are:
-* Columns alignment
-* File loading and saving (the virtual spaces added for the alignment are
+- Columns alignment
+- File loading and saving (the virtual spaces added for the alignment are
   removed when saving the file).
-* Syntax highlighting
-* Draw spaces and tabs (only those present in the file).
-* Header support: specify on which line the column titles are located, so that
+- Syntax highlighting
+- Draw spaces and tabs (only those present in the file).
+- Header support: specify on which line the column titles are located, so that
   the header is not taken into account for the alignment.
 
 Any kind of delimiter-separated values (DSV) files are supported, not just
@@ -26,11 +26,11 @@ general.
 
 gCSVedit is a free/libre software (GPLv3+ license) and is hosted on GitHub:
 
-    https://github.com/UCL-CATL/gcsvedit
+    [https://github.com/UCL-CATL/gcsvedit]
 
 You are encouraged to report bugs or feature requests at:
 
-    https://github.com/UCL-CATL/gcsvedit/issues
+    [https://github.com/UCL-CATL/gcsvedit/issues]
 
 Note that currently gCSVedit depends on unstable versions of GtkSourceView and
 GTK+. It can therefore be a bit difficult to install gCSVedit. We use Jhbuild
@@ -55,10 +55,12 @@ Installation
 
 Simple install procedure:
 
+```
   $ ./configure
   $ make
   [ Become root if necessary ]
   $ make install
+```
 
 See the file 'INSTALL' for more detailed information.
 
