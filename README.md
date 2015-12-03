@@ -29,8 +29,8 @@ You are encouraged to [report bugs or feature
 requests](https://github.com/UCL-CATL/gcsvedit/issues).
 
 Note that currently gCSVedit depends on unstable versions of GtkSourceView and
-GTK+. It can therefore be a bit difficult to install gCSVedit. We use Jhbuild
-for the development, see the file _HACKING_.
+GTK+. It can therefore be a bit difficult to install gCSVedit. We use
+[Jhbuild](https://wiki.gnome.org/Projects/Jhbuild) for the development.
 
 A stable version of gCSVedit will be released at the same time as GNOME 3.20,
 in March 2016. gCSVedit is not yet meant for mass adoption, it's still under
@@ -58,13 +58,13 @@ $ make
 $ make install
 ```
 
-See the file _INSTALL_ for more detailed information.
+See the file `INSTALL` for more detailed information.
 
-From the Git repository, the _configure_ script and the _INSTALL_ file are not
-yet generated, so you need to run _autogen.sh_ instead, which takes the same
-arguments as _configure_.
+From the Git repository, the `configure` script and the `INSTALL` file are not
+yet generated, so you need to run `autogen.sh` instead, which takes the same
+arguments as `configure`.
 
 Developer Documentation
 -----------------------
 
-See the file _HACKING_.
+See the file `HACKING`.
