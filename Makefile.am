@@ -67,4 +67,6 @@ MAINTAINERCLEANFILES = \
 	po/stamp-po \
 	test-driver
 
+@CODE_COVERAGE_RULES@
+
 -include $(top_srcdir)/git.mk

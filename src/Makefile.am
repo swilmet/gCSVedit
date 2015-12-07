@@ -1,5 +1,7 @@
 SUBDIRS = resources
 
+@CODE_COVERAGE_RULES@
+
 AM_CPPFLAGS =				\
 	-I$(top_srcdir)			\
 	-DDATADIR=\""$(datadir)"\"	\
@@ -28,6 +30,8 @@ libgcsvedit_la_SOURCES =		\
 	gtktextregion.c			\
 	gtktextregion.h
 
+libgcsvedit_la_CFLAGS = $(CODE_COVERAGE_CFLAGS)
+libgcsvedit_la_LDFLAGS = $(CODE_COVERAGE_LDFLAGS)
 libgcsvedit_la_LIBADD = $(DEP_LIBS)
 
 # The application

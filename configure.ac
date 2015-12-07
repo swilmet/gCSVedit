@@ -55,6 +55,10 @@ AM_GNU_GETTEXT_VERSION([0.19.4])
 AC_SUBST([GETTEXT_PACKAGE], [$PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [Define to the gettext package name.])
 
+# Code coverage for unit tests
+AX_REQUIRE_DEFINED([AX_CODE_COVERAGE])
+AX_CODE_COVERAGE()
+
 # Output files
 AC_CONFIG_FILES([
 	Makefile
