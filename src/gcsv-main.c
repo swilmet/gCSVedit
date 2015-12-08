@@ -72,6 +72,67 @@ setup_i18n (void)
 }
 
 static void
+quit_activate_cb (GSimpleAction *quit_action,
+		  GVariant      *parameter,
+		  gpointer       user_data)
+{
+	GtkApplication *app = GTK_APPLICATION (user_data);
+
+	while (TRUE)
+	{
+		GtkWindow *window = gtk_application_get_active_window (app);
+
+		if (GCSV_IS_WINDOW (window) &&
+		    gcsv_window_close (GCSV_WINDOW (window)))
+		{
+			continue;
+		}
+
+		break;
+	}
+}
+
+static void
+about_activate_cb (GSimpleAction *about_action,
+		   GVariant      *parameter,
+		   gpointer       user_data)
+{
+	GtkApplication *app = GTK_APPLICATION (user_data);
+	GtkWindow *active_window = gtk_application_get_active_window (app);
+
+	const gchar *authors[] = {
+		"Sébastien Wilmet <sebastien.wilmet@uclouvain.be>",
+		NULL
+	};
+
+	gtk_show_about_dialog (active_window,
+			       "name", g_get_application_name (),
+			       "version", PACKAGE_VERSION,
+			       "comments", _("gCSVedit is a small and lightweight CSV text editor"),
+			       "authors", authors,
+			       "translator-credits", _("translator-credits"),
+			       "website", PACKAGE_URL,
+			       "website-label", _("gCSVedit website"),
+			       "logo-icon-name", "accessories-text-editor",
+			       "license-type", GTK_LICENSE_GPL_3_0,
+			       "copyright", "Copyright 2015 – Université Catholique de Louvain",
+			       NULL);
+}
+
+static void
+startup_cb (GtkApplication *app)
+{
+	const GActionEntry app_entries[] = {
+		{ "quit", quit_activate_cb },
+		{ "about", about_activate_cb },
+	};
+
+	g_action_map_add_action_entries (G_ACTION_MAP (app),
+					 app_entries, G_N_ELEMENTS (app_entries),
+					 app);
+}
+
+static void
 activate_cb (GtkApplication *app)
 {
 	GcsvWindow *window;
@@ -132,6 +193,11 @@ main (gint    argc,
 	gtk_window_set_default_icon_name ("accessories-text-editor");
 
 	g_application_add_main_option_entries (G_APPLICATION (app), options);
+
+	g_signal_connect (app,
+			  "startup",
+			  G_CALLBACK (startup_cb),
+			  NULL);
 
 	g_signal_connect (app,
 			  "handle-local-options",

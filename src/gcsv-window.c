@@ -91,7 +91,7 @@ launch_close_confirmation_dialog (GcsvWindow *window)
 }
 
 /* Returns whether the window has been closed. */
-static gboolean
+gboolean
 gcsv_window_close (GcsvWindow *window)
 {
 	GcsvBuffer *buffer;
@@ -104,27 +104,6 @@ gcsv_window_close (GcsvWindow *window)
 
 	gtk_widget_destroy (GTK_WIDGET (window));
 	return TRUE;
-}
-
-static void
-quit_activate_cb (GSimpleAction *quit_action,
-		  GVariant      *parameter,
-		  gpointer       user_data)
-{
-	GtkApplication *app = GTK_APPLICATION (g_application_get_default ());
-
-	while (TRUE)
-	{
-		GtkWindow *window = gtk_application_get_active_window (app);
-
-		if (GCSV_IS_WINDOW (window) &&
-		    gcsv_window_close (GCSV_WINDOW (window)))
-		{
-			continue;
-		}
-
-		break;
-	}
 }
 
 static void
@@ -301,32 +280,6 @@ save_as_activate_cb (GSimpleAction *save_as_action,
 }
 
 static void
-about_activate_cb (GSimpleAction *about_action,
-		   GVariant      *parameter,
-		   gpointer       user_data)
-{
-	GcsvWindow *window = GCSV_WINDOW (user_data);
-
-	const gchar *authors[] = {
-		"Sébastien Wilmet <sebastien.wilmet@uclouvain.be>",
-		NULL
-	};
-
-	gtk_show_about_dialog (GTK_WINDOW (window),
-			       "name", g_get_application_name (),
-			       "version", PACKAGE_VERSION,
-			       "comments", _("gCSVedit is a small and lightweight CSV text editor"),
-			       "authors", authors,
-			       "translator-credits", _("translator-credits"),
-			       "website", PACKAGE_URL,
-			       "website-label", _("gCSVedit website"),
-			       "logo-icon-name", "accessories-text-editor",
-			       "license-type", GTK_LICENSE_GPL_3_0,
-			       "copyright", "Copyright 2015 – Université Catholique de Louvain",
-			       NULL);
-}
-
-static void
 update_save_action_sensitivity (GcsvWindow *window)
 {
 	GAction *action;
@@ -355,8 +308,6 @@ add_actions (GcsvWindow *window)
 		{ "open", open_activate_cb },
 		{ "save", save_activate_cb },
 		{ "save_as", save_as_activate_cb },
-		{ "quit", quit_activate_cb },
-		{ "about", about_activate_cb },
 	};
 
 	g_action_map_add_action_entries (G_ACTION_MAP (window),

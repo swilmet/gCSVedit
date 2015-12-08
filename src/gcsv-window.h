@@ -33,6 +33,8 @@ G_DECLARE_FINAL_TYPE (GcsvWindow, gcsv_window,
 
 GcsvWindow *	gcsv_window_new			(void);
 
+gboolean	gcsv_window_close		(GcsvWindow *window);
+
 void		gcsv_window_load_file		(GcsvWindow *window,
 						 GFile      *location);
 
