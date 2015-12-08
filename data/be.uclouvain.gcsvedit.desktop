@@ -9,4 +9,5 @@ Terminal=false
 Type=Application
 Categories=GNOME;GTK;Utility;TextEditor;
 MimeType=text/csv;text/tab-separated-values;
+StartupNotify=true
 DBusActivatable=true
