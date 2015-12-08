@@ -249,6 +249,42 @@ test_column_shrinking (void)
 	g_object_unref (align);
 }
 
+static void
+test_header (void)
+{
+	GcsvBuffer *csv_buffer;
+	GtkTextBuffer *buffer;
+	GcsvAlignment *align;
+	const gchar *text_after;
+	gchar *buffer_text;
+
+	csv_buffer = gcsv_buffer_new ();
+	buffer = GTK_TEXT_BUFFER (csv_buffer);
+	gtk_text_buffer_set_text (buffer,
+				  "A beautiful header.\n"
+				  "daa,bb\n"
+				  "1,2",
+				  -1);
+
+	gcsv_buffer_set_delimiter (csv_buffer, ',');
+	gcsv_buffer_set_column_titles_line (csv_buffer, 1);
+	align = gcsv_alignment_new (csv_buffer);
+	gcsv_alignment_set_unit_test_mode (align, TRUE);
+	flush_queue ();
+
+	text_after =
+		"A beautiful header.\n"
+		"daa,bb\n"
+		"1  ,2";
+
+	buffer_text = get_buffer_text (buffer);
+	g_assert_cmpstr (buffer_text, ==, text_after);
+	g_free (buffer_text);
+
+	g_object_unref (csv_buffer);
+	g_object_unref (align);
+}
+
 gint
 main (gint    argc,
       gchar **argv)
@@ -258,6 +294,7 @@ main (gint    argc,
 	g_test_add_func ("/align/commas", test_commas);
 	g_test_add_func ("/align/column_growing", test_column_growing);
 	g_test_add_func ("/align/column_shrinking", test_column_shrinking);
+	g_test_add_func ("/align/header", test_header);
 
 	return g_test_run ();
 }
