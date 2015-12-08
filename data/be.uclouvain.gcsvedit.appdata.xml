@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2015 - Sébastien Wilmet <sebastien.wilmet@uclouvain.be> -->
+<application>
+  <id type="desktop">be.uclouvain.gcsvedit.desktop</id>
+  <metadata_license>CC0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <description>
+    <p>
+      gCSVedit is a simple text editor for CSV, TSV and other kinds of
+      delimiter-separated values (DSV) files.
+    </p>
+    <p>
+      gCSVedit is a specialized text editor, not a spreadsheet software. As
+      such, all characters present in the file are visible in the application,
+      including the delimiters. It provides thus a great control over the data.
+    </p>
+    <p>
+      gCSVedit aligns the columns by inserting virtual spaces. The real spaces
+      and tabs – those present in the file – are drawn with symbols. When
+      saving a file, the virtual spaces are removed. And with the syntax
+      highlighting support, gCSVedit provides a convenient way to view and edit
+      CSV files.
+    </p>
+    <p>
+      gCSVedit also supports headers, that is, some text before the actual CSV
+      fields. The header is not taken into account for the alignment.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/UCL-CATL/gcsvedit</url>
+  <updatecontact>sebastien.wilmet@uclouvain.be</updatecontact>
+</application>

@@ -1,6 +1,9 @@
 desktopdir = $(datadir)/applications
 dist_desktop_DATA = be.uclouvain.gcsvedit.desktop
 
+appdatadir = $(datadir)/appdata
+dist_appdata_DATA = be.uclouvain.gcsvedit.appdata.xml
+
 dbusservicedir = $(datadir)/dbus-1/services
 dbusservice_DATA = be.uclouvain.gcsvedit.service
 
