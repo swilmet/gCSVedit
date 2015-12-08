@@ -72,21 +72,6 @@ setup_i18n (void)
 }
 
 static void
-startup_cb (GtkApplication *app)
-{
-	GtkBuilder *builder;
-	GMenuModel *menubar;
-
-	builder = gtk_builder_new_from_resource ("/be/uclouvain/gcsvedit/menu.ui");
-	gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
-	menubar = G_MENU_MODEL (gtk_builder_get_object (builder, "menubar"));
-
-	gtk_application_set_menubar (app, menubar);
-
-	g_object_unref (builder);
-}
-
-static void
 activate_cb (GtkApplication *app)
 {
 	GcsvWindow *window;
@@ -151,11 +136,6 @@ main (gint    argc,
 	g_signal_connect (app,
 			  "handle-local-options",
 			  G_CALLBACK (handle_local_options_cb),
-			  NULL);
-
-	g_signal_connect (app,
-			  "startup",
-			  G_CALLBACK (startup_cb),
 			  NULL);
 
 	g_signal_connect (app,

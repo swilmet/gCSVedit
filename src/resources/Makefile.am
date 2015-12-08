@@ -1,5 +1,5 @@
 EXTRA_DIST =			\
 	gcsvedit.gresource.xml	\
-	menu.ui
+	menus.ui
 
 -include $(top_srcdir)/git.mk
