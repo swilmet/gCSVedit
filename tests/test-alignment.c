@@ -110,8 +110,8 @@ test_commas (void)
 			 "10,20",
 			 /**/
 			 "aaa,bbb\n"
-			 "1  ,2  \n"
-			 "10 ,20 ",
+			 "1  ,2\n"
+			 "10 ,20",
 			 /**/
 			 ',');
 
@@ -120,7 +120,7 @@ test_commas (void)
 			 "xx,yy,Zzz",
 			 /**/
 			 "a ,b ,c  ,\n"
-			 "1 ,2    \n"
+			 "1 ,2\n"
 			 "xx,yy,Zzz",
 			 /**/
 			 ',');
@@ -151,7 +151,7 @@ test_column_growing (void)
 
 	text_after =
 		"aa,bb\n"
-		"1 ,2 ";
+		"1 ,2";
 
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, text_after);
@@ -163,7 +163,7 @@ test_column_growing (void)
 
 	text_after =
 		"iaa,bb\n"
-		"1  ,2 ";
+		"1  ,2";
 
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, text_after);
@@ -200,7 +200,7 @@ test_column_shrinking (void)
 
 	text_after =
 		"daa,bb\n"
-		"1  ,2 ";
+		"1  ,2";
 
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, text_after);
@@ -214,7 +214,7 @@ test_column_shrinking (void)
 
 	text_after =
 		"aa,bb\n"
-		"1 ,2 ";
+		"1 ,2";
 
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, text_after);
@@ -230,7 +230,7 @@ test_column_shrinking (void)
 
 	text_after =
 		"aad,bb\n"
-		"1  ,2 ";
+		"1  ,2";
 
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, text_after);
@@ -241,9 +241,9 @@ test_column_shrinking (void)
 	flush_queue ();
 
 	text_after =
-		"aa  \n" /* FIXME trailing spaces */
+		"aa\n"
 		"d ,bb\n"
-		"1 ,2 ";
+		"1 ,2";
 
 	buffer_text = get_buffer_text (buffer);
 	g_assert_cmpstr (buffer_text, ==, text_after);

@@ -490,6 +490,12 @@ adjust_field_alignment (GcsvAlignment *align,
 		return FALSE;
 	}
 
+	if (gtk_text_iter_ends_line (&field_end))
+	{
+		/* Do not insert trailing spaces. */
+		return TRUE;
+	}
+
 	/* Insert missing spaces */
 	n_spaces = column_length - field_length;
 	insert_virtual_spaces (align, &field_end, n_spaces);
