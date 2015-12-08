@@ -18,7 +18,10 @@ MAINTAINERCLEANFILES = \
 	ltmain.sh \
 	m4/ax_append_compile_flags.m4 \
 	m4/ax_append_flag.m4 \
+	m4/ax_append_link_flags.m4 \
 	m4/ax_check_compile_flag.m4 \
+	m4/ax_check_link_flag.m4 \
+	m4/ax_code_coverage.m4 \
 	m4/ax_compiler_flags_cflags.m4 \
 	m4/ax_compiler_flags_gir.m4 \
 	m4/ax_compiler_flags_ldflags.m4 \
