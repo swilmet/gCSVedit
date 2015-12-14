@@ -349,18 +349,6 @@ create_view (void)
 	return view;
 }
 
-static GtkWidget *
-get_menubar (void)
-{
-	GtkApplication *app;
-	GMenuModel *model;
-
-	app = GTK_APPLICATION (g_application_get_default ());
-	model = gtk_application_get_menubar (app);
-
-	return gtk_menu_bar_new_from_model (model);
-}
-
 static void
 update_title (GcsvWindow *window)
 {
@@ -496,9 +484,6 @@ gcsv_window_init (GcsvWindow *window)
 
 	vgrid = gtk_grid_new ();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
-
-	/* Menubar */
-	gtk_container_add (GTK_CONTAINER (vgrid), get_menubar ());
 
 	/* Properties chooser */
 	window->properties_chooser = gcsv_properties_chooser_new (buffer);
