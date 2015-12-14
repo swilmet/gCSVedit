@@ -135,7 +135,8 @@ startup_cb (GtkApplication *app)
 static void
 activate_cb (GtkApplication *app)
 {
-	gcsv_window_new (app);
+	GcsvWindow *window = gcsv_window_new (app);
+	gtk_widget_show_all (GTK_WIDGET (window));
 }
 
 static void
@@ -169,6 +170,7 @@ open_cb (GtkApplication  *app,
 	else
 	{
 		window = gcsv_window_new (app);
+		gtk_widget_show_all (GTK_WIDGET (window));
 	}
 
 	gcsv_window_load_file (window, files[0]);
