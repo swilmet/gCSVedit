@@ -31,7 +31,7 @@ G_DECLARE_FINAL_TYPE (GcsvWindow, gcsv_window,
 		      GCSV, WINDOW,
 		      GtkApplicationWindow)
 
-GcsvWindow *	gcsv_window_new			(void);
+GcsvWindow *	gcsv_window_new			(GtkApplication *app);
 
 gboolean	gcsv_window_close		(GcsvWindow *window);
 

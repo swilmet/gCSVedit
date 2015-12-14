@@ -572,9 +572,13 @@ gcsv_window_init (GcsvWindow *window)
 }
 
 GcsvWindow *
-gcsv_window_new (void)
+gcsv_window_new (GtkApplication *app)
 {
-	return g_object_new (GCSV_TYPE_WINDOW, NULL);
+	g_return_val_if_fail (GTK_IS_APPLICATION (app), NULL);
+
+	return g_object_new (GCSV_TYPE_WINDOW,
+			     "application", app,
+			     NULL);
 }
 
 static void
