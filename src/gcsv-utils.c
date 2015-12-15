@@ -56,7 +56,7 @@ gcsv_utils_delete_text_with_tag (GtkTextBuffer     *buffer,
 				break;
 			}
 
-			g_assert (gtk_text_iter_begins_tag (&chunk_start, tag));
+			g_assert (gtk_text_iter_starts_tag (&chunk_start, tag));
 		}
 
 		if (gtk_text_iter_compare (&limit, &chunk_start) <= 0)

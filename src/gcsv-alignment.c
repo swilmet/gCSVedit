@@ -1404,7 +1404,7 @@ gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
 		gchar *text;
 
 		start = iter;
-		if (gtk_text_iter_begins_tag (&start, align->tag))
+		if (gtk_text_iter_starts_tag (&start, align->tag))
 		{
 			gtk_text_iter_forward_to_tag_toggle (&start, align->tag);
 			g_assert (gtk_text_iter_ends_tag (&start, align->tag));
@@ -1420,7 +1420,7 @@ gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
 		end = start;
 		if (gtk_text_iter_forward_to_tag_toggle (&end, align->tag))
 		{
-			g_assert (gtk_text_iter_begins_tag (&end, align->tag));
+			g_assert (gtk_text_iter_starts_tag (&end, align->tag));
 		}
 		else
 		{

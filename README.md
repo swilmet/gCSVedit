@@ -45,7 +45,7 @@ Dependencies
 ------------
 
 - GLib >= 2.44
-- GTK+ >= 3.19.0
+- GTK+ >= 3.19.4
 - GtkSourceView >= 3.19.0
 - gettext
 
