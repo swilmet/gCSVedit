@@ -29,7 +29,7 @@ You are encouraged to [report bugs or feature
 requests](https://github.com/UCL-CATL/gcsvedit/issues).
 
 Note that currently gCSVedit depends on unstable versions of GtkSourceView and
-GTK+. It can therefore be a bit difficult to install gCSVedit. We use
+GTK+. It can therefore be a bit difficult to install. We use
 [Jhbuild](https://wiki.gnome.org/Projects/Jhbuild) for the development.
 
 A stable version of gCSVedit will be released at the same time as GNOME 3.20,
@@ -44,7 +44,7 @@ Dependencies
 - GtkSourceView >= 3.19.0
 - gettext
 
-Note that you need the autoconf-archive for building the sources from Git.
+Note that you need autoconf-archive for building the sources from Git.
 
 Installation
 ------------
