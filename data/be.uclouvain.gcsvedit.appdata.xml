@@ -26,6 +26,9 @@
       fields. The header is not taken into account for the alignment.
     </p>
   </description>
+  <screenshots>
+    <screenshot type="default">http://ucl-catl.github.io/images/screenshot-gCSVedit.png</screenshot>
+  </screenshots>
   <url type="homepage">https://github.com/UCL-CATL/gcsvedit</url>
   <updatecontact>sebastien.wilmet@uclouvain.be</updatecontact>
 </application>
