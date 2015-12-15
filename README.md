@@ -36,6 +36,11 @@ A stable version of gCSVedit will be released at the same time as GNOME 3.20,
 in March 2016. gCSVedit is not yet meant for mass adoption, it's still under
 development.
 
+Downloads
+---------
+
+- [Tarballs](http://ucl-catl.github.io/tarballs/gcsvedit/)
+
 Dependencies
 ------------
 
