@@ -145,6 +145,8 @@ open_activate_cb (GSimpleAction *open_action,
 					      _("_Open"), GTK_RESPONSE_ACCEPT,
 					      NULL);
 
+	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
+
 	g_signal_connect (dialog,
 			  "response",
 			  G_CALLBACK (open_dialog_response_cb),
@@ -270,6 +272,7 @@ save_as_activate_cb (GSimpleAction *save_as_action,
 					      NULL);
 
 	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
 
 	g_signal_connect (dialog,
 			  "response",
