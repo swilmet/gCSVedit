@@ -1,3 +1,17 @@
+News in 0.0.2
+-------------
+* gCSVedit is now a free/libre software (under the GPLv3+ license)
+* Real spaces (those present in the file) are drawn with gray symbols
+* The CSV column number is shown in the statusbar
+* The delimiter chooser has been improved
+* The re-alignment has been improved
+* The delimiter is guessed after a file loading
+* Header support: specify on which line the column titles are located, so that
+  the header is not taken into account for the alignment.
+* Add D-Bus service file to make gCSVedit D-Bus activatable
+* Add AppData
+* Add an app-menu
+
 News in 0.0.1
 -------------
 * Columns alignment
