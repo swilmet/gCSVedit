@@ -5,10 +5,13 @@ SUBDIRS = resources
 AM_CPPFLAGS =				\
 	-I$(top_srcdir)			\
 	-DDATADIR=\""$(datadir)"\"	\
+	$(DEP_CFLAGS)			\
 	$(WARN_CFLAGS)			\
-	$(DEP_CFLAGS)
+	$(CODE_COVERAGE_CPPFLAGS)
 
-AM_LDFLAGS = $(WARN_LDFLAGS)
+AM_LDFLAGS =				\
+	$(WARN_LDFLAGS)			\
+	$(CODE_COVERAGE_LDFLAGS)
 
 BUILT_SOURCES =			\
 	gcsv-resources.c
@@ -31,7 +34,6 @@ libgcsvedit_la_SOURCES =		\
 	gtktextregion.h
 
 libgcsvedit_la_CFLAGS = $(CODE_COVERAGE_CFLAGS)
-libgcsvedit_la_LDFLAGS = $(CODE_COVERAGE_LDFLAGS)
 libgcsvedit_la_LIBADD = $(DEP_LIBS)
 
 # The application
