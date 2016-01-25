@@ -76,4 +76,5 @@ Configuration:
 
 	Source code location:	${srcdir}
 	Compiler:		${CC}
+	Code coverage:		${enable_code_coverage}
 "
