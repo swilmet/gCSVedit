@@ -1,5 +1,5 @@
-News in 0.0.2
--------------
+News in 0.0.2, 2016-01-12
+-------------------------
 * gCSVedit is now a free/libre software (under the GPLv3+ license)
 * Real spaces (those present in the file) are drawn with gray symbols
 * The CSV column number is shown in the statusbar
@@ -12,8 +12,8 @@ News in 0.0.2
 * Add AppData
 * Add an app-menu
 
-News in 0.0.1
--------------
+News in 0.0.1, 2015-11-05
+-------------------------
 * Columns alignment
 * File loading and saving
 * Syntax highlighting
