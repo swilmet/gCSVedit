@@ -1,5 +1,7 @@
+/* Do not edit: this file is generated from https://git.gnome.org/browse/gtksourceview/plain/gtksourceview/gtktextregion.h */
+
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
- * gtktextregion.h - GtkTextMark based region utility functions
+ * gcsv-text-region.h - GtkTextMark based region utility functions
  * This file is part of GtkSourceView
  *
  * Copyright (C) 2002 Gustavo Giráldez <gustavo.giraldez@gmx.net>
@@ -19,19 +21,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef __GTK_TEXT_REGION_H__
-#define __GTK_TEXT_REGION_H__
+#ifndef __GCSV_TEXT_REGION_H__
+#define __GCSV_TEXT_REGION_H__
 
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-typedef struct _GtkTextRegion		GtkTextRegion;
-typedef struct _GtkTextRegionIterator	GtkTextRegionIterator;
+typedef struct _GcsvTextRegion		GcsvTextRegion;
+typedef struct _GcsvTextRegionIterator	GcsvTextRegionIterator;
 
-struct _GtkTextRegionIterator {
-	/* GtkTextRegionIterator is an opaque datatype; ignore all these fields.
-	 * Initialize the iter with gtk_text_region_get_iterator
+struct _GcsvTextRegionIterator {
+	/* GcsvTextRegionIterator is an opaque datatype; ignore all these fields.
+	 * Initialize the iter with gcsv_text_region_get_iterator
 	 * function
 	 */
 	/*< private >*/
@@ -41,58 +43,58 @@ struct _GtkTextRegionIterator {
 };
 
 G_GNUC_INTERNAL
-GtkTextRegion *gtk_text_region_new                          (GtkTextBuffer *buffer);
+GcsvTextRegion *gcsv_text_region_new                          (GtkTextBuffer *buffer);
 
 G_GNUC_INTERNAL
-void           gtk_text_region_destroy                      (GtkTextRegion *region);
+void           gcsv_text_region_destroy                      (GcsvTextRegion *region);
 
 G_GNUC_INTERNAL
-GtkTextBuffer *gtk_text_region_get_buffer                   (GtkTextRegion *region);
+GtkTextBuffer *gcsv_text_region_get_buffer                   (GcsvTextRegion *region);
 
 G_GNUC_INTERNAL
-void           gtk_text_region_add                          (GtkTextRegion     *region,
+void           gcsv_text_region_add                          (GcsvTextRegion     *region,
 							     const GtkTextIter *_start,
 							     const GtkTextIter *_end);
 
 G_GNUC_INTERNAL
-void           gtk_text_region_subtract                     (GtkTextRegion     *region,
+void           gcsv_text_region_subtract                     (GcsvTextRegion     *region,
 							     const GtkTextIter *_start,
 							     const GtkTextIter *_end);
 
 G_GNUC_INTERNAL
-gint           gtk_text_region_subregions                   (GtkTextRegion *region);
+gint           gcsv_text_region_subregions                   (GcsvTextRegion *region);
 
 G_GNUC_INTERNAL
-gboolean       gtk_text_region_nth_subregion                (GtkTextRegion *region,
+gboolean       gcsv_text_region_nth_subregion                (GcsvTextRegion *region,
 							     guint          subregion,
 							     GtkTextIter   *start,
 							     GtkTextIter   *end);
 
 G_GNUC_INTERNAL
-GtkTextRegion *gtk_text_region_intersect                    (GtkTextRegion     *region,
+GcsvTextRegion *gcsv_text_region_intersect                    (GcsvTextRegion     *region,
 							     const GtkTextIter *_start,
 							     const GtkTextIter *_end);
 
 G_GNUC_INTERNAL
-void           gtk_text_region_get_iterator                 (GtkTextRegion         *region,
-                                                             GtkTextRegionIterator *iter,
+void           gcsv_text_region_get_iterator                 (GcsvTextRegion         *region,
+                                                             GcsvTextRegionIterator *iter,
                                                              guint                  start);
 
 G_GNUC_INTERNAL
-gboolean       gtk_text_region_iterator_is_end              (GtkTextRegionIterator *iter);
+gboolean       gcsv_text_region_iterator_is_end              (GcsvTextRegionIterator *iter);
 
 /* Returns FALSE if iterator is the end iterator */
 G_GNUC_INTERNAL
-gboolean       gtk_text_region_iterator_next	            (GtkTextRegionIterator *iter);
+gboolean       gcsv_text_region_iterator_next	            (GcsvTextRegionIterator *iter);
 
 G_GNUC_INTERNAL
-gboolean       gtk_text_region_iterator_get_subregion       (GtkTextRegionIterator *iter,
+gboolean       gcsv_text_region_iterator_get_subregion       (GcsvTextRegionIterator *iter,
 							     GtkTextIter           *start,
 							     GtkTextIter           *end);
 
 G_GNUC_INTERNAL
-void           gtk_text_region_debug_print                  (GtkTextRegion *region);
+void           gcsv_text_region_debug_print                  (GcsvTextRegion *region);
 
 G_END_DECLS
 
-#endif /* __GTK_TEXT_REGION_H__ */
+#endif /* __GCSV_TEXT_REGION_H__ */

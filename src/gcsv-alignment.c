@@ -21,7 +21,7 @@
 
 #include "gcsv-alignment.h"
 #include "gcsv-utils.h"
-#include "gtktextregion.h"
+#include "gcsv-text-region.h"
 
 struct _GcsvAlignment
 {
@@ -44,10 +44,10 @@ struct _GcsvAlignment
 	/* The remaining region in the GtkTextBuffer to scan, to compute column
 	 * lengths. scan_region is always fully handled before align_region.
 	 */
-	GtkTextRegion *scan_region;
+	GcsvTextRegion *scan_region;
 
 	/* The region to align, i.e. adjusting the spacing. */
-	GtkTextRegion *align_region;
+	GcsvTextRegion *align_region;
 
 	/* When adding a subregion to the scan_region or align_region, the
 	 * subregion is sometimes not handled directly/synchronously, instead a
@@ -110,10 +110,10 @@ struct _BufferEditData
 	guint modified : 1;
 };
 
-/* Function to handle a subregion of a GtkTextRegion.
+/* Function to handle a subregion of a GcsvTextRegion.
  * Returns TRUE if the subregion was handled normally, and if the next subregion
- * can be handled. Returns FALSE otherwise, for example if the GtkTextRegion has
- * been altered so the iteration of the GtkTextRegion must stop.
+ * can be handled. Returns FALSE otherwise, for example if the GcsvTextRegion has
+ * been altered so the iteration of the GcsvTextRegion must stop.
  */
 typedef gboolean (* HandleSubregionFunc) (GcsvAlignment     *align,
 					  const GtkTextIter *start,
@@ -217,37 +217,37 @@ set_column_length (GcsvAlignment *align,
 
 /* A TextRegion can contain empty subregions. So checking the number of
  * subregions is not sufficient.
- * When calling gtk_text_region_add() with equal iters, the subregion is not
+ * When calling gcsv_text_region_add() with equal iters, the subregion is not
  * added. But when a subregion becomes empty, due to text deletion, the
  * subregion is not removed from the TextRegion.
  */
 static gboolean
-is_text_region_empty (GtkTextRegion *region)
+is_text_region_empty (GcsvTextRegion *region)
 {
-	GtkTextRegionIterator region_iter;
+	GcsvTextRegionIterator region_iter;
 
 	if (region == NULL)
 	{
 		return TRUE;
 	}
 
-	gtk_text_region_get_iterator (region, &region_iter, 0);
+	gcsv_text_region_get_iterator (region, &region_iter, 0);
 
-	while (!gtk_text_region_iterator_is_end (&region_iter))
+	while (!gcsv_text_region_iterator_is_end (&region_iter))
 	{
 		GtkTextIter region_start;
 		GtkTextIter region_end;
 
-		gtk_text_region_iterator_get_subregion (&region_iter,
-							&region_start,
-							&region_end);
+		gcsv_text_region_iterator_get_subregion (&region_iter,
+							 &region_start,
+							 &region_end);
 
 		if (!gtk_text_iter_equal (&region_start, &region_end))
 		{
 			return FALSE;
 		}
 
-		gtk_text_region_iterator_next (&region_iter);
+		gcsv_text_region_iterator_next (&region_iter);
 	}
 
 	return TRUE;
@@ -567,12 +567,12 @@ adjust_subregion (GtkTextIter *start,
  */
 static gboolean
 handle_next_chunk (GcsvAlignment       *align,
-		   GtkTextRegion       *region,
+		   GcsvTextRegion      *region,
 		   guint                batch_size,
 		   HandleSubregionFunc  handle_subregion_func)
 {
 	guint n_remaining_lines = batch_size;
-	GtkTextRegionIterator region_iter;
+	GcsvTextRegionIterator region_iter;
 	GtkTextIter start;
 	GtkTextIter stop;
 
@@ -583,19 +583,19 @@ handle_next_chunk (GcsvAlignment       *align,
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &stop);
 
-	gtk_text_region_get_iterator (region, &region_iter, 0);
+	gcsv_text_region_get_iterator (region, &region_iter, 0);
 
 	while (n_remaining_lines > 0 &&
-	       !gtk_text_region_iterator_is_end (&region_iter))
+	       !gcsv_text_region_iterator_is_end (&region_iter))
 	{
 		GtkTextIter subregion_start;
 		GtkTextIter subregion_end;
 		guint n_lines;
 		gint line_end;
 
-		gtk_text_region_iterator_get_subregion (&region_iter,
-							&subregion_start,
-							&subregion_end);
+		gcsv_text_region_iterator_get_subregion (&region_iter,
+							 &subregion_start,
+							 &subregion_end);
 
 		n_lines = gtk_text_iter_get_line (&subregion_end) - gtk_text_iter_get_line (&subregion_start) + 1;
 
@@ -628,11 +628,11 @@ handle_next_chunk (GcsvAlignment       *align,
 						  line_end + 1);
 
 		n_remaining_lines -= n_lines;
-		gtk_text_region_iterator_next (&region_iter);
+		gcsv_text_region_iterator_next (&region_iter);
 	}
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
-	gtk_text_region_subtract (region, &start, &stop);
+	gcsv_text_region_subtract (region, &start, &stop);
 
 	if (is_text_region_empty (region))
 	{
@@ -676,7 +676,7 @@ idle_cb (GcsvAlignment *align)
 
 		if (finished && align->scan_region != NULL)
 		{
-			gtk_text_region_destroy (align->scan_region);
+			gcsv_text_region_destroy (align->scan_region);
 			align->scan_region = NULL;
 		}
 
@@ -690,7 +690,7 @@ idle_cb (GcsvAlignment *align)
 		{
 			if (align->align_region != NULL)
 			{
-				gtk_text_region_destroy (align->align_region);
+				gcsv_text_region_destroy (align->align_region);
 				align->align_region = NULL;
 			}
 
@@ -784,7 +784,7 @@ sync_scan_and_align (GcsvAlignment *align)
 
 		if (align->scan_region != NULL)
 		{
-			gtk_text_region_destroy (align->scan_region);
+			gcsv_text_region_destroy (align->scan_region);
 			align->scan_region = NULL;
 		}
 	}
@@ -800,7 +800,7 @@ sync_scan_and_align (GcsvAlignment *align)
 
 		if (align->align_region != NULL)
 		{
-			gtk_text_region_destroy (align->align_region);
+			gcsv_text_region_destroy (align->align_region);
 			align->align_region = NULL;
 		}
 	}
@@ -835,8 +835,8 @@ handle_mode (GcsvAlignment *align,
 }
 
 static void
-remove_header (GcsvAlignment *align,
-	       GtkTextRegion *region)
+remove_header (GcsvAlignment  *align,
+	       GcsvTextRegion *region)
 {
 	GtkTextIter start;
 	GtkTextIter header_end;
@@ -844,7 +844,7 @@ remove_header (GcsvAlignment *align,
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
 	gcsv_buffer_get_column_titles_location (align->buffer, &header_end);
 
-	gtk_text_region_subtract (region, &start, &header_end);
+	gcsv_text_region_subtract (region, &start, &header_end);
 }
 
 static void
@@ -856,10 +856,10 @@ add_subregion_to_scan (GcsvAlignment *align,
 
 	if (align->scan_region == NULL)
 	{
-		align->scan_region = gtk_text_region_new (GTK_TEXT_BUFFER (align->buffer));
+		align->scan_region = gcsv_text_region_new (GTK_TEXT_BUFFER (align->buffer));
 	}
 
-	gtk_text_region_add (align->scan_region, start, end);
+	gcsv_text_region_add (align->scan_region, start, end);
 
 	remove_header (align, align->scan_region);
 }
@@ -873,10 +873,10 @@ add_subregion_to_align (GcsvAlignment *align,
 
 	if (align->align_region == NULL)
 	{
-		align->align_region = gtk_text_region_new (GTK_TEXT_BUFFER (align->buffer));
+		align->align_region = gcsv_text_region_new (GTK_TEXT_BUFFER (align->buffer));
 	}
 
-	gtk_text_region_add (align->align_region, start, end);
+	gcsv_text_region_add (align->align_region, start, end);
 
 	remove_header (align, align->align_region);
 }
@@ -1281,13 +1281,13 @@ gcsv_alignment_dispose (GObject *object)
 
 	if (align->scan_region != NULL)
 	{
-		gtk_text_region_destroy (align->scan_region);
+		gcsv_text_region_destroy (align->scan_region);
 		align->scan_region = NULL;
 	}
 
 	if (align->align_region != NULL)
 	{
-		gtk_text_region_destroy (align->align_region);
+		gcsv_text_region_destroy (align->align_region);
 		align->align_region = NULL;
 	}
 

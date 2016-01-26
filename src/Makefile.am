@@ -26,12 +26,12 @@ libgcsvedit_la_SOURCES =		\
 	gcsv-buffer.h			\
 	gcsv-properties-chooser.c	\
 	gcsv-properties-chooser.h	\
+	gcsv-text-region.c		\
+	gcsv-text-region.h		\
 	gcsv-utils.c			\
 	gcsv-utils.h			\
 	gcsv-window.c			\
-	gcsv-window.h			\
-	gtktextregion.c			\
-	gtktextregion.h
+	gcsv-window.h
 
 libgcsvedit_la_CFLAGS = $(CODE_COVERAGE_CFLAGS)
 libgcsvedit_la_LIBADD = $(DEP_LIBS)
