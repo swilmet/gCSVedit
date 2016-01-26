@@ -1,7 +1,7 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2015 - Université Catholique de Louvain
+ * Copyright 2015, 2016 - Université Catholique de Louvain
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
