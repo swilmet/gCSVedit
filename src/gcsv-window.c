@@ -571,6 +571,8 @@ gcsv_window_init (GcsvWindow *window)
 				 G_CALLBACK (location_notify_cb),
 				 window,
 				 0);
+
+	gtk_widget_show_all (vgrid);
 }
 
 GcsvWindow *
