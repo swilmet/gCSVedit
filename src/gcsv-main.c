@@ -71,6 +71,27 @@ setup_i18n (void)
 	textdomain (GETTEXT_PACKAGE);
 }
 
+static GcsvWindow *
+get_active_gcsv_window (GtkApplication *app)
+{
+	GList *windows;
+	GList *l;
+
+	windows = gtk_application_get_windows (app);
+
+	for (l = windows; l != NULL; l = l->next)
+	{
+		GtkWindow *window = l->data;
+
+		if (GCSV_IS_WINDOW (window))
+		{
+			return GCSV_WINDOW (window);
+		}
+	}
+
+	return NULL;
+}
+
 static void
 quit_activate_cb (GSimpleAction *quit_action,
 		  GVariant      *parameter,
@@ -80,10 +101,9 @@ quit_activate_cb (GSimpleAction *quit_action,
 
 	while (TRUE)
 	{
-		GtkWindow *window = gtk_application_get_active_window (app);
+		GcsvWindow *window = get_active_gcsv_window (app);
 
-		if (GCSV_IS_WINDOW (window) &&
-		    gcsv_window_close (GCSV_WINDOW (window)))
+		if (window != NULL && gcsv_window_close (window))
 		{
 			continue;
 		}
@@ -98,14 +118,14 @@ about_activate_cb (GSimpleAction *about_action,
 		   gpointer       user_data)
 {
 	GtkApplication *app = GTK_APPLICATION (user_data);
-	GtkWindow *active_window = gtk_application_get_active_window (app);
+	GcsvWindow *active_window = get_active_gcsv_window (app);
 
 	const gchar *authors[] = {
 		"Sébastien Wilmet <sebastien.wilmet@uclouvain.be>",
 		NULL
 	};
 
-	gtk_show_about_dialog (active_window,
+	gtk_show_about_dialog (GTK_WINDOW (active_window),
 			       "name", g_get_application_name (),
 			       "version", PACKAGE_VERSION,
 			       "comments", _("gCSVedit is a small and lightweight CSV text editor"),
@@ -145,7 +165,7 @@ open_cb (GtkApplication  *app,
 	 gint             n_files,
 	 gchar           *hint)
 {
-	GtkWindow *active_window;
+	GcsvWindow *active_window;
 	GcsvWindow *window;
 
 	if (n_files < 1)
@@ -158,14 +178,11 @@ open_cb (GtkApplication  *app,
 		g_warning ("Opening several files at once is not supported.");
 	}
 
-	active_window = gtk_application_get_active_window (app);
+	active_window = get_active_gcsv_window (app);
 
-	g_return_if_fail (active_window == NULL || GCSV_IS_WINDOW (active_window));
-
-	if (active_window != NULL &&
-	    gcsv_window_is_untouched (GCSV_WINDOW (active_window)))
+	if (active_window != NULL && gcsv_window_is_untouched (active_window))
 	{
-		window = GCSV_WINDOW (active_window);
+		window = active_window;
 	}
 	else
 	{
