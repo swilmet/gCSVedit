@@ -137,6 +137,8 @@ open_activate_cb (GSimpleAction *open_action,
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
 	GtkWidget *dialog;
+	GtkFileFilter *dsv_filter;
+	GtkFileFilter *all_filter;
 
 	dialog = gtk_file_chooser_dialog_new (_("Open File"),
 					      GTK_WINDOW (window),
@@ -146,6 +148,19 @@ open_activate_cb (GSimpleAction *open_action,
 					      NULL);
 
 	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
+
+	dsv_filter = gtk_file_filter_new ();
+	gtk_file_filter_set_name (dsv_filter, _("CSV and TSV Files"));
+	gtk_file_filter_add_mime_type (dsv_filter, "text/csv");
+	gtk_file_filter_add_mime_type (dsv_filter, "text/tab-separated-values");
+	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), dsv_filter);
+
+	all_filter = gtk_file_filter_new ();
+	gtk_file_filter_set_name (all_filter, _("All Files"));
+	gtk_file_filter_add_pattern (all_filter, "*");
+	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), all_filter);
+
+	gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (dialog), dsv_filter);
 
 	g_signal_connect (dialog,
 			  "response",
