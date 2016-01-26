@@ -429,6 +429,28 @@ gcsv_buffer_get_document_title (GcsvBuffer *buffer)
 	return full_title;
 }
 
+void
+gcsv_buffer_add_uri_to_recent_manager (GcsvBuffer *buffer)
+{
+	GtkRecentManager *recent_manager;
+	GFile *location;
+	gchar *uri;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	location = gtk_source_file_get_location (buffer->file);
+	if (location == NULL)
+	{
+		return;
+	}
+
+	recent_manager = gtk_recent_manager_get_default ();
+
+	uri = g_file_get_uri (location);
+	gtk_recent_manager_add_item (recent_manager, uri);
+	g_free (uri);
+}
+
 gunichar
 gcsv_buffer_get_delimiter (GcsvBuffer *buffer)
 {

@@ -181,8 +181,12 @@ save_cb (GtkSourceFileSaver *saver,
 
 	if (gtk_source_file_saver_save_finish (saver, result, &error))
 	{
-		GcsvBuffer *buffer = get_buffer (window);
+		GcsvBuffer *buffer;
+
+		buffer = get_buffer (window);
 		gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (buffer), FALSE);
+
+		gcsv_buffer_add_uri_to_recent_manager (buffer);
 	}
 
 	if (error != NULL)
@@ -589,11 +593,16 @@ load_cb (GtkSourceFileLoader *loader,
 	 GAsyncResult        *result,
 	 GcsvWindow          *window)
 {
-	GError *error = NULL;
 	GcsvBuffer *buffer;
 	GtkTextIter start;
+	GError *error = NULL;
 
-	gtk_source_file_loader_load_finish (loader, result, &error);
+	buffer = get_buffer (window);
+
+	if (gtk_source_file_loader_load_finish (loader, result, &error))
+	{
+		gcsv_buffer_add_uri_to_recent_manager (buffer);
+	}
 
 	if (error != NULL)
 	{
@@ -603,8 +612,6 @@ load_cb (GtkSourceFileLoader *loader,
 
 		g_clear_error (&error);
 	}
-
-	buffer = get_buffer (window);
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
 	gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &start, &start);
