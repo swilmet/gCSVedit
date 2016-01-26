@@ -191,8 +191,7 @@ save_cb (GtkSourceFileSaver *saver,
 			      _("Error when saving the file: %s"),
 			      error->message);
 
-		g_error_free (error);
-		error = NULL;
+		g_clear_error (&error);
 	}
 
 	buffer_without_align = gtk_source_file_saver_get_buffer (saver);
@@ -602,8 +601,7 @@ load_cb (GtkSourceFileLoader *loader,
 			      _("Error when loading file: %s"),
 			      error->message);
 
-		g_error_free (error);
-		error = NULL;
+		g_clear_error (&error);
 	}
 
 	buffer = get_buffer (window);
