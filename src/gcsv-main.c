@@ -115,7 +115,7 @@ about_activate_cb (GSimpleAction *about_action,
 			       "website-label", _("gCSVedit website"),
 			       "logo-icon-name", "accessories-text-editor",
 			       "license-type", GTK_LICENSE_GPL_3_0,
-			       "copyright", "Copyright 2015 – Université Catholique de Louvain",
+			       "copyright", "Copyright 2015-2016 – Université Catholique de Louvain",
 			       NULL);
 }
 
