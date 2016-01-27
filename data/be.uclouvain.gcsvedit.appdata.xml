@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2015 - Sébastien Wilmet <sebastien.wilmet@uclouvain.be> -->
+<!-- Copyright 2015-2016 - Sébastien Wilmet <sebastien.wilmet@uclouvain.be> -->
 <application>
   <id type="desktop">be.uclouvain.gcsvedit.desktop</id>
   <metadata_license>CC0</metadata_license>
@@ -30,5 +30,6 @@
     <screenshot type="default">http://ucl-catl.github.io/images/screenshot-gCSVedit.png</screenshot>
   </screenshots>
   <url type="homepage">https://github.com/UCL-CATL/gcsvedit</url>
+  <translation type="gettext">gcsvedit</translation>
   <updatecontact>sebastien.wilmet@uclouvain.be</updatecontact>
 </application>
