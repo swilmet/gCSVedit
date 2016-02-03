@@ -21,6 +21,7 @@
 
 #include "gcsv-buffer.h"
 #include <glib/gi18n.h>
+#include "gedit-metadata-manager.h"
 
 struct _GcsvBuffer
 {
@@ -55,6 +56,47 @@ enum
 static guint signals[LAST_SIGNAL] = { 0 };
 
 G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTK_SOURCE_TYPE_BUFFER)
+
+#define METADATA_DELIMITER	"delimiter"
+#define METADATA_TITLE_LINE	"title-line"
+
+static void
+save_metadata (GcsvBuffer *buffer)
+{
+	GFile *location;
+	gchar *delimiter;
+
+	location = gtk_source_file_get_location (buffer->file);
+	if (location == NULL)
+	{
+		return;
+	}
+
+	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
+
+	/* HACK: ensure the metadata manager is loaded, even if the cache file
+	 * doesn't exist yet.
+	 */
+	gedit_metadata_manager_set (location, METADATA_DELIMITER, delimiter);
+	gedit_metadata_manager_set (location, METADATA_DELIMITER, delimiter);
+
+	g_free (delimiter);
+
+	if (buffer->title_mark != NULL)
+	{
+		GtkTextIter title_iter;
+		gint title_line;
+		gchar *title_line_str;
+
+		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
+		title_line = gtk_text_iter_get_line (&title_iter);
+		title_line_str = g_strdup_printf ("%d", title_line);
+
+		gedit_metadata_manager_set (location, METADATA_TITLE_LINE, title_line_str);
+
+		g_free (title_line_str);
+	}
+}
 
 static void
 gcsv_buffer_get_property (GObject    *object,
@@ -124,6 +166,11 @@ static void
 gcsv_buffer_dispose (GObject *object)
 {
 	GcsvBuffer *buffer = GCSV_BUFFER (object);
+
+	if (buffer->file != NULL)
+	{
+		save_metadata (buffer);
+	}
 
 	g_clear_object (&buffer->file);
 
