@@ -31,7 +31,9 @@ libgcsvedit_la_SOURCES =		\
 	gcsv-utils.c			\
 	gcsv-utils.h			\
 	gcsv-window.c			\
-	gcsv-window.h
+	gcsv-window.h			\
+	gedit-metadata-manager.c	\
+	gedit-metadata-manager.h
 
 libgcsvedit_la_CFLAGS = $(CODE_COVERAGE_CFLAGS)
 libgcsvedit_la_LIBADD = $(DEP_LIBS)
