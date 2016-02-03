@@ -68,7 +68,7 @@ void			gcsv_buffer_get_field_bounds		(GcsvBuffer  *buffer,
 								 GtkTextIter *start,
 								 GtkTextIter *end);
 
-void			gcsv_buffer_guess_delimiter		(GcsvBuffer *buffer);
+void			gcsv_buffer_load_state			(GcsvBuffer *buffer);
 
 G_END_DECLS
 

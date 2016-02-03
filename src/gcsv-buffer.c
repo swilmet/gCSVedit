@@ -21,6 +21,7 @@
 
 #include "gcsv-buffer.h"
 #include <glib/gi18n.h>
+#include <stdlib.h>
 #include "gedit-metadata-manager.h"
 
 struct _GcsvBuffer
@@ -722,13 +723,11 @@ gcsv_buffer_get_field_bounds (GcsvBuffer  *buffer,
 	}
 }
 
-void
-gcsv_buffer_guess_delimiter (GcsvBuffer *buffer)
+static void
+guess_delimiter (GcsvBuffer *buffer)
 {
 	GtkTextIter iter;
 	GtkTextIter limit;
-
-	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &iter);
 	gtk_text_buffer_get_iter_at_line (GTK_TEXT_BUFFER (buffer), &limit, 1000);
@@ -746,5 +745,47 @@ gcsv_buffer_guess_delimiter (GcsvBuffer *buffer)
 	else
 	{
 		gcsv_buffer_set_delimiter (buffer, ',');
+	}
+}
+
+/* Load the state (delimiter and column titles location) from the metadata, or
+ * guess the state if the metadata doesn't exist.
+ */
+void
+gcsv_buffer_load_state (GcsvBuffer *buffer)
+{
+	GFile *location;
+	gchar *delimiter;
+	gchar *title_line_str;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	location = gtk_source_file_get_location (buffer->file);
+	if (location == NULL)
+	{
+		guess_delimiter (buffer);
+		return;
+	}
+
+	delimiter = gedit_metadata_manager_get (location, METADATA_DELIMITER);
+	if (delimiter != NULL)
+	{
+		gcsv_buffer_set_delimiter (buffer, g_utf8_get_char (delimiter));
+		g_free (delimiter);
+	}
+	else
+	{
+		guess_delimiter (buffer);
+	}
+
+	title_line_str = gedit_metadata_manager_get (location, METADATA_TITLE_LINE);
+	if (title_line_str != NULL)
+	{
+		gint title_line;
+
+		title_line = strtol (title_line_str, NULL, 10);
+		gcsv_buffer_set_column_titles_line (buffer, title_line);
+
+		g_free (title_line_str);
 	}
 }
