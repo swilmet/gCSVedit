@@ -459,6 +459,18 @@ gcsv_buffer_get_delimiter (GcsvBuffer *buffer)
 	return buffer->delimiter;
 }
 
+gchar *
+gcsv_buffer_get_delimiter_as_string (GcsvBuffer *buffer)
+{
+	gchar *delimiter_str;
+
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), g_strdup (""));
+
+	delimiter_str = g_malloc0 (7);
+	g_unichar_to_utf8 (buffer->delimiter, delimiter_str);
+	return delimiter_str;
+}
+
 void
 gcsv_buffer_set_delimiter (GcsvBuffer *buffer,
 			   gunichar    delimiter)

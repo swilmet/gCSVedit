@@ -45,6 +45,8 @@ void			gcsv_buffer_add_uri_to_recent_manager	(GcsvBuffer *buffer);
 
 gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 
+gchar *			gcsv_buffer_get_delimiter_as_string	(GcsvBuffer *buffer);
+
 void			gcsv_buffer_set_delimiter		(GcsvBuffer *buffer,
 								 gunichar    delimiter);
 

@@ -121,10 +121,11 @@ update_chooser_delimiter (GcsvPropertiesChooser *chooser)
 	}
 	else
 	{
-		gchar text[6];
+		gchar *buffer_delimiter_str;
 
-		g_unichar_to_utf8 (buffer_delimiter, text);
-		gtk_entry_set_text (chooser->entry, text);
+		buffer_delimiter_str = gcsv_buffer_get_delimiter_as_string (chooser->buffer);
+		gtk_entry_set_text (chooser->entry, buffer_delimiter_str);
+		g_free (buffer_delimiter_str);
 
 		gtk_combo_box_set_active_id (GTK_COMBO_BOX (chooser->combo),
 					     ROW_ID_OTHER);
