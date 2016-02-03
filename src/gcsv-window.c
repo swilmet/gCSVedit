@@ -347,6 +347,7 @@ create_view (void)
 
 	buffer = gcsv_buffer_new ();
 	view = GTK_SOURCE_VIEW (gtk_source_view_new_with_buffer (GTK_SOURCE_BUFFER (buffer)));
+	g_object_unref (buffer);
 
 	gtk_text_view_set_monospace (GTK_TEXT_VIEW (view), TRUE);
 	gtk_source_view_set_show_line_numbers (view, TRUE);
