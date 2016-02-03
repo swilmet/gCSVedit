@@ -24,6 +24,7 @@
 #include <glib/gi18n.h>
 #include <locale.h>
 #include "gcsv-window.h"
+#include "gedit-metadata-manager.h"
 
 static gboolean option_version;
 
@@ -142,6 +143,9 @@ about_activate_cb (GSimpleAction *about_action,
 static void
 startup_cb (GtkApplication *app)
 {
+	gchar *metadata_filename;
+
+	/* GActions */
 	const GActionEntry app_entries[] = {
 		{ "quit", quit_activate_cb },
 		{ "about", about_activate_cb },
@@ -150,6 +154,16 @@ startup_cb (GtkApplication *app)
 	g_action_map_add_action_entries (G_ACTION_MAP (app),
 					 app_entries, G_N_ELEMENTS (app_entries),
 					 app);
+
+	/* Init metadata manager */
+	metadata_filename = g_build_filename (g_get_user_cache_dir (),
+					      "gcsvedit",
+					      "gcsvedit-metadata.xml",
+					      NULL);
+
+	gedit_metadata_manager_init (metadata_filename);
+
+	g_free (metadata_filename);
 }
 
 static void
@@ -193,6 +207,12 @@ open_cb (GtkApplication  *app,
 	gcsv_window_load_file (window, files[0]);
 }
 
+static void
+shutdown_after_cb (GtkApplication *app)
+{
+	gedit_metadata_manager_shutdown ();
+}
+
 gint
 main (gint    argc,
       gchar **argv)
@@ -228,6 +248,16 @@ main (gint    argc,
 			  "open",
 			  G_CALLBACK (open_cb),
 			  NULL);
+
+	/* Connect after, so we are sure that everything in GTK+ is shutdown and
+	 * we can shutdown our stuff. By connecting without the after flag, GTK+
+	 * can still hold some references to some objects, and those objects can
+	 * still save settings, metadata, etc in their destructors.
+	 */
+	g_signal_connect_after (app,
+				"shutdown",
+				G_CALLBACK (shutdown_after_cb),
+				NULL);
 
 	status = g_application_run (G_APPLICATION (app), argc, argv);
 
