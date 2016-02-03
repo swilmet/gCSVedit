@@ -47,6 +47,7 @@ Dependencies
 - GLib >= 2.44
 - GTK+ >= 3.19.4
 - GtkSourceView >= 3.19.0
+- libxml2
 - gettext
 
 Note that you need autoconf-archive for building the sources from Git.
