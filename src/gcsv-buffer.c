@@ -74,13 +74,7 @@ save_metadata (GcsvBuffer *buffer)
 	}
 
 	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-
-	/* HACK: ensure the metadata manager is loaded, even if the cache file
-	 * doesn't exist yet.
-	 */
 	gedit_metadata_manager_set (location, METADATA_DELIMITER, delimiter);
-	gedit_metadata_manager_set (location, METADATA_DELIMITER, delimiter);
-
 	g_free (delimiter);
 
 	if (buffer->title_mark != NULL)

@@ -204,6 +204,7 @@ parseItem (xmlDocPtr doc, xmlNodePtr cur)
 	xmlFree (atime);
 }
 
+/* Returns FALSE in case of error. */
 static gboolean
 load_values (void)
 {
@@ -217,11 +218,15 @@ load_values (void)
 
 	xmlKeepBlanksDefault (0);
 
-	/* FIXME: file locking - Paolo */
-	if ((gedit_metadata_manager->metadata_filename == NULL) ||
-	    (!g_file_test (gedit_metadata_manager->metadata_filename, G_FILE_TEST_EXISTS)))
+	if (gedit_metadata_manager->metadata_filename == NULL)
 	{
 		return FALSE;
+	}
+
+	/* TODO: avoid races */
+	if (!g_file_test (gedit_metadata_manager->metadata_filename, G_FILE_TEST_EXISTS))
+	{
+		return TRUE;
 	}
 
 	doc = xmlParseFile (gedit_metadata_manager->metadata_filename);
@@ -238,7 +243,7 @@ load_values (void)
 		           g_path_get_basename (gedit_metadata_manager->metadata_filename));
 		xmlFreeDoc (doc);
 
-		return FALSE;
+		return TRUE;
 	}
 
 	if (xmlStrcmp (cur->name, (const xmlChar *) "metadata"))
@@ -342,12 +347,15 @@ gedit_metadata_manager_set (GFile       *location,
 
 	if (!gedit_metadata_manager->values_loaded)
 	{
-		gboolean res;
+		gboolean ok;
 
-		res = load_values ();
+		ok = load_values ();
 
-		if (!res)
+		if (!ok)
+		{
+			g_free (uri);
 			return;
+		}
 	}
 
 	item = (Item *)g_hash_table_lookup (gedit_metadata_manager->items,
