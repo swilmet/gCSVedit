@@ -1,3 +1,12 @@
+News in 0.2.0, 2016-03-29
+-------------------------
+* Add CSV and TSV filter to the file chooser.
+* After successful file loading or saving, add the file to the list of recently
+  opened files.
+* Remember file settings (delimiter and column titles line) by storing file
+  metadata (with the gedit-metadata-manager, so it works on Windows).
+* Various other code improvements.
+
 News in 0.0.2, 2016-01-12
 -------------------------
 * gCSVedit is now a free/libre software (under the GPLv3+ license)

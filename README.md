@@ -1,10 +1,9 @@
 gCSVedit
 ========
 
-This is version 0.0.2 of gCSVedit.
+This is version 0.2.0 of gCSVedit.
 
-gCSVedit is under development. The goal is to have a simple CSV text editor
-that runs on GNU/Linux and Windows (maybe Mac OS X too).
+gCSVedit is a simple CSV text editor.
 
 See the [announcement](https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/).
 
@@ -28,13 +27,12 @@ GitHub](https://github.com/UCL-CATL/gcsvedit).
 You are encouraged to [report bugs or feature
 requests](https://github.com/UCL-CATL/gcsvedit/issues).
 
-Note that currently gCSVedit depends on unstable versions of GtkSourceView and
-GTK+. It can therefore be a bit difficult to install. We use
-[Jhbuild](https://wiki.gnome.org/Projects/Jhbuild) for the development.
+About Versions
+--------------
 
-A stable version of gCSVedit will be released at the same time as GNOME 3.20,
-in March 2016. gCSVedit is not yet meant for mass adoption, it's still under
-development.
+gCSVedit follows the GNOME versioning scheme. That is, the package version has
+the form `major.minor.micro` with an even minor version for stable releases,
+and an odd minor version for unstable/development releases.
 
 Downloads
 ---------
@@ -45,12 +43,9 @@ Dependencies
 ------------
 
 - GLib >= 2.44
-- GTK+ >= 3.19.4
-- GtkSourceView >= 3.19.0
+- GTK+ >= 3.20
+- GtkSourceView >= 3.20
 - libxml2
-- gettext
-
-Note that you need autoconf-archive for building the sources from Git.
 
 Installation
 ------------
