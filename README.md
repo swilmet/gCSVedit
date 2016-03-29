@@ -1,7 +1,7 @@
 gCSVedit
 ========
 
-This is version 0.2.0 of gCSVedit.
+This is version 0.2.1 of gCSVedit.
 
 gCSVedit is a simple CSV text editor.
 
