@@ -2,8 +2,6 @@ ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
 
 SUBDIRS = data src tests po
 
-EXTRA_DIST = README.md
-
 MAINTAINERCLEANFILES = \
 	ABOUT-NLS \
 	aclocal.m4 \
