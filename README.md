@@ -22,10 +22,10 @@ comma-separated values (CSV) files. The application is called gCSVedit, because
 general.
 
 gCSVedit is a free/libre software (GPLv3+ license) and is [hosted on
-GitHub](https://github.com/UCL-CATL/gcsvedit).
+SourceForge](http://gcsvedit.sourceforge.net/).
 
 You are encouraged to [report bugs or feature
-requests](https://github.com/UCL-CATL/gcsvedit/issues).
+requests](https://sourceforge.net/p/gcsvedit/tickets/).
 
 About Versions
 --------------
@@ -37,7 +37,7 @@ and an odd minor version for unstable/development releases.
 Downloads
 ---------
 
-- [Tarballs](http://ucl-catl.github.io/tarballs/gcsvedit/)
+- [Tarballs](https://sourceforge.net/projects/gcsvedit/files/)
 
 Dependencies
 ------------
