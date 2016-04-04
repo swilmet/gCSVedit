@@ -17,14 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n>1;\n"
 
-#: src/gcsv-window.c:146
-msgid "gCSVedit - CSV editor"
-msgstr "gCSVedit - éditeur CSV"
+#~ msgid "gCSVedit - CSV editor"
+#~ msgstr "gCSVedit - éditeur CSV"
 
-#: src/resources/menu.ui:5
-msgid "_File"
-msgstr "_Fichier"
+#~ msgid "_File"
+#~ msgstr "_Fichier"
 
-#: src/resources/menu.ui:7
-msgid "_Quit"
-msgstr "_Quitter"
+#~ msgid "_Quit"
+#~ msgstr "_Quitter"
