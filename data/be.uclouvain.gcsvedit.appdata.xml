@@ -16,7 +16,7 @@
     </p>
     <p>
       gCSVedit aligns the columns by inserting virtual spaces. The real spaces
-      and tabs – those present in the file – are drawn with symbols. When
+      and tabs – those present in the file – are drawn with gray symbols. When
       saving a file, the virtual spaces are removed. And with the syntax
       highlighting support, gCSVedit provides a convenient way to view and edit
       CSV files.
