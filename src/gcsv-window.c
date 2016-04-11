@@ -328,7 +328,7 @@ add_actions (GcsvWindow *window)
 	const GActionEntry entries[] = {
 		{ "open", open_activate_cb },
 		{ "save", save_activate_cb },
-		{ "save_as", save_as_activate_cb },
+		{ "save-as", save_as_activate_cb },
 	};
 
 	g_action_map_add_action_entries (G_ACTION_MAP (window),
