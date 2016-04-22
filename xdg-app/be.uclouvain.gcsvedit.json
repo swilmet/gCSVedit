@@ -1,0 +1,52 @@
+{
+    "app-id": "be.uclouvain.gcsvedit",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "3.20",
+    "sdk": "org.gnome.Sdk",
+    "command": "gcsvedit",
+    "finish-args": [
+        /* X11 + XShm access */
+        "--share=ipc", "--socket=x11",
+        /* Wayland access */
+        "--socket=wayland",
+        /* We want full fs access so we can read the files */
+        "--filesystem=host",
+        /* Needed for dconf to work */
+        "--filesystem=xdg-run/dconf", "--filesystem=~/.config/dconf:ro",
+        "--talk-name=ca.desrt.dconf", "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
+    ],
+    "build-options" : {
+        "cflags": "-O2 -g",
+        "cxxflags": "-O2 -g",
+        "env": {
+            "V": "1"
+        }
+    },
+    "cleanup": ["/include", "/lib/pkgconfig",
+                "/share/pkgconfig", "/share/aclocal",
+                "/man", "/share/man", "/share/gtk-doc",
+                "/share/vala",
+                "*.la", "*.a"],
+    "modules": [
+        {
+            "name": "gtksourceview",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.gnome.org/sources/gtksourceview/3.20/gtksourceview-3.20.1.tar.xz",
+                    "sha256": "322d95c0eaba768a47956ccf1af732ea9377ab7a8afc145b1a34a04012ae8c4c"
+                }
+            ]
+        },
+        {
+            "name": "gcsvedit",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://sourceforge.net/projects/gcsvedit/files/v0.2/gcsvedit-0.2.1.tar.xz",
+                    "sha256": "d62c7df22cd62d374f6cb70c0fb119a25f67901bc27c2d7c0604e0ad2f693a9f"
+                }
+            ]
+        }
+    ]
+}
