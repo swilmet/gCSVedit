@@ -19,8 +19,8 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#ifndef __GCSV_UTILS_H__
-#define __GCSV_UTILS_H__
+#ifndef GCSV_UTILS_H
+#define GCSV_UTILS_H
 
 #include <gtk/gtk.h>
 
@@ -43,4 +43,4 @@ void		gcsv_warning				(GtkWindow   *parent,
 
 G_END_DECLS
 
-#endif /* __GCSV_UTILS_H__ */
+#endif /* GCSV_UTILS_H */

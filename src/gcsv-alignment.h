@@ -19,8 +19,8 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#ifndef __GCSV_ALIGNMENT_H__
-#define __GCSV_ALIGNMENT_H__
+#ifndef GCSV_ALIGNMENT_H
+#define GCSV_ALIGNMENT_H
 
 #include <gtksourceview/gtksource.h>
 #include "gcsv-buffer.h"
@@ -45,4 +45,4 @@ void		gcsv_alignment_set_unit_test_mode		(GcsvAlignment *align,
 
 G_END_DECLS
 
-#endif /* __GCSV_ALIGNMENT_H__ */
+#endif /* GCSV_ALIGNMENT_H */

@@ -19,8 +19,8 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#ifndef __GCSV_WINDOW_H__
-#define __GCSV_WINDOW_H__
+#ifndef GCSV_WINDOW_H
+#define GCSV_WINDOW_H
 
 #include <gtk/gtk.h>
 
@@ -42,4 +42,4 @@ gboolean	gcsv_window_is_untouched	(GcsvWindow *window);
 
 G_END_DECLS
 
-#endif /* __GCSV_WINDOW_H__ */
+#endif /* GCSV_WINDOW_H */

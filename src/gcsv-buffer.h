@@ -19,8 +19,8 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#ifndef __GCSV_BUFFER_H__
-#define __GCSV_BUFFER_H__
+#ifndef GCSV_BUFFER_H
+#define GCSV_BUFFER_H
 
 #include <gtksourceview/gtksource.h>
 
@@ -72,4 +72,4 @@ void			gcsv_buffer_load_state			(GcsvBuffer *buffer);
 
 G_END_DECLS
 
-#endif /* __GCSV_BUFFER_H__ */
+#endif /* GCSV_BUFFER_H */

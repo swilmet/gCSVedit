@@ -19,8 +19,8 @@
  * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
  */
 
-#ifndef __GCSV_PROPERTIES_CHOOSER_H__
-#define __GCSV_PROPERTIES_CHOOSER_H__
+#ifndef GCSV_PROPERTIES_CHOOSER_H
+#define GCSV_PROPERTIES_CHOOSER_H
 
 #include <gtk/gtk.h>
 #include "gcsv-buffer.h"
@@ -36,4 +36,4 @@ GcsvPropertiesChooser *	gcsv_properties_chooser_new		(GcsvBuffer *buffer);
 
 G_END_DECLS
 
-#endif /* __GCSV_PROPERTIES_CHOOSER_H__ */
+#endif /* GCSV_PROPERTIES_CHOOSER_H */
