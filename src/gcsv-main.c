@@ -21,10 +21,10 @@
 
 #include "config.h"
 #include <gtk/gtk.h>
+#include <gtef/gtef.h>
 #include <glib/gi18n.h>
 #include <locale.h>
 #include "gcsv-window.h"
-#include "gedit-metadata-manager.h"
 
 static gboolean option_version;
 
@@ -161,7 +161,7 @@ startup_cb (GtkApplication *app)
 					      "gcsvedit-metadata.xml",
 					      NULL);
 
-	gedit_metadata_manager_init (metadata_filename);
+	gtef_metadata_manager_init (metadata_filename);
 
 	g_free (metadata_filename);
 }
@@ -210,7 +210,7 @@ open_cb (GtkApplication  *app,
 static void
 shutdown_after_cb (GtkApplication *app)
 {
-	gedit_metadata_manager_shutdown ();
+	gtef_metadata_manager_shutdown ();
 }
 
 gint

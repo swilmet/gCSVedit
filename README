@@ -45,7 +45,7 @@ Dependencies
 - GLib >= 2.44
 - GTK+ >= 3.20
 - GtkSourceView >= 3.21.1
-- libxml2
+- Gtef >= 0.1.1 : https://github.com/swilmet/gtef
 
 Installation
 ------------

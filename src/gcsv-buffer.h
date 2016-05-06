@@ -22,7 +22,7 @@
 #ifndef GCSV_BUFFER_H
 #define GCSV_BUFFER_H
 
-#include <gtksourceview/gtksource.h>
+#include <gtef/gtef.h>
 
 G_BEGIN_DECLS
 
@@ -33,7 +33,7 @@ G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 
 GcsvBuffer *		gcsv_buffer_new				(void);
 
-GtkSourceFile *		gcsv_buffer_get_file			(GcsvBuffer *buffer);
+GtefFile *		gcsv_buffer_get_file			(GcsvBuffer *buffer);
 
 gboolean		gcsv_buffer_is_untouched		(GcsvBuffer *buffer);
 
@@ -68,7 +68,7 @@ void			gcsv_buffer_get_field_bounds		(GcsvBuffer  *buffer,
 								 GtkTextIter *start,
 								 GtkTextIter *end);
 
-void			gcsv_buffer_load_state			(GcsvBuffer *buffer);
+void			gcsv_buffer_setup_state			(GcsvBuffer *buffer);
 
 G_END_DECLS
 

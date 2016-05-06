@@ -22,6 +22,7 @@
 #include "config.h"
 #include "gcsv-window.h"
 #include <gtksourceview/gtksource.h>
+#include <gtef/gtef.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
 #include "gcsv-buffer.h"
@@ -51,7 +52,7 @@ static GtkSourceFile *
 get_file (GcsvWindow *window)
 {
 	GcsvBuffer *buffer = get_buffer (window);
-	return gcsv_buffer_get_file (buffer);
+	return GTK_SOURCE_FILE (gcsv_buffer_get_file (buffer));
 }
 
 /* Returns whether @window has been closed. */
@@ -590,19 +591,73 @@ gcsv_window_new (GtkApplication *app)
 }
 
 static void
-load_cb (GtkSourceFileLoader *loader,
-	 GAsyncResult        *result,
-	 GcsvWindow          *window)
+finish_file_loading (GcsvWindow *window)
 {
 	GcsvBuffer *buffer;
 	GtkTextIter start;
+
+	buffer = get_buffer (window);
+
+	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
+	gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &start, &start);
+
+	gcsv_buffer_setup_state (buffer);
+
+	gcsv_alignment_set_enabled (window->align, TRUE);
+
+	g_signal_handlers_unblock_by_func (buffer, cursor_moved, window);
+	cursor_moved (window);
+}
+
+static void
+load_metadata_cb (GObject      *source_object,
+		  GAsyncResult *result,
+		  gpointer      user_data)
+{
+	GtefFile *file = GTEF_FILE (source_object);
+	GcsvWindow *window = GCSV_WINDOW (user_data);
+	GError *error = NULL;
+
+	gtef_file_load_metadata_finish (file, result, &error);
+
+	if (error != NULL)
+	{
+		g_warning ("Loading metadata failed: %s", error->message);
+		g_clear_error (&error);
+	}
+
+	finish_file_loading (window);
+
+	g_object_unref (window);
+}
+
+static void
+load_file_content_cb (GtkSourceFileLoader *loader,
+		      GAsyncResult        *result,
+		      GcsvWindow          *window)
+{
+	GcsvBuffer *buffer;
 	GError *error = NULL;
 
 	buffer = get_buffer (window);
 
 	if (gtk_source_file_loader_load_finish (loader, result, &error))
 	{
+		GtefFile *file;
+
 		gcsv_buffer_add_uri_to_recent_manager (buffer);
+
+		file = gcsv_buffer_get_file (buffer);
+
+		gtef_file_load_metadata_async (file,
+					       G_PRIORITY_DEFAULT,
+					       NULL,
+					       load_metadata_cb,
+					       g_object_ref (window));
+	}
+	else
+	{
+		finish_file_loading (window);
 	}
 
 	if (error != NULL)
@@ -613,16 +668,6 @@ load_cb (GtkSourceFileLoader *loader,
 
 		g_clear_error (&error);
 	}
-
-	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (buffer), &start);
-	gtk_text_buffer_select_range (GTK_TEXT_BUFFER (buffer), &start, &start);
-
-	gcsv_buffer_load_state (buffer);
-
-	gcsv_alignment_set_enabled (window->align, TRUE);
-
-	g_signal_handlers_unblock_by_func (buffer, cursor_moved, window);
-	cursor_moved (window);
 
 	g_object_unref (loader);
 	g_object_unref (window);
@@ -640,7 +685,7 @@ gcsv_window_load_file (GcsvWindow *window,
 	g_return_if_fail (G_IS_FILE (location));
 
 	buffer = get_buffer (window);
-	file = gcsv_buffer_get_file (buffer);
+	file = GTK_SOURCE_FILE (gcsv_buffer_get_file (buffer));
 
 	gtk_source_file_set_location (file, location);
 
@@ -655,7 +700,7 @@ gcsv_window_load_file (GcsvWindow *window,
 					   NULL,
 					   NULL,
 					   NULL,
-					   (GAsyncReadyCallback) load_cb,
+					   (GAsyncReadyCallback) load_file_content_cb,
 					   g_object_ref (window));
 }
 
