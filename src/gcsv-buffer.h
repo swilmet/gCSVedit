@@ -29,11 +29,9 @@ G_BEGIN_DECLS
 #define GCSV_TYPE_BUFFER (gcsv_buffer_get_type ())
 G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 		      GCSV, BUFFER,
-		      GtkSourceBuffer)
+		      GtefBuffer)
 
 GcsvBuffer *		gcsv_buffer_new				(void);
-
-GtefFile *		gcsv_buffer_get_file			(GcsvBuffer *buffer);
 
 gboolean		gcsv_buffer_is_untouched		(GcsvBuffer *buffer);
 

@@ -20,15 +20,13 @@
  */
 
 #include "gcsv-buffer.h"
-#include <gtef/gtef.h>
 #include <glib/gi18n.h>
 #include <stdlib.h>
 
 struct _GcsvBuffer
 {
-	GtkSourceBuffer parent;
+	GtefBuffer parent;
 
-	GtefFile *file;
 	gchar *short_name;
 
 	/* The delimiter is at most one Unicode character. If it is the nul
@@ -56,7 +54,7 @@ enum
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
-G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTK_SOURCE_TYPE_BUFFER)
+G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTEF_TYPE_BUFFER)
 
 #define METADATA_DELIMITER	"gcsvedit-delimiter"
 #define METADATA_TITLE_LINE	"gcsvedit-title-line"
@@ -64,11 +62,14 @@ G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTK_SOURCE_TYPE_BUFFER)
 static void
 save_metadata (GcsvBuffer *buffer)
 {
+	GtefFile *file;
 	gchar *delimiter;
 	GError *error = NULL;
 
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+
 	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	gtef_file_set_metadata (buffer->file, METADATA_DELIMITER, delimiter);
+	gtef_file_set_metadata (file, METADATA_DELIMITER, delimiter);
 	g_free (delimiter);
 
 	if (buffer->title_mark != NULL)
@@ -81,12 +82,12 @@ save_metadata (GcsvBuffer *buffer)
 		title_line = gtk_text_iter_get_line (&title_iter);
 		title_line_str = g_strdup_printf ("%d", title_line);
 
-		gtef_file_set_metadata (buffer->file, METADATA_TITLE_LINE, title_line_str);
+		gtef_file_set_metadata (file, METADATA_TITLE_LINE, title_line_str);
 
 		g_free (title_line_str);
 	}
 
-	gtef_file_save_metadata (buffer->file, NULL, &error);
+	gtef_file_save_metadata (file, NULL, &error);
 
 	if (error != NULL)
 	{
@@ -163,13 +164,13 @@ static void
 gcsv_buffer_dispose (GObject *object)
 {
 	GcsvBuffer *buffer = GCSV_BUFFER (object);
+	GtefFile *file;
 
-	if (buffer->file != NULL)
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	if (file != NULL)
 	{
 		save_metadata (buffer);
 	}
-
-	g_clear_object (&buffer->file);
 
 	G_OBJECT_CLASS (gcsv_buffer_parent_class)->dispose (object);
 }
@@ -338,9 +339,11 @@ out:
 static void
 update_short_name (GcsvBuffer *buffer)
 {
+	GtefFile *file;
 	GFile *location;
 
-	location = gtk_source_file_get_location (GTK_SOURCE_FILE (buffer->file));
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	location = gtk_source_file_get_location (GTK_SOURCE_FILE (file));
 
 	if (location == NULL)
 	{
@@ -372,7 +375,7 @@ location_notify_cb (GtkSourceFile *file,
 static void
 gcsv_buffer_init (GcsvBuffer *buffer)
 {
-	buffer->file = gtef_file_new ();
+	GtefFile *file;
 
 	/* Disable the undo/redo, because it doesn't work well currently with
 	 * the virtual spaces.
@@ -381,7 +384,8 @@ gcsv_buffer_init (GcsvBuffer *buffer)
 
 	update_short_name (buffer);
 
-	g_signal_connect_object (buffer->file,
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	g_signal_connect_object (file,
 				 "notify::location",
 				 G_CALLBACK (location_notify_cb),
 				 buffer,
@@ -394,24 +398,20 @@ gcsv_buffer_new (void)
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
 }
 
-GtefFile *
-gcsv_buffer_get_file (GcsvBuffer *buffer)
-{
-	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
-
-	return buffer->file;
-}
-
 gboolean
 gcsv_buffer_is_untouched (GcsvBuffer *buffer)
 {
+	GtefFile *file;
+
 	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), FALSE);
+
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
 
 	return (gtk_text_buffer_get_char_count (GTK_TEXT_BUFFER (buffer)) == 0 &&
 		!gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)) &&
 		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
 		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
-		gtk_source_file_get_location (GTK_SOURCE_FILE (buffer->file)) == NULL);
+		gtk_source_file_get_location (GTK_SOURCE_FILE (file)) == NULL);
 }
 
 /* Gets the document's short name. If the GFile location is non-NULL, returns
@@ -435,6 +435,7 @@ gcsv_buffer_get_short_name (GcsvBuffer *buffer)
 gchar *
 gcsv_buffer_get_document_title (GcsvBuffer *buffer)
 {
+	GtefFile *file;
 	GFile *location;
 	gchar *title;
 	gchar *full_title;
@@ -443,7 +444,8 @@ gcsv_buffer_get_document_title (GcsvBuffer *buffer)
 
 	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
 
-	location = gtk_source_file_get_location (GTK_SOURCE_FILE (buffer->file));
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	location = gtk_source_file_get_location (GTK_SOURCE_FILE (file));
 
 	if (location == NULL)
 	{
@@ -477,12 +479,14 @@ void
 gcsv_buffer_add_uri_to_recent_manager (GcsvBuffer *buffer)
 {
 	GtkRecentManager *recent_manager;
+	GtefFile *file;
 	GFile *location;
 	gchar *uri;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
-	location = gtk_source_file_get_location (GTK_SOURCE_FILE (buffer->file));
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	location = gtk_source_file_get_location (GTK_SOURCE_FILE (file));
 	if (location == NULL)
 	{
 		return;
@@ -751,12 +755,15 @@ guess_delimiter (GcsvBuffer *buffer)
 void
 gcsv_buffer_setup_state (GcsvBuffer *buffer)
 {
+	GtefFile *file;
 	gchar *delimiter;
 	gchar *title_line_str;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
-	delimiter = gtef_file_get_metadata (buffer->file, METADATA_DELIMITER);
+	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+
+	delimiter = gtef_file_get_metadata (file, METADATA_DELIMITER);
 	if (delimiter != NULL)
 	{
 		gcsv_buffer_set_delimiter (buffer, g_utf8_get_char (delimiter));
@@ -767,7 +774,7 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 		guess_delimiter (buffer);
 	}
 
-	title_line_str = gtef_file_get_metadata (buffer->file, METADATA_TITLE_LINE);
+	title_line_str = gtef_file_get_metadata (file, METADATA_TITLE_LINE);
 	if (title_line_str != NULL)
 	{
 		gint title_line;

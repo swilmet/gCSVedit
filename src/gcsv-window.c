@@ -52,7 +52,7 @@ static GtkSourceFile *
 get_file (GcsvWindow *window)
 {
 	GcsvBuffer *buffer = get_buffer (window);
-	return GTK_SOURCE_FILE (gcsv_buffer_get_file (buffer));
+	return GTK_SOURCE_FILE (gtef_buffer_get_file (GTEF_BUFFER (buffer)));
 }
 
 /* Returns whether @window has been closed. */
@@ -647,7 +647,7 @@ load_file_content_cb (GtkSourceFileLoader *loader,
 
 		gcsv_buffer_add_uri_to_recent_manager (buffer);
 
-		file = gcsv_buffer_get_file (buffer);
+		file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
 
 		gtef_file_load_metadata_async (file,
 					       G_PRIORITY_DEFAULT,
@@ -685,7 +685,7 @@ gcsv_window_load_file (GcsvWindow *window,
 	g_return_if_fail (G_IS_FILE (location));
 
 	buffer = get_buffer (window);
-	file = GTK_SOURCE_FILE (gcsv_buffer_get_file (buffer));
+	file = get_file (window);
 
 	gtk_source_file_set_location (file, location);
 
