@@ -47,7 +47,6 @@ enum
 
 enum
 {
-	SIGNAL_CURSOR_MOVED,
 	SIGNAL_COLUMN_TITLES_SET,
 	LAST_SIGNAL
 };
@@ -210,8 +209,6 @@ gcsv_buffer_mark_set (GtkTextBuffer     *text_buffer,
 
 	if (mark == gtk_text_buffer_get_insert (text_buffer))
 	{
-		g_signal_emit (buffer, signals[SIGNAL_CURSOR_MOVED], 0);
-
 		/* Sets the title_mark to be at the beginning of the line. Since
 		 * the cursor moved (without a buffer change), change the header
 		 * boundary to be at the beginning of a line instead of keeping
@@ -235,17 +232,6 @@ gcsv_buffer_mark_set (GtkTextBuffer     *text_buffer,
 }
 
 static void
-gcsv_buffer_changed (GtkTextBuffer *buffer)
-{
-	if (GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->changed != NULL)
-	{
-		GTK_TEXT_BUFFER_CLASS (gcsv_buffer_parent_class)->changed (buffer);
-	}
-
-	g_signal_emit (buffer, signals[SIGNAL_CURSOR_MOVED], 0);
-}
-
-static void
 gcsv_buffer_class_init (GcsvBufferClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -259,7 +245,6 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 
 	text_buffer_class->modified_changed = gcsv_buffer_modified_changed;
 	text_buffer_class->mark_set = gcsv_buffer_mark_set;
-	text_buffer_class->changed = gcsv_buffer_changed;
 
 	g_object_class_install_property (object_class,
 					 PROP_DOCUMENT_TITLE,
@@ -279,14 +264,6 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 							       G_PARAM_READWRITE |
 							       G_PARAM_CONSTRUCT |
 							       G_PARAM_STATIC_STRINGS));
-
-	signals[SIGNAL_CURSOR_MOVED] =
-		g_signal_new ("cursor-moved",
-			      G_TYPE_FROM_CLASS (klass),
-			      G_SIGNAL_RUN_FIRST,
-			      0,
-			      NULL, NULL, NULL,
-			      G_TYPE_NONE, 0);
 
 	/**
 	 * GcsvBuffer::column-titles-set:
