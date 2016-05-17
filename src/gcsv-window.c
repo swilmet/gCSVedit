@@ -63,7 +63,7 @@ launch_close_confirmation_dialog (GcsvWindow *window)
 	const gchar *document_name;
 	gint response_id;
 
-	document_name = gtef_buffer_get_short_name (GTEF_BUFFER (get_buffer (window)));
+	document_name = gtef_file_get_short_name (GTEF_FILE (get_file (window)));
 
 	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
 					 GTK_DIALOG_DESTROY_WITH_PARENT |
