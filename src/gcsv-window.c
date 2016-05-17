@@ -63,7 +63,7 @@ launch_close_confirmation_dialog (GcsvWindow *window)
 	const gchar *document_name;
 	gint response_id;
 
-	document_name = gcsv_buffer_get_short_name (get_buffer (window));
+	document_name = gtef_buffer_get_short_name (GTEF_BUFFER (get_buffer (window)));
 
 	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
 					 GTK_DIALOG_DESTROY_WITH_PARENT |
@@ -375,25 +375,25 @@ create_view (void)
 static void
 update_title (GcsvWindow *window)
 {
-	gchar *document_title;
-	gchar *title;
+	gchar *buffer_title;
+	gchar *window_title;
 
-	document_title = gcsv_buffer_get_document_title (get_buffer (window));
+	buffer_title = gtef_buffer_get_title (GTEF_BUFFER (get_buffer (window)));
 
-	title = g_strdup_printf ("%s - %s",
-				 document_title,
-				 g_get_application_name ());
+	window_title = g_strdup_printf ("%s - %s",
+					buffer_title,
+					g_get_application_name ());
 
-	gtk_window_set_title (GTK_WINDOW (window), title);
+	gtk_window_set_title (GTK_WINDOW (window), window_title);
 
-	g_free (document_title);
-	g_free (title);
+	g_free (buffer_title);
+	g_free (window_title);
 }
 
 static void
-document_title_notify_cb (GcsvBuffer *buffer,
-			  GParamSpec *pspec,
-			  GcsvWindow *window)
+buffer_title_notify_cb (GtefBuffer *buffer,
+			GParamSpec *pspec,
+			GcsvWindow *window)
 {
 	update_title (window);
 }
@@ -548,8 +548,8 @@ gcsv_window_init (GcsvWindow *window)
 	update_statusbar_label (window);
 
 	g_signal_connect_object (buffer,
-				 "notify::document-title",
-				 G_CALLBACK (document_title_notify_cb),
+				 "notify::title",
+				 G_CALLBACK (buffer_title_notify_cb),
 				 window,
 				 0);
 
