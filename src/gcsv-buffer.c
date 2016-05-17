@@ -375,22 +375,6 @@ gcsv_buffer_new (void)
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
 }
 
-gboolean
-gcsv_buffer_is_untouched (GcsvBuffer *buffer)
-{
-	GtefFile *file;
-
-	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), FALSE);
-
-	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
-
-	return (gtk_text_buffer_get_char_count (GTK_TEXT_BUFFER (buffer)) == 0 &&
-		!gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)) &&
-		!gtk_source_buffer_can_undo (GTK_SOURCE_BUFFER (buffer)) &&
-		!gtk_source_buffer_can_redo (GTK_SOURCE_BUFFER (buffer)) &&
-		gtk_source_file_get_location (GTK_SOURCE_FILE (file)) == NULL);
-}
-
 /* Gets the document's short name. If the GFile location is non-NULL, returns
  * its display-name.
  */

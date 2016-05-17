@@ -705,5 +705,5 @@ gcsv_window_is_untouched (GcsvWindow *window)
 {
 	g_return_val_if_fail (GCSV_IS_WINDOW (window), FALSE);
 
-	return gcsv_buffer_is_untouched (get_buffer (window));
+	return gtef_buffer_is_untouched (GTEF_BUFFER (get_buffer (window)));
 }

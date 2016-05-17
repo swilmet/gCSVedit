@@ -33,8 +33,6 @@ G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 
 GcsvBuffer *		gcsv_buffer_new				(void);
 
-gboolean		gcsv_buffer_is_untouched		(GcsvBuffer *buffer);
-
 const gchar *		gcsv_buffer_get_short_name		(GcsvBuffer *buffer);
 
 gchar *			gcsv_buffer_get_document_title		(GcsvBuffer *buffer);
