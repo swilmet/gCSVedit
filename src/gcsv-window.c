@@ -604,9 +604,6 @@ finish_file_loading (GcsvWindow *window)
 	gcsv_buffer_setup_state (buffer);
 
 	gcsv_alignment_set_enabled (window->align, TRUE);
-
-	g_signal_handlers_unblock_by_func (buffer, cursor_moved, window);
-	cursor_moved (window);
 }
 
 static void
@@ -692,7 +689,6 @@ gcsv_window_load_file (GcsvWindow *window,
 	loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (buffer), file);
 
 	gcsv_alignment_set_enabled (window->align, FALSE);
-	g_signal_handlers_block_by_func (buffer, cursor_moved, window);
 
 	gtk_source_file_loader_load_async (loader,
 					   G_PRIORITY_DEFAULT,
