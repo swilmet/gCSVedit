@@ -59,13 +59,15 @@ static void
 save_metadata (GcsvBuffer *buffer)
 {
 	GtefFile *file;
+	GtefFileMetadata *metadata;
 	gchar *delimiter;
 	GError *error = NULL;
 
 	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	metadata = gtef_file_get_file_metadata (file);
 
 	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	gtef_file_set_metadata (file, METADATA_DELIMITER, delimiter);
+	gtef_file_metadata_set (metadata, METADATA_DELIMITER, delimiter);
 	g_free (delimiter);
 
 	if (buffer->title_mark != NULL)
@@ -78,12 +80,12 @@ save_metadata (GcsvBuffer *buffer)
 		title_line = gtk_text_iter_get_line (&title_iter);
 		title_line_str = g_strdup_printf ("%d", title_line);
 
-		gtef_file_set_metadata (file, METADATA_TITLE_LINE, title_line_str);
+		gtef_file_metadata_set (metadata, METADATA_TITLE_LINE, title_line_str);
 
 		g_free (title_line_str);
 	}
 
-	gtef_file_save_metadata (file, NULL, &error);
+	gtef_file_metadata_save (metadata, NULL, &error);
 
 	if (error != NULL)
 	{
@@ -541,14 +543,16 @@ void
 gcsv_buffer_setup_state (GcsvBuffer *buffer)
 {
 	GtefFile *file;
+	GtefFileMetadata *metadata;
 	gchar *delimiter;
 	gchar *title_line_str;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
 	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	metadata = gtef_file_get_file_metadata (file);
 
-	delimiter = gtef_file_get_metadata (file, METADATA_DELIMITER);
+	delimiter = gtef_file_metadata_get (metadata, METADATA_DELIMITER);
 	if (delimiter != NULL)
 	{
 		gcsv_buffer_set_delimiter (buffer, g_utf8_get_char (delimiter));
@@ -559,7 +563,7 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 		guess_delimiter (buffer);
 	}
 
-	title_line_str = gtef_file_get_metadata (file, METADATA_TITLE_LINE);
+	title_line_str = gtef_file_metadata_get (metadata, METADATA_TITLE_LINE);
 	if (title_line_str != NULL)
 	{
 		gint title_line;

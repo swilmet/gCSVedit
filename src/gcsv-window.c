@@ -611,11 +611,11 @@ load_metadata_cb (GObject      *source_object,
 		  GAsyncResult *result,
 		  gpointer      user_data)
 {
-	GtefFile *file = GTEF_FILE (source_object);
+	GtefFileMetadata *metadata = GTEF_FILE_METADATA (source_object);
 	GcsvWindow *window = GCSV_WINDOW (user_data);
 	GError *error = NULL;
 
-	gtef_file_load_metadata_finish (file, result, &error);
+	gtef_file_metadata_load_finish (metadata, result, &error);
 
 	if (error != NULL)
 	{
@@ -641,12 +641,14 @@ load_file_content_cb (GtkSourceFileLoader *loader,
 	if (gtk_source_file_loader_load_finish (loader, result, &error))
 	{
 		GtefFile *file;
+		GtefFileMetadata *metadata;
 
 		gcsv_buffer_add_uri_to_recent_manager (buffer);
 
 		file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+		metadata = gtef_file_get_file_metadata (file);
 
-		gtef_file_load_metadata_async (file,
+		gtef_file_metadata_load_async (metadata,
 					       G_PRIORITY_DEFAULT,
 					       NULL,
 					       load_metadata_cb,
