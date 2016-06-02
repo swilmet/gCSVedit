@@ -3,6 +3,9 @@
  *
  * Copyright 2015, 2016 - Université Catholique de Louvain
  *
+ * From gedit for Windows support:
+ * Copyright 2010 - Jesse van den Kieboom
+ *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,6 +28,15 @@
 #include <glib/gi18n.h>
 #include <locale.h>
 #include "gcsv-window.h"
+
+#ifdef G_OS_WIN32
+#  include <io.h>
+#  include <conio.h>
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x0501
+#  endif
+#  include <windows.h>
+#endif
 
 static gboolean option_version;
 
@@ -140,6 +152,60 @@ about_activate_cb (GSimpleAction *about_action,
 			       NULL);
 }
 
+/* Code taken from gedit. */
+#ifdef G_OS_WIN32
+static void
+setup_path (void)
+{
+	gchar *installdir;
+	gchar *bin;
+	gchar *path;
+
+	installdir = g_win32_get_package_installation_directory_of_module (NULL);
+
+	bin = g_build_filename (installdir, "bin", NULL);
+	g_free (installdir);
+
+	/* Set PATH to include the gedit executable's folder */
+	path = g_build_path (";", bin, g_getenv ("PATH"), NULL);
+	g_free (bin);
+
+	if (!g_setenv ("PATH", path, TRUE))
+	{
+		g_warning ("Could not set PATH for gCSVedit.");
+	}
+
+	g_free (path);
+}
+
+static void
+prep_console (void)
+{
+	/* If we open the application from a console get the stdout printing */
+	if (fileno (stdout) != -1 &&
+	    _get_osfhandle (fileno (stdout)) != -1)
+	{
+		/* stdout is fine, presumably redirected to a file or pipe */
+	}
+	else
+	{
+		typedef BOOL (* WINAPI AttachConsole_t) (DWORD);
+
+		AttachConsole_t p_AttachConsole =
+			(AttachConsole_t) GetProcAddress (GetModuleHandle ("kernel32.dll"),
+							  "AttachConsole");
+
+		if (p_AttachConsole != NULL && p_AttachConsole (ATTACH_PARENT_PROCESS))
+		{
+			freopen ("CONOUT$", "w", stdout);
+			dup2 (fileno (stdout), 1);
+			freopen ("CONOUT$", "w", stderr);
+			dup2 (fileno (stderr), 2);
+		}
+	}
+}
+#endif /* G_OS_WIN32 */
+
 static void
 startup_cb (GtkApplication *app)
 {
@@ -164,6 +230,11 @@ startup_cb (GtkApplication *app)
 	gtef_metadata_manager_init (metadata_filename);
 
 	g_free (metadata_filename);
+
+#ifdef G_OS_WIN32
+	setup_path ();
+	prep_console ();
+#endif
 }
 
 static void
