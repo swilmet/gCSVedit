@@ -2,13 +2,11 @@
 <?include .\defines.wxi ?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" Name="$(var.ProductName)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)">
-    <Package Id="*" Description="$(var.ProductName)" Comments="Contact: your local administrator" InstallerVersion="405" Compressed="yes" Keywords="TEXT,EDITOR,GNOME" Languages="1033" Manufacturer="$(var.Manufacturer)" InstallScope="perMachine"/>
-    <Icon Id="icon.ico" SourceFile="$(var.TopDir)\gedit\resources\pixmaps\gedit.ico"/>
-    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+    <Package Id="*" Description="$(var.ProductName)" Comments="Contact: your local administrator" InstallerVersion="405" Compressed="yes" Keywords="CSV,TSV,TEXT,EDITOR" Languages="1033" Manufacturer="$(var.Manufacturer)" InstallScope="perMachine"/>
     <Media Id="1" Cabinet="data.cab" EmbedCab="yes" />
 
     <!-- Features -->
-    <Feature Id="gedit" Title="gedit" Level="1">
+    <Feature Id="gcsvedit" Title="gcsvedit" Level="1">
       <ComponentGroupRef Id="binaries" />
       <ComponentGroupRef Id="startMenuShortcuts" />
       <ComponentGroupRef Id="licenseFiles" />
@@ -16,8 +14,6 @@
 
     <!-- UI -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-    <WixVariable Id="WixUIBannerBmp" Value="$(var.TopDir)\win32\installer\WixUIBannerBmp.bmp" />
-    <WixVariable Id="WixUIDialogBmp" Value="$(var.TopDir)\win32\installer\WixUIDialogBmp.bmp" />
     <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseFile)" />
     <Condition Message="[ProductName] requires that your computer is running at least Windows 7">VersionNT&gt;=601</Condition>
 
@@ -49,14 +45,14 @@
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.PlatformProgramFilesFolder)" Name="$(var.PlatformProgramFilesFolder)">
-        <Directory Name="gedit" Id="gedit_dir">
+        <Directory Name="gcsvedit" Id="gcsvedit_dir">
           <Directory Id="INSTALLDIR">
-            <Directory Name="license" Id="gedit_license" />
+            <Directory Name="license" Id="gcsvedit_license" />
           </Directory>
         </Directory>
       </Directory>
       <Directory Id="ProgramMenuFolder">
-        <Directory Id="ProgramMenuDir" Name="gedit Text Editor" />
+        <Directory Id="ProgramMenuDir" Name="gCSVedit" />
       </Directory>
     </Directory>
   </Fragment>
@@ -66,13 +62,13 @@
     <ComponentGroup Id="startMenuShortcuts">
       <Component Id="programShortcuts" Guid="{A071C7AE-C657-4FAD-B0CC-11A6D794D0D3}" Directory="ProgramMenuDir">
         <RegistryValue Key="Software\[Manufacturer]\[ProductName]" Root="HKCU" Type="string" Value="[INSTALLDIR]" Name="InstallPath" />
-        <Shortcut Id="geditExec" Name="gedit Text Editor" Description="gedit Text Editor" Target="[INSTALLDIR]\bin\gedit.exe" />
-        <Shortcut Id="uninstallProduct" Name="Uninstall gedit Text Editor" Arguments="/x [ProductCode]" Description="Uninstall gedit Text Editor" Target="[System64Folder]msiexec.exe" />
+        <Shortcut Id="gcsveditExec" Name="gCSVedit" Description="gCSVedit text editor" Target="[INSTALLDIR]\bin\gcsvedit.exe" />
+        <Shortcut Id="uninstallProduct" Name="Uninstall gCSVedit" Arguments="/x [ProductCode]" Description="Uninstall the gCSVedit text editor" Target="[System64Folder]msiexec.exe" />
         <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
       </Component>
     </ComponentGroup>
 
-    <ComponentGroup Id="licenseFiles" Directory="gedit_license">
+    <ComponentGroup Id="licenseFiles" Directory="gcsvedit_license">
       <Component Id="COPYING.rtf" Guid="*">
         <File Id="COPYING.rtf" Name="COPYING.rtf" Source="$(var.LicenseFile)" />
       </Component>
