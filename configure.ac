@@ -107,6 +107,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/resources/Makefile
 	tests/Makefile
+	win32/Makefile
 ])
 
 AC_OUTPUT
