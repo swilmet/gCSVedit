@@ -54,7 +54,7 @@ handle_local_options_cb (GApplication *app,
 static gchar *
 get_locale_directory (void)
 {
-	return g_build_filename (DATADIR, "locale", NULL);
+	return g_build_filename (GCSV_DATADIR, "locale", NULL);
 }
 
 static void

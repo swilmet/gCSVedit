@@ -4,7 +4,7 @@ SUBDIRS = resources
 
 AM_CPPFLAGS =				\
 	-I$(top_srcdir)			\
-	-DDATADIR=\""$(datadir)"\"	\
+	-DGCSV_DATADIR=\""$(datadir)"\"	\
 	$(DEP_CFLAGS)			\
 	$(WARN_CFLAGS)			\
 	$(CODE_COVERAGE_CPPFLAGS)
