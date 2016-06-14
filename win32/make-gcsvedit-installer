@@ -4,6 +4,7 @@ _wixdir="/c/Program Files (x86)/WiX Toolset v3.8"
 _thisdir="$(dirname $0)"
 test "${_thisdir}" = "." && _thisdir=${PWD}
 _installer_root="${_thisdir}"/installer
+_mingw_package_dir="${_thisdir}"/mingw-w64-gcsvedit
 _arch=$(uname -m)
 _date=$(date +'%Y%m%d')
 _dateqif=$(date +'%Y-%m-%d')
@@ -150,15 +151,20 @@ create_chroot_system() {
 }
 
 install_gcsvedit_packages() {
-  pacman -S mingw-w64-${_arch}-librsvg mingw-w64-${_arch}-gcsvedit mingw-w64-${_arch}-adwaita-icon-theme --noconfirm --root "${_newgcsvedit}"
+  pacman -S mingw-w64-${_arch}-librsvg mingw-w64-${_arch}-adwaita-icon-theme --noconfirm --root "${_newgcsvedit}"
   _result=$?
   if [ "$_result" -ne "0" ]; then
-    exit_cleanly "1" "failed to create newgcsvedit via command 'pacman -S gcsvedit --noconfirm --root ${_newgcsvedit}'"
+    exit_cleanly "1" "failed to create newgcsvedit via command 'pacman -S librsvg etc --noconfirm --root ${_newgcsvedit}'"
   fi
 
   # some packages are pulled by the deps but we do not need them like python2
   pacman -Rdd mingw-w64-${_arch}-python2 --noconfirm --root "${_newgcsvedit}"
   pacman -Rdd mingw-w64-${_arch}-gtk2 --noconfirm --root "${_newgcsvedit}"
+
+  pushd "${_mingw_package_dir}" > /dev/null
+  makepkg-mingw -sL
+  pacman -U  mingw-w64-${_arch}-gcsvedit-${_version}-1-any.pkg.tar.xz --noconfirm --root "${_newgcsvedit}"
+  popd > /dev/null
 }
 
 if [ "${_stage}" = "stage1" ]; then
