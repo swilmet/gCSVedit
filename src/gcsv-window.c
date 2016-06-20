@@ -151,8 +151,15 @@ open_activate_cb (GSimpleAction *open_action,
 
 	dsv_filter = gtk_file_filter_new ();
 	gtk_file_filter_set_name (dsv_filter, _("CSV and TSV Files"));
+#ifdef G_OS_WIN32
+	/* The mime types don't work on Windows... */
+	gtk_file_filter_add_pattern (dsv_filter, "*.csv");
+	gtk_file_filter_add_pattern (dsv_filter, "*.tsv");
+#else
+	/* ...but mimetypes are better.*/
 	gtk_file_filter_add_mime_type (dsv_filter, "text/csv");
 	gtk_file_filter_add_mime_type (dsv_filter, "text/tab-separated-values");
+#endif
 	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), dsv_filter);
 
 	all_filter = gtk_file_filter_new ();
