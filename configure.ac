@@ -106,7 +106,7 @@ AC_CONFIG_FILES([
 	po/Makefile.in
 	src/Makefile
 	src/resources/Makefile
-	tests/Makefile
+	testsuite/Makefile
 	win32/Makefile
 ])
 

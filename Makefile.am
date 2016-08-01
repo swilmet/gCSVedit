@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = data src tests po win32
+SUBDIRS = data src testsuite po win32
 
 @CODE_COVERAGE_RULES@
 
