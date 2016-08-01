@@ -2,6 +2,8 @@ ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
 
 SUBDIRS = data src tests po win32
 
+@CODE_COVERAGE_RULES@
+
 MAINTAINERCLEANFILES = \
 	ABOUT-NLS \
 	aclocal.m4 \
@@ -67,7 +69,5 @@ MAINTAINERCLEANFILES = \
 	missing \
 	po/stamp-po \
 	test-driver
-
-@CODE_COVERAGE_RULES@
 
 -include $(top_srcdir)/git.mk
