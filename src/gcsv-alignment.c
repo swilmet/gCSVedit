@@ -593,7 +593,7 @@ handle_next_chunk (GcsvAlignment       *align,
 	}
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
-	gtk_source_region_subtract (region, &start, &stop);
+	gtk_source_region_subtract_subregion (region, &start, &stop);
 
 	if (gtk_source_region_is_empty (region))
 	{
@@ -792,7 +792,7 @@ remove_header (GcsvAlignment   *align,
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &start);
 	gcsv_buffer_get_column_titles_location (align->buffer, &header_end);
 
-	gtk_source_region_subtract (region, &start, &header_end);
+	gtk_source_region_subtract_subregion (region, &start, &header_end);
 }
 
 static void
@@ -807,7 +807,7 @@ add_subregion_to_scan (GcsvAlignment *align,
 		align->scan_region = gtk_source_region_new (GTK_TEXT_BUFFER (align->buffer));
 	}
 
-	gtk_source_region_add (align->scan_region, start, end);
+	gtk_source_region_add_subregion (align->scan_region, start, end);
 
 	remove_header (align, align->scan_region);
 }
@@ -824,7 +824,7 @@ add_subregion_to_align (GcsvAlignment *align,
 		align->align_region = gtk_source_region_new (GTK_TEXT_BUFFER (align->buffer));
 	}
 
-	gtk_source_region_add (align->align_region, start, end);
+	gtk_source_region_add_subregion (align->align_region, start, end);
 
 	remove_header (align, align->align_region);
 }
