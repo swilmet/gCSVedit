@@ -108,47 +108,23 @@ gcsv_window_close (GcsvWindow *window)
 }
 
 static void
-open_dialog_response_cb (GtkFileChooserDialog *dialog,
-			 gint                  response_id,
-			 GcsvWindow           *window)
-{
-	if (response_id == GTK_RESPONSE_ACCEPT)
-	{
-		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-		GApplication *app;
-		GFile *file;
-		GFile *files[1];
-
-		file = gtk_file_chooser_get_file (chooser);
-		files[0] = file;
-
-		app = g_application_get_default ();
-		g_application_open (app, files, 1, NULL);
-
-		g_object_unref (file);
-	}
-
-	gtk_widget_destroy (GTK_WIDGET (dialog));
-}
-
-static void
 open_activate_cb (GSimpleAction *open_action,
 		  GVariant      *parameter,
 		  gpointer       user_data)
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
-	GtkWidget *dialog;
+	GtkFileChooserNative *file_chooser;
 	GtkFileFilter *dsv_filter;
 	GtkFileFilter *all_filter;
+	gint response_id;
 
-	dialog = gtk_file_chooser_dialog_new (_("Open File"),
-					      GTK_WINDOW (window),
-					      GTK_FILE_CHOOSER_ACTION_OPEN,
-					      _("_Cancel"), GTK_RESPONSE_CANCEL,
-					      _("_Open"), GTK_RESPONSE_ACCEPT,
-					      NULL);
+	file_chooser = gtk_file_chooser_native_new (_("Open File"),
+						    GTK_WINDOW (window),
+						    GTK_FILE_CHOOSER_ACTION_OPEN,
+						    _("_Open"),
+						    _("_Cancel"));
 
-	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
+	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (file_chooser), FALSE);
 
 	dsv_filter = gtk_file_filter_new ();
 	gtk_file_filter_set_name (dsv_filter, _("CSV and TSV Files"));
@@ -161,21 +137,32 @@ open_activate_cb (GSimpleAction *open_action,
 	gtk_file_filter_add_mime_type (dsv_filter, "text/csv");
 	gtk_file_filter_add_mime_type (dsv_filter, "text/tab-separated-values");
 #endif
-	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), dsv_filter);
+	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (file_chooser), dsv_filter);
 
 	all_filter = gtk_file_filter_new ();
 	gtk_file_filter_set_name (all_filter, _("All Files"));
 	gtk_file_filter_add_pattern (all_filter, "*");
-	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), all_filter);
+	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (file_chooser), all_filter);
 
-	gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (dialog), dsv_filter);
+	gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (file_chooser), dsv_filter);
 
-	g_signal_connect (dialog,
-			  "response",
-			  G_CALLBACK (open_dialog_response_cb),
-			  window);
+	response_id = gtk_native_dialog_run (GTK_NATIVE_DIALOG (file_chooser));
+	if (response_id == GTK_RESPONSE_ACCEPT)
+	{
+		GApplication *app;
+		GFile *file;
+		GFile *files[1];
 
-	gtk_widget_show (dialog);
+		file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
+		files[0] = file;
+
+		app = g_application_get_default ();
+		g_application_open (app, files, 1, NULL);
+
+		g_object_unref (file);
+	}
+
+	g_object_unref (file_chooser);
 }
 
 static void
