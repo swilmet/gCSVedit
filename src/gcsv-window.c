@@ -247,52 +247,34 @@ save_activate_cb (GSimpleAction *save_action,
 }
 
 static void
-save_as_dialog_response_cb (GtkFileChooserDialog *dialog,
-			    gint                  response_id,
-			    GcsvWindow           *window)
-{
-	GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-	GFile *location;
-
-	if (response_id != GTK_RESPONSE_ACCEPT)
-	{
-		goto out;
-	}
-
-	location = gtk_file_chooser_get_file (chooser);
-
-	launch_save (window, location);
-
-	g_object_unref (location);
-
-out:
-	gtk_widget_destroy (GTK_WIDGET (dialog));
-}
-
-static void
 save_as_activate_cb (GSimpleAction *save_as_action,
 		     GVariant      *parameter,
 		     gpointer       user_data)
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
-	GtkWidget *dialog;
+	GtkFileChooserNative *file_chooser;
+	gint response_id;
 
-	dialog = gtk_file_chooser_dialog_new (_("Save File"),
-					      GTK_WINDOW (window),
-					      GTK_FILE_CHOOSER_ACTION_SAVE,
-					      _("_Cancel"), GTK_RESPONSE_CANCEL,
-					      _("_Save"), GTK_RESPONSE_ACCEPT,
-					      NULL);
+	file_chooser = gtk_file_chooser_native_new (_("Save File"),
+						    GTK_WINDOW (window),
+						    GTK_FILE_CHOOSER_ACTION_SAVE,
+						    _("_Save"),
+						    _("_Cancel"));
 
-	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
-	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
+	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (file_chooser), TRUE);
+	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (file_chooser), FALSE);
 
-	g_signal_connect (dialog,
-			  "response",
-			  G_CALLBACK (save_as_dialog_response_cb),
-			  window);
+	response_id = gtk_native_dialog_run (GTK_NATIVE_DIALOG (file_chooser));
+	if (response_id == GTK_RESPONSE_ACCEPT)
+	{
+		GFile *location;
 
-	gtk_widget_show (dialog);
+		location = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
+		launch_save (window, location);
+		g_object_unref (location);
+	}
+
+	g_object_unref (file_chooser);
 }
 
 static void
