@@ -138,6 +138,10 @@ about_activate_cb (GSimpleAction *about_action,
 		NULL
 	};
 
+	const gchar *copyright =
+		"Copyright 2015-2016 – Université Catholique de Louvain\n"
+		"Copyright 2015-2016 – Sébastien Wilmet";
+
 	gtk_show_about_dialog (GTK_WINDOW (active_window),
 			       "name", g_get_application_name (),
 			       "version", PACKAGE_VERSION,
@@ -148,7 +152,7 @@ about_activate_cb (GSimpleAction *about_action,
 			       "website-label", _("gCSVedit website"),
 			       "logo-icon-name", "accessories-text-editor",
 			       "license-type", GTK_LICENSE_GPL_3_0,
-			       "copyright", "Copyright 2015-2016 – Université Catholique de Louvain",
+			       "copyright", copyright,
 			       NULL);
 }
 
