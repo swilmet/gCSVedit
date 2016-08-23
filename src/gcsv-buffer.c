@@ -273,7 +273,7 @@ gcsv_buffer_add_uri_to_recent_manager (GcsvBuffer *buffer)
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
 	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
-	location = gtk_source_file_get_location (GTK_SOURCE_FILE (file));
+	location = gtef_file_get_location (file);
 	if (location == NULL)
 	{
 		return;
