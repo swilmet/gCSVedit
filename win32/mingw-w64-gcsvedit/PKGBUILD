@@ -3,7 +3,7 @@
 _realname=gcsvedit
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.2.1
+pkgver=0.2.2
 pkgrel=1
 arch=('any')
 pkgdesc="A simple CSV text editor (mingw-w64)"
@@ -17,7 +17,7 @@ license=("GPL")
 url="http://gcsvedit.sourceforge.net/"
 #install=${_realname}-${CARCH}.install
 source=(https://sourceforge.net/projects/${_realname}/files/v${pkgver%.*}/${_realname}-${pkgver}.tar.xz)
-sha256sums=('d62c7df22cd62d374f6cb70c0fb119a25f67901bc27c2d7c0604e0ad2f693a9f')
+sha256sums=('e2a5e44be60ae68e15e3e8d4d7bf4fc3b01e724c6c9cae199efa2ea4aa4ae7e0')
 
 prepare() {
   cd "${srcdir}"/${_realname}-${pkgver}
