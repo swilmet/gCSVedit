@@ -661,7 +661,8 @@ gcsv_window_load_file (GcsvWindow *window,
 
 	gtef_file_loader_load_async (loader,
 				     G_PRIORITY_DEFAULT,
-				     NULL,
+				     NULL, /* cancellable */
+				     NULL, NULL, NULL, /* progress */
 				     (GAsyncReadyCallback) load_file_content_cb,
 				     g_object_ref (window));
 }
