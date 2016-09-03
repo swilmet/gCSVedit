@@ -655,7 +655,7 @@ gcsv_window_load_file (GcsvWindow *window,
 
 	gtef_file_set_location (file, location);
 
-	loader = gtef_file_loader_new (GTEF_BUFFER (buffer));
+	loader = gtef_file_loader_new (GTEF_BUFFER (buffer), file);
 
 	gcsv_alignment_set_enabled (window->align, FALSE);
 
