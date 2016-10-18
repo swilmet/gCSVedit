@@ -1,7 +1,7 @@
 {
     "app-id": "be.uclouvain.gcsvedit",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "3.20",
+    "runtime-version": "3.22",
     "sdk": "org.gnome.Sdk",
     "command": "gcsvedit",
     "finish-args": [
@@ -33,8 +33,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtksourceview/3.20/gtksourceview-3.20.4.tar.xz",
-                    "sha256": "7a0e6ac95ff3862bd8ef77a40e95a942939e73cb407f2eb67af600d7ce533d01"
+                    "url": "https://download.gnome.org/sources/gtksourceview/3.22/gtksourceview-3.22.0.tar.xz",
+                    "sha256": "70657f48732427984dce6cc812bdd3f2b701c0a49e0a0a08889705b3dadcf8e5"
                 }
             ]
         },
@@ -43,8 +43,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://sourceforge.net/projects/gcsvedit/files/v0.2/gcsvedit-0.2.1.tar.xz",
-                    "sha256": "d62c7df22cd62d374f6cb70c0fb119a25f67901bc27c2d7c0604e0ad2f693a9f"
+                    "url": "https://sourceforge.net/projects/gcsvedit/files/v0.2/gcsvedit-0.2.2.tar.xz",
+                    "sha256": "e2a5e44be60ae68e15e3e8d4d7bf4fc3b01e724c6c9cae199efa2ea4aa4ae7e0"
                 }
             ]
         }
