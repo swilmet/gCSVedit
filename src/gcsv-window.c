@@ -321,6 +321,7 @@ create_view (void)
 {
 	GcsvBuffer *buffer;
 	GtkSourceView *view;
+	GtkSourceSpaceDrawer *space_drawer;
 
 	buffer = gcsv_buffer_new ();
 	view = GTK_SOURCE_VIEW (gtk_source_view_new_with_buffer (GTK_SOURCE_BUFFER (buffer)));
@@ -334,13 +335,12 @@ create_view (void)
 	 * Line numbers are already displayed, so drawing line breaks would be
 	 * redundant and is not very useful.
 	 */
-	gtk_source_view_set_draw_spaces (view,
-					 GTK_SOURCE_DRAW_SPACES_SPACE |
-					 GTK_SOURCE_DRAW_SPACES_TAB |
-					 GTK_SOURCE_DRAW_SPACES_NBSP |
-					 GTK_SOURCE_DRAW_SPACES_LEADING |
-					 GTK_SOURCE_DRAW_SPACES_TEXT |
-					 GTK_SOURCE_DRAW_SPACES_TRAILING);
+	space_drawer = gtk_source_view_get_space_drawer (view);
+	gtk_source_space_drawer_set_enable_matrix (space_drawer, TRUE);
+	gtk_source_space_drawer_set_types_for_locations (space_drawer,
+							 GTK_SOURCE_SPACE_LOCATION_ALL,
+							 GTK_SOURCE_SPACE_TYPE_ALL &
+							 ~GTK_SOURCE_SPACE_TYPE_NEWLINE);
 
 	gtk_widget_set_hexpand (GTK_WIDGET (view), TRUE);
 	gtk_widget_set_vexpand (GTK_WIDGET (view), TRUE);
