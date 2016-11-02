@@ -2,6 +2,7 @@
  * This file is part of gCSVedit.
  *
  * Copyright 2015, 2016 - Université Catholique de Louvain
+ * Copyright 2017 - Sébastien Wilmet
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +26,7 @@
 #include <gtef/gtef.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
+#include "gcsv-application.h"
 #include "gcsv-buffer.h"
 #include "gcsv-properties-chooser.h"
 #include "gcsv-utils.h"
@@ -476,6 +478,69 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 	widget_class->delete_event = gcsv_window_delete_event;
 }
 
+static GtefActionInfoStore *
+get_action_info_store (void)
+{
+	GcsvApplication *app;
+
+	app = GCSV_APPLICATION (g_application_get_default ());
+
+	return gcsv_application_get_action_info_store (app);
+}
+
+static GtkWidget *
+create_file_submenu (void)
+{
+	GtefActionInfoStore *store;
+	GtkMenuShell *file_submenu;
+
+	store = get_action_info_store ();
+	file_submenu = GTK_MENU_SHELL (gtk_menu_new ());
+
+	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.open"));
+	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save"));
+	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save-as"));
+	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "app.quit"));
+
+	return GTK_WIDGET (file_submenu);
+}
+
+static GtkWidget *
+create_help_submenu (void)
+{
+	GtefActionInfoStore *store;
+	GtkMenuShell *help_submenu;
+
+	store = get_action_info_store ();
+	help_submenu = GTK_MENU_SHELL (gtk_menu_new ());
+
+	gtk_menu_shell_append (help_submenu, gtef_action_info_store_create_menu_item (store, "app.about"));
+
+	return GTK_WIDGET (help_submenu);
+}
+
+static GtkMenuBar *
+create_menu_bar (void)
+{
+	GtkWidget *file_menu_item;
+	GtkWidget *help_menu_item;
+	GtkMenuBar *menu_bar;
+
+	file_menu_item = gtk_menu_item_new_with_mnemonic ("_File");
+	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
+				   create_file_submenu ());
+
+	help_menu_item = gtk_menu_item_new_with_mnemonic ("_Help");
+	gtk_menu_item_set_submenu (GTK_MENU_ITEM (help_menu_item),
+				   create_help_submenu ());
+
+	menu_bar = GTK_MENU_BAR (gtk_menu_bar_new ());
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), file_menu_item);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), help_menu_item);
+
+	return menu_bar;
+}
+
 static void
 gcsv_window_init (GcsvWindow *window)
 {
@@ -491,6 +556,9 @@ gcsv_window_init (GcsvWindow *window)
 
 	vgrid = gtk_grid_new ();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
+
+	gtk_container_add (GTK_CONTAINER (vgrid),
+			   GTK_WIDGET (create_menu_bar ()));
 
 	/* Properties chooser */
 	window->properties_chooser = gcsv_properties_chooser_new (buffer);

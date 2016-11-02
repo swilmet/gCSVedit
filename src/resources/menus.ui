@@ -4,6 +4,7 @@
   This file is part of gCSVedit.
 
   Copyright 2015 - Université Catholique de Louvain
+  Copyright 2017 - Sébastien Wilmet
 
   gCSVedit is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@
 -->
 
 <interface>
+  <!-- Automatic GtkApplication resource -->
   <menu id="app-menu">
     <section>
       <item>
@@ -31,46 +33,7 @@
       <item>
         <attribute name="label" translatable="yes">_Quit</attribute>
         <attribute name="action">app.quit</attribute>
-        <attribute name="accel">&lt;Primary&gt;q</attribute>
       </item>
     </section>
-  </menu>
-
-  <menu id="menubar">
-    <submenu>
-      <attribute name="label" translatable="yes">_File</attribute>
-      <item>
-        <attribute name="label" translatable="yes">_Open</attribute>
-        <attribute name="icon">document-open</attribute>
-        <attribute name="action">win.open</attribute>
-        <attribute name="accel">&lt;Control&gt;o</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Save</attribute>
-        <attribute name="icon">document-save</attribute>
-        <attribute name="action">win.save</attribute>
-        <attribute name="accel">&lt;Control&gt;s</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">Save _As</attribute>
-        <attribute name="icon">document-save-as</attribute>
-        <attribute name="action">win.save-as</attribute>
-        <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;s</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Quit</attribute>
-        <attribute name="icon">application-exit</attribute>
-        <attribute name="action">app.quit</attribute>
-        <attribute name="accel">&lt;Control&gt;q</attribute>
-      </item>
-    </submenu>
-    <submenu>
-      <attribute name="label" translatable="yes">_Help</attribute>
-      <item>
-        <attribute name="label" translatable="yes">_About</attribute>
-        <attribute name="icon">help-about</attribute>
-        <attribute name="action">app.about</attribute>
-      </item>
-    </submenu>
   </menu>
 </interface>

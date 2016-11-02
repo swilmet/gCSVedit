@@ -20,7 +20,7 @@
 #ifndef GCSV_APPLICATION_H
 #define GCSV_APPLICATION_H
 
-#include <gtk/gtk.h>
+#include <gtef/gtef.h>
 
 G_BEGIN_DECLS
 
@@ -47,9 +47,11 @@ struct _GcsvApplicationClass
 	GtkApplicationClass parent_class;
 };
 
-GType			gcsv_application_get_type	(void);
+GType			gcsv_application_get_type			(void);
 
-GcsvApplication *	gcsv_application_new		(void);
+GcsvApplication *	gcsv_application_new				(void);
+
+GtefActionInfoStore *	gcsv_application_get_action_info_store		(GcsvApplication *app);
 
 G_END_DECLS
 

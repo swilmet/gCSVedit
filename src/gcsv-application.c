@@ -34,7 +34,7 @@
 
 struct _GcsvApplicationPrivate
 {
-	gint something;
+	GtefActionInfoStore *action_info_store;
 };
 
 static gboolean option_version;
@@ -50,6 +50,35 @@ static GOptionEntry options[] = {
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (GcsvApplication, gcsv_application, GTK_TYPE_APPLICATION)
+
+static void
+add_action_info_entries (GcsvApplication *app)
+{
+	const GtefActionInfoEntry entries[] =
+	{
+		/* action, icon, label, accel, tooltip */
+
+		{ "app.quit", "application-exit", N_("_Quit"), "<Control>q",
+		  N_("Quit the application") },
+
+		{ "app.about", "help-about", N_("_About"), NULL,
+		  N_("About gCSVedit") },
+
+		{ "win.open", "document-open", N_("_Open"), "<Control>o",
+		  N_("Open a file") },
+
+		{ "win.save", "document-save", N_("_Save"), "<Control>s",
+		  N_("Save the current file") },
+
+		{ "win.save-as", "document-save-as", N_("Save _As"), "<Shift><Control>s",
+		  N_("Save the current file with a different name") },
+	};
+
+	gtef_action_info_store_add_entries (app->priv->action_info_store,
+					    entries,
+					    G_N_ELEMENTS (entries),
+					    GETTEXT_PACKAGE);
+}
 
 static GcsvWindow *
 get_active_gcsv_window (GcsvApplication *app)
@@ -232,6 +261,7 @@ gcsv_application_startup (GApplication *app)
 		G_APPLICATION_CLASS (gcsv_application_parent_class)->startup (app);
 	}
 
+	add_action_info_entries (GCSV_APPLICATION (app));
 	add_action_entries (GCSV_APPLICATION (app));
 	init_metadata_manager ();
 
@@ -306,9 +336,22 @@ gcsv_application_shutdown (GApplication *app)
 }
 
 static void
+gcsv_application_dispose (GObject *object)
+{
+	GcsvApplication *app = GCSV_APPLICATION (object);
+
+	g_clear_object (&app->priv->action_info_store);
+
+	G_OBJECT_CLASS (gcsv_application_parent_class)->dispose (object);
+}
+
+static void
 gcsv_application_class_init (GcsvApplicationClass *klass)
 {
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	GApplicationClass *gapp_class = G_APPLICATION_CLASS (klass);
+
+	object_class->dispose = gcsv_application_dispose;
 
 	gapp_class->handle_local_options = gcsv_application_handle_local_options;
 	gapp_class->startup = gcsv_application_startup;
@@ -321,6 +364,8 @@ static void
 gcsv_application_init (GcsvApplication *app)
 {
 	app->priv = gcsv_application_get_instance_private (app);
+
+	app->priv->action_info_store = gtef_action_info_store_new (GTK_APPLICATION (app));
 
 	g_set_application_name ("gCSVedit");
 	gtk_window_set_default_icon_name ("accessories-text-editor");
@@ -335,4 +380,12 @@ gcsv_application_new (void)
 			     "application-id", "be.uclouvain.gcsvedit",
 			     "flags", G_APPLICATION_HANDLES_OPEN,
 			     NULL);
+}
+
+GtefActionInfoStore *
+gcsv_application_get_action_info_store (GcsvApplication *app)
+{
+	g_return_val_if_fail (GCSV_IS_APPLICATION (app), NULL);
+
+	return app->priv->action_info_store;
 }
