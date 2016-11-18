@@ -524,7 +524,7 @@ gcsv_window_init (GcsvWindow *window)
 	update_statusbar_label (window);
 
 	g_signal_connect_object (buffer,
-				 "notify::title",
+				 "notify::gtef-title",
 				 G_CALLBACK (buffer_title_notify_cb),
 				 window,
 				 0);
@@ -536,7 +536,7 @@ gcsv_window_init (GcsvWindow *window)
 				 0);
 
 	g_signal_connect_object (buffer,
-				 "cursor-moved",
+				 "gtef-cursor-moved",
 				 G_CALLBACK (cursor_moved),
 				 window,
 				 G_CONNECT_SWAPPED);
