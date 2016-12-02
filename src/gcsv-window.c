@@ -205,18 +205,10 @@ save_cb (GtefFileSaver *saver,
 }
 
 static void
-launch_save (GcsvWindow *window,
-	     GFile      *location)
+launch_saver (GcsvWindow    *window,
+	      GtefFileSaver *saver)
 {
-	GtefBuffer *buffer_without_align;
-	GtefFileSaver *saver;
 	GApplication *app;
-
-	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
-
-	saver = gtef_file_saver_new_with_target (buffer_without_align,
-						 get_file (window),
-						 location);
 
 	app = g_application_get_default ();
 	g_application_hold (app);
@@ -238,12 +230,19 @@ save_activate_cb (GSimpleAction *save_action,
 		  gpointer       user_data)
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
+	GtefFile *file;
 	GFile *location;
+	GtefBuffer *buffer_without_align;
+	GtefFileSaver *saver;
 
-	location = gtef_file_get_location (get_file (window));
+	file = get_file (window);
+	location = gtef_file_get_location (file);
 	g_return_if_fail (location != NULL);
 
-	launch_save (window, location);
+	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
+
+	saver = gtef_file_saver_new (buffer_without_align, file);
+	launch_saver (window, saver);
 }
 
 static void
@@ -268,9 +267,18 @@ save_as_activate_cb (GSimpleAction *save_as_action,
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
 		GFile *location;
+		GtefBuffer *buffer_without_align;
+		GtefFileSaver *saver;
 
 		location = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
-		launch_save (window, location);
+
+		buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
+
+		saver = gtef_file_saver_new_with_target (buffer_without_align,
+							 get_file (window),
+							 location);
+		launch_saver (window, saver);
+
 		g_object_unref (location);
 	}
 
