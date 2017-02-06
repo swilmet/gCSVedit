@@ -141,6 +141,35 @@ about_activate_cb (GSimpleAction *about_action,
 			       NULL);
 }
 
+static void
+add_action_entries (GcsvApplication *app)
+{
+	const GActionEntry app_entries[] =
+	{
+		{ "quit", quit_activate_cb },
+		{ "about", about_activate_cb },
+	};
+
+	g_action_map_add_action_entries (G_ACTION_MAP (app),
+					 app_entries, G_N_ELEMENTS (app_entries),
+					 app);
+}
+
+static void
+init_metadata_manager (void)
+{
+	gchar *metadata_filename;
+
+	metadata_filename = g_build_filename (g_get_user_cache_dir (),
+					      "gcsvedit",
+					      "gcsvedit-metadata.xml",
+					      NULL);
+
+	gtef_metadata_manager_init (metadata_filename);
+
+	g_free (metadata_filename);
+}
+
 /* Code taken from gedit. */
 #ifdef G_OS_WIN32
 static void
@@ -198,32 +227,13 @@ prep_console (void)
 static void
 gcsv_application_startup (GApplication *app)
 {
-	gchar *metadata_filename;
-
-	/* GActions */
-	const GActionEntry app_entries[] = {
-		{ "quit", quit_activate_cb },
-		{ "about", about_activate_cb },
-	};
-
 	if (G_APPLICATION_CLASS (gcsv_application_parent_class)->startup != NULL)
 	{
 		G_APPLICATION_CLASS (gcsv_application_parent_class)->startup (app);
 	}
 
-	g_action_map_add_action_entries (G_ACTION_MAP (app),
-					 app_entries, G_N_ELEMENTS (app_entries),
-					 app);
-
-	/* Init metadata manager */
-	metadata_filename = g_build_filename (g_get_user_cache_dir (),
-					      "gcsvedit",
-					      "gcsvedit-metadata.xml",
-					      NULL);
-
-	gtef_metadata_manager_init (metadata_filename);
-
-	g_free (metadata_filename);
+	add_action_entries (GCSV_APPLICATION (app));
+	init_metadata_manager ();
 
 #ifdef G_OS_WIN32
 	setup_path ();
