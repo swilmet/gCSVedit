@@ -22,6 +22,8 @@ noinst_LTLIBRARIES = libgcsvedit.la
 libgcsvedit_la_SOURCES =		\
 	gcsv-alignment.c		\
 	gcsv-alignment.h		\
+	gcsv-application.c		\
+	gcsv-application.h		\
 	gcsv-buffer.c			\
 	gcsv-buffer.h			\
 	gcsv-properties-chooser.c	\
