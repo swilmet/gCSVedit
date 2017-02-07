@@ -13,7 +13,6 @@ be.uclouvain.gcsvedit.service: Makefile
 		     echo 'Exec=${bindir}/gcsvedit --gapplication-service') > $@.tmp && \
 		     mv $@.tmp $@
 
-DISTCLEANFILES =		\
-	$(dbusservice_DATA)
+CLEANFILES = $(dbusservice_DATA)
 
 -include $(top_srcdir)/git.mk
