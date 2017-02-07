@@ -125,7 +125,7 @@ about_activate_cb (GSimpleAction *about_action,
 
 	const gchar *copyright =
 		"Copyright 2015-2016 – Université Catholique de Louvain\n"
-		"Copyright 2015-2016 – Sébastien Wilmet";
+		"Copyright 2015-2017 – Sébastien Wilmet";
 
 	gtk_show_about_dialog (GTK_WINDOW (active_window),
 			       "name", g_get_application_name (),
