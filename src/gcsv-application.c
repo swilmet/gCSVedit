@@ -34,7 +34,7 @@
 
 struct _GcsvApplicationPrivate
 {
-	GtefActionInfoStore *action_info_store;
+	gint something;
 };
 
 static gboolean option_version;
@@ -52,8 +52,11 @@ static GOptionEntry options[] = {
 G_DEFINE_TYPE_WITH_PRIVATE (GcsvApplication, gcsv_application, GTK_TYPE_APPLICATION)
 
 static void
-add_action_info_entries (GcsvApplication *app)
+add_action_info_entries (GcsvApplication *gcsv_app)
 {
+	GtefApplication *gtef_app;
+	GtefActionInfoStore *store;
+
 	const GtefActionInfoEntry entries[] =
 	{
 		/* action, icon, label, accel, tooltip */
@@ -74,7 +77,10 @@ add_action_info_entries (GcsvApplication *app)
 		  N_("Save the current file with a different name") },
 	};
 
-	gtef_action_info_store_add_entries (app->priv->action_info_store,
+	gtef_app = gtef_application_get_from_gtk_application (GTK_APPLICATION (gcsv_app));
+	store = gtef_application_get_app_action_info_store (gtef_app);
+
+	gtef_action_info_store_add_entries (store,
 					    entries,
 					    G_N_ELEMENTS (entries),
 					    GETTEXT_PACKAGE);
@@ -336,22 +342,9 @@ gcsv_application_shutdown (GApplication *app)
 }
 
 static void
-gcsv_application_dispose (GObject *object)
-{
-	GcsvApplication *app = GCSV_APPLICATION (object);
-
-	g_clear_object (&app->priv->action_info_store);
-
-	G_OBJECT_CLASS (gcsv_application_parent_class)->dispose (object);
-}
-
-static void
 gcsv_application_class_init (GcsvApplicationClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	GApplicationClass *gapp_class = G_APPLICATION_CLASS (klass);
-
-	object_class->dispose = gcsv_application_dispose;
 
 	gapp_class->handle_local_options = gcsv_application_handle_local_options;
 	gapp_class->startup = gcsv_application_startup;
@@ -364,8 +357,6 @@ static void
 gcsv_application_init (GcsvApplication *app)
 {
 	app->priv = gcsv_application_get_instance_private (app);
-
-	app->priv->action_info_store = gtef_action_info_store_new (GTK_APPLICATION (app));
 
 	g_set_application_name ("gCSVedit");
 	gtk_window_set_default_icon_name ("accessories-text-editor");
@@ -380,12 +371,4 @@ gcsv_application_new (void)
 			     "application-id", "be.uclouvain.gcsvedit",
 			     "flags", G_APPLICATION_HANDLES_OPEN,
 			     NULL);
-}
-
-GtefActionInfoStore *
-gcsv_application_get_action_info_store (GcsvApplication *app)
-{
-	g_return_val_if_fail (GCSV_IS_APPLICATION (app), NULL);
-
-	return app->priv->action_info_store;
 }
