@@ -9,9 +9,7 @@ AM_CPPFLAGS =				\
 	$(WARN_CFLAGS)			\
 	$(CODE_COVERAGE_CPPFLAGS)
 
-AM_LDFLAGS =				\
-	$(WARN_LDFLAGS)			\
-	$(CODE_COVERAGE_LDFLAGS)
+AM_LDFLAGS = $(WARN_LDFLAGS)
 
 BUILT_SOURCES =			\
 	gcsv-resources.c
@@ -34,7 +32,9 @@ libgcsvedit_la_SOURCES =		\
 	gcsv-window.h
 
 libgcsvedit_la_CFLAGS = $(CODE_COVERAGE_CFLAGS)
-libgcsvedit_la_LIBADD = $(DEP_LIBS)
+libgcsvedit_la_LIBADD =		\
+	$(DEP_LIBS)		\
+	$(CODE_COVERAGE_LIBS)
 
 # The application
 bin_PROGRAMS = gcsvedit
