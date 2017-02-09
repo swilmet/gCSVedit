@@ -1,4 +1,4 @@
-SUBDIRS = data src testsuite po win32
+SUBDIRS = data po win32 src testsuite
 
 @CODE_COVERAGE_RULES@
 
