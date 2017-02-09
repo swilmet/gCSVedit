@@ -1,8 +1,8 @@
 desktopdir = $(datadir)/applications
 dist_desktop_DATA = be.uclouvain.gcsvedit.desktop
 
-appdatadir = $(datadir)/appdata
-dist_appdata_DATA = be.uclouvain.gcsvedit.appdata.xml
+appstream_XML = be.uclouvain.gcsvedit.appdata.xml
+@APPSTREAM_XML_RULES@
 
 dbusservicedir = $(datadir)/dbus-1/services
 dbusservice_DATA = be.uclouvain.gcsvedit.service
@@ -12,6 +12,8 @@ be.uclouvain.gcsvedit.service: Makefile
 		     echo 'Name=be.uclouvain.gcsvedit'; \
 		     echo 'Exec=${bindir}/gcsvedit --gapplication-service') > $@.tmp && \
 		     mv $@.tmp $@
+
+EXTRA_DIST = be.uclouvain.gcsvedit.appdata.xml
 
 CLEANFILES = $(dbusservice_DATA)
 

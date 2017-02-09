@@ -4,11 +4,14 @@ SUBDIRS = data src testsuite po win32
 
 @CODE_COVERAGE_RULES@
 
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-appstream-util
+
 MAINTAINERCLEANFILES = \
 	$(GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL) \
 	$(GITIGNORE_MAINTAINERCLEANFILES_MAKEFILE_IN) \
 	$(GITIGNORE_MAINTAINERCLEANFILES_M4_LIBTOOL) \
 	INSTALL \
+	m4/appstream-xml.m4 \
 	m4/ax_append_compile_flags.m4 \
 	m4/ax_append_flag.m4 \
 	m4/ax_append_link_flags.m4 \
