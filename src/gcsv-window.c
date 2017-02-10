@@ -527,6 +527,7 @@ create_menu_bar (void)
 	GtkWidget *file_menu_item;
 	GtkWidget *help_menu_item;
 	GtkMenuBar *menu_bar;
+	GtefActionInfoStore *store;
 
 	file_menu_item = gtk_menu_item_new_with_mnemonic ("_File");
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
@@ -539,6 +540,9 @@ create_menu_bar (void)
 	menu_bar = GTK_MENU_BAR (gtk_menu_bar_new ());
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), file_menu_item);
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), help_menu_item);
+
+	store = get_action_info_store ();
+	gtef_action_info_store_check_all_used (store);
 
 	return menu_bar;
 }
