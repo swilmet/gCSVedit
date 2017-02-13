@@ -33,8 +33,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtksourceview/3.22/gtksourceview-3.22.0.tar.xz",
-                    "sha256": "70657f48732427984dce6cc812bdd3f2b701c0a49e0a0a08889705b3dadcf8e5"
+                    "url": "https://download.gnome.org/sources/gtksourceview/3.22/gtksourceview-3.22.2.tar.xz",
+                    "sha256": "6ce84231dd0931cc747708434ca2f344c65a092dd6e1a800283fe0748773af5e"
                 }
             ]
         },
