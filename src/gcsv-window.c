@@ -318,10 +318,10 @@ add_actions (GcsvWindow *window)
 		{ "save-as", save_as_activate_cb },
 	};
 
-	g_action_map_add_action_entries (G_ACTION_MAP (window),
-					 entries,
-					 G_N_ELEMENTS (entries),
-					 window);
+	gtef_action_map_add_action_entries_check_dups (G_ACTION_MAP (window),
+						       entries,
+						       G_N_ELEMENTS (entries),
+						       window);
 
 	update_actions_sensitivity (window);
 }

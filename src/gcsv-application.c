@@ -185,9 +185,10 @@ add_action_entries (GcsvApplication *app)
 		{ "about", about_activate_cb },
 	};
 
-	g_action_map_add_action_entries (G_ACTION_MAP (app),
-					 app_entries, G_N_ELEMENTS (app_entries),
-					 app);
+	gtef_action_map_add_action_entries_check_dups (G_ACTION_MAP (app),
+						       app_entries,
+						       G_N_ELEMENTS (app_entries),
+						       app);
 }
 
 static void
