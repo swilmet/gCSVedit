@@ -551,9 +551,12 @@ static void
 gcsv_window_init (GcsvWindow *window)
 {
 	GtkWidget *vgrid;
+	GtkMenuBar *menu_bar;
+	GtefMenuShell *gtef_menu_shell;
 	GtkWidget *scrolled_window;
 	GtkWidget *statusbar;
 	GcsvBuffer *buffer;
+	GtefApplicationWindow *gtef_window;
 
 	window->view = create_view ();
 	buffer = get_buffer (window);
@@ -563,8 +566,8 @@ gcsv_window_init (GcsvWindow *window)
 	vgrid = gtk_grid_new ();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
 
-	gtk_container_add (GTK_CONTAINER (vgrid),
-			   GTK_WIDGET (create_menu_bar ()));
+	menu_bar = create_menu_bar ();
+	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (menu_bar));
 
 	/* Properties chooser */
 	window->properties_chooser = gcsv_properties_chooser_new (buffer);
@@ -595,6 +598,12 @@ gcsv_window_init (GcsvWindow *window)
 			  GTK_WIDGET (window->statusbar_label),
 			  FALSE, TRUE, 0);
 	gtk_container_add (GTK_CONTAINER (vgrid), statusbar);
+
+	/* Connect menubar to statusbar */
+	gtef_window = gtef_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	gtef_application_window_set_statusbar (gtef_window, GTK_STATUSBAR (statusbar));
+	gtef_menu_shell = gtef_menu_shell_get_from_gtk_menu_shell (GTK_MENU_SHELL (menu_bar));
+	gtef_application_window_connect_menu_to_statusbar (gtef_window, gtef_menu_shell);
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
 	gtk_widget_grab_focus (GTK_WIDGET (window->view));
