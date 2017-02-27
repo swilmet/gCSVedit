@@ -359,7 +359,7 @@ gcsv_application_init (GcsvApplication *app)
 {
 	app->priv = gcsv_application_get_instance_private (app);
 
-	g_set_application_name ("gCSVedit");
+	g_set_application_name (PACKAGE_NAME);
 	gtk_window_set_default_icon_name ("accessories-text-editor");
 
 	g_application_add_main_option_entries (G_APPLICATION (app), options);
