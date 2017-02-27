@@ -152,16 +152,14 @@ open_activate_cb (GSimpleAction *open_action,
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
 		GApplication *app;
-		GFile *file;
 		GFile *files[1];
 
-		file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
-		files[0] = file;
+		files[0] = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
 
 		app = g_application_get_default ();
-		g_application_open (app, files, 1, NULL);
+		g_application_open (app, files, 1, "");
 
-		g_object_unref (file);
+		g_object_unref (files[0]);
 	}
 
 	g_object_unref (file_chooser);
