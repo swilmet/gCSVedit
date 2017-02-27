@@ -151,15 +151,15 @@ open_activate_cb (GSimpleAction *open_action,
 	response_id = gtk_native_dialog_run (GTK_NATIVE_DIALOG (file_chooser));
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
-		GApplication *app;
-		GFile *files[1];
+		GtefApplication *app;
+		GFile *file;
 
-		files[0] = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
+		file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
 
-		app = g_application_get_default ();
-		g_application_open (app, files, 1, "");
+		app = gtef_application_get_default ();
+		gtef_application_open_simple (app, file);
 
-		g_object_unref (files[0]);
+		g_object_unref (file);
 	}
 
 	g_object_unref (file_chooser);
@@ -493,17 +493,17 @@ open_recent_file_cb (GtkRecentChooser *recent_chooser,
 		     gpointer          user_data)
 {
 	gchar *uri;
-	GFile *files[1];
-	GApplication *app;
+	GFile *file;
+	GtefApplication *app;
 
 	uri = gtk_recent_chooser_get_current_uri (recent_chooser);
-	files[0] = g_file_new_for_uri (uri);
+	file = g_file_new_for_uri (uri);
 
-	app = g_application_get_default ();
-	g_application_open (app, files, 1, "");
+	app = gtef_application_get_default ();
+	gtef_application_open_simple (app, file);
 
 	g_free (uri);
-	g_object_unref (files[0]);
+	g_object_unref (file);
 }
 
 static GtkWidget *
