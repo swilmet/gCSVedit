@@ -523,7 +523,7 @@ create_open_recent_menu_item (void)
 	gtk_recent_chooser_set_sort_type (recent_chooser, GTK_RECENT_SORT_MRU);
 
 	filter = gtk_recent_filter_new ();
-	gtk_recent_filter_add_application (filter, PACKAGE_NAME);
+	gtk_recent_filter_add_application (filter, g_get_application_name ());
 	gtk_recent_chooser_set_filter (recent_chooser, filter);
 
 	g_signal_connect (recent_chooser,
