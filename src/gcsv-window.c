@@ -490,6 +490,54 @@ get_action_info_store (void)
 	return gtef_application_get_app_action_info_store (gtef_app);
 }
 
+static void
+open_recent_file_cb (GtkRecentChooser *recent_chooser,
+		     gpointer          user_data)
+{
+	gchar *uri;
+	GFile *files[1];
+	GApplication *app;
+
+	uri = gtk_recent_chooser_get_current_uri (recent_chooser);
+	files[0] = g_file_new_for_uri (uri);
+
+	app = g_application_get_default ();
+	g_application_open (app, files, 1, "");
+
+	g_free (uri);
+	g_object_unref (files[0]);
+}
+
+static GtkWidget *
+create_open_recent_menu_item (void)
+{
+	GtkMenuItem *menu_item;
+	GtkWidget *recent_chooser_menu;
+	GtkRecentChooser *recent_chooser;
+	GtkRecentFilter *filter;
+
+	menu_item = GTK_MENU_ITEM (gtk_menu_item_new_with_mnemonic ("Open _Recent"));
+
+	recent_chooser_menu = gtk_recent_chooser_menu_new ();
+	gtk_menu_item_set_submenu (menu_item, recent_chooser_menu);
+
+	recent_chooser = GTK_RECENT_CHOOSER (recent_chooser_menu);
+	gtk_recent_chooser_set_local_only (recent_chooser, FALSE);
+	gtk_recent_chooser_set_show_tips (recent_chooser, TRUE);
+	gtk_recent_chooser_set_sort_type (recent_chooser, GTK_RECENT_SORT_MRU);
+
+	filter = gtk_recent_filter_new ();
+	gtk_recent_filter_add_application (filter, PACKAGE_NAME);
+	gtk_recent_chooser_set_filter (recent_chooser, filter);
+
+	g_signal_connect (recent_chooser,
+			  "item-activated",
+			  G_CALLBACK (open_recent_file_cb),
+			  NULL);
+
+	return GTK_WIDGET (menu_item);
+}
+
 static GtkWidget *
 create_file_submenu (void)
 {
@@ -500,8 +548,11 @@ create_file_submenu (void)
 	file_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.open"));
+	gtk_menu_shell_append (file_submenu, create_open_recent_menu_item ());
+	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save"));
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save-as"));
+	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "app.quit"));
 
 	return GTK_WIDGET (file_submenu);
