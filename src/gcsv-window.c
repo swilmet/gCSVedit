@@ -479,13 +479,11 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 static GtefActionInfoStore *
 get_action_info_store (void)
 {
-	GtkApplication *gtk_app;
-	GtefApplication *gtef_app;
+	GtefApplication *app;
 
-	gtk_app = GTK_APPLICATION (g_application_get_default ());
-	gtef_app = gtef_application_get_from_gtk_application (gtk_app);
+	app = gtef_application_get_default ();
 
-	return gtef_application_get_app_action_info_store (gtef_app);
+	return gtef_application_get_app_action_info_store (app);
 }
 
 static void
