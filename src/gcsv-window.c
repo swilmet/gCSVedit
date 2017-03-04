@@ -512,7 +512,8 @@ create_open_recent_menu_item (void)
 	GtkRecentChooser *recent_chooser;
 	GtkRecentFilter *filter;
 
-	menu_item = GTK_MENU_ITEM (gtk_menu_item_new_with_mnemonic ("Open _Recent"));
+	menu_item = GTK_MENU_ITEM (gtk_menu_item_new_with_mnemonic (_("Open _Recent")));
+	gtef_menu_item_set_long_description (menu_item, _("Open a file recently used in gCSVedit"));
 
 	recent_chooser_menu = gtk_recent_chooser_menu_new ();
 	gtk_menu_item_set_submenu (menu_item, recent_chooser_menu);
