@@ -1251,6 +1251,19 @@ gcsv_alignment_dispose (GObject *object)
 }
 
 static void
+gcsv_alignment_finalize (GObject *object)
+{
+	GcsvAlignment *align = GCSV_ALIGNMENT (object);
+
+	if (align->column_lengths != NULL)
+	{
+		g_array_unref (align->column_lengths);
+	}
+
+	G_OBJECT_CLASS (gcsv_alignment_parent_class)->finalize (object);
+}
+
+static void
 gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -1258,6 +1271,7 @@ gcsv_alignment_class_init (GcsvAlignmentClass *klass)
 	object_class->get_property = gcsv_alignment_get_property;
 	object_class->set_property = gcsv_alignment_set_property;
 	object_class->dispose = gcsv_alignment_dispose;
+	object_class->finalize = gcsv_alignment_finalize;
 
 	g_object_class_install_property (object_class,
 					 PROP_BUFFER,
