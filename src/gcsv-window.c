@@ -486,69 +486,20 @@ get_action_info_store (void)
 	return gtef_application_get_app_action_info_store (app);
 }
 
-static void
-open_recent_file_cb (GtkRecentChooser *recent_chooser,
-		     gpointer          user_data)
-{
-	gchar *uri;
-	GFile *file;
-	GtefApplication *app;
-
-	uri = gtk_recent_chooser_get_current_uri (recent_chooser);
-	file = g_file_new_for_uri (uri);
-
-	app = gtef_application_get_default ();
-	gtef_application_open_simple (app, file);
-
-	g_free (uri);
-	g_object_unref (file);
-}
-
 static GtkWidget *
-create_open_recent_menu_item (GcsvWindow *gcsv_window)
-{
-	GtkMenuItem *menu_item;
-	GtkRecentChooserMenu *recent_chooser_menu;
-	GtkRecentChooser *recent_chooser;
-	GtkRecentFilter *filter;
-	GtefApplicationWindow *gtef_window;
-
-	menu_item = GTK_MENU_ITEM (gtk_menu_item_new_with_mnemonic (_("Open _Recent")));
-	gtef_menu_item_set_long_description (menu_item, _("Open a file recently used in gCSVedit"));
-
-	recent_chooser_menu = GTK_RECENT_CHOOSER_MENU (gtk_recent_chooser_menu_new ());
-	gtk_menu_item_set_submenu (menu_item, GTK_WIDGET (recent_chooser_menu));
-
-	recent_chooser = GTK_RECENT_CHOOSER (recent_chooser_menu);
-	gtk_recent_chooser_set_local_only (recent_chooser, FALSE);
-	gtk_recent_chooser_set_sort_type (recent_chooser, GTK_RECENT_SORT_MRU);
-
-	filter = gtk_recent_filter_new ();
-	gtk_recent_filter_add_application (filter, g_get_application_name ());
-	gtk_recent_chooser_set_filter (recent_chooser, filter);
-
-	g_signal_connect (recent_chooser,
-			  "item-activated",
-			  G_CALLBACK (open_recent_file_cb),
-			  NULL);
-
-	gtef_window = gtef_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
-	gtef_application_window_connect_recent_chooser_menu_to_statusbar (gtef_window, recent_chooser_menu);
-
-	return GTK_WIDGET (menu_item);
-}
-
-static GtkWidget *
-create_file_submenu (GcsvWindow *window)
+create_file_submenu (GcsvWindow *gcsv_window)
 {
 	GtefActionInfoStore *store;
 	GtkMenuShell *file_submenu;
+	GtefApplicationWindow *gtef_window;
 
 	store = get_action_info_store ();
 	file_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
+	gtef_window = gtef_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
+
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.open"));
-	gtk_menu_shell_append (file_submenu, create_open_recent_menu_item (window));
+	gtk_menu_shell_append (file_submenu, gtef_application_window_create_open_recent_menu_item (gtef_window));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save"));
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save-as"));
