@@ -505,22 +505,22 @@ open_recent_file_cb (GtkRecentChooser *recent_chooser,
 }
 
 static GtkWidget *
-create_open_recent_menu_item (void)
+create_open_recent_menu_item (GcsvWindow *gcsv_window)
 {
 	GtkMenuItem *menu_item;
-	GtkWidget *recent_chooser_menu;
+	GtkRecentChooserMenu *recent_chooser_menu;
 	GtkRecentChooser *recent_chooser;
 	GtkRecentFilter *filter;
+	GtefApplicationWindow *gtef_window;
 
 	menu_item = GTK_MENU_ITEM (gtk_menu_item_new_with_mnemonic (_("Open _Recent")));
 	gtef_menu_item_set_long_description (menu_item, _("Open a file recently used in gCSVedit"));
 
-	recent_chooser_menu = gtk_recent_chooser_menu_new ();
-	gtk_menu_item_set_submenu (menu_item, recent_chooser_menu);
+	recent_chooser_menu = GTK_RECENT_CHOOSER_MENU (gtk_recent_chooser_menu_new ());
+	gtk_menu_item_set_submenu (menu_item, GTK_WIDGET (recent_chooser_menu));
 
 	recent_chooser = GTK_RECENT_CHOOSER (recent_chooser_menu);
 	gtk_recent_chooser_set_local_only (recent_chooser, FALSE);
-	gtk_recent_chooser_set_show_tips (recent_chooser, TRUE);
 	gtk_recent_chooser_set_sort_type (recent_chooser, GTK_RECENT_SORT_MRU);
 
 	filter = gtk_recent_filter_new ();
@@ -532,11 +532,14 @@ create_open_recent_menu_item (void)
 			  G_CALLBACK (open_recent_file_cb),
 			  NULL);
 
+	gtef_window = gtef_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
+	gtef_application_window_connect_recent_chooser_menu_to_statusbar (gtef_window, recent_chooser_menu);
+
 	return GTK_WIDGET (menu_item);
 }
 
 static GtkWidget *
-create_file_submenu (void)
+create_file_submenu (GcsvWindow *window)
 {
 	GtefActionInfoStore *store;
 	GtkMenuShell *file_submenu;
@@ -545,7 +548,7 @@ create_file_submenu (void)
 	file_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.open"));
-	gtk_menu_shell_append (file_submenu, create_open_recent_menu_item ());
+	gtk_menu_shell_append (file_submenu, create_open_recent_menu_item (window));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save"));
 	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save-as"));
@@ -570,7 +573,7 @@ create_help_submenu (void)
 }
 
 static GtkMenuBar *
-create_menu_bar (void)
+create_menu_bar (GcsvWindow *window)
 {
 	GtkWidget *file_menu_item;
 	GtkWidget *help_menu_item;
@@ -579,7 +582,7 @@ create_menu_bar (void)
 
 	file_menu_item = gtk_menu_item_new_with_mnemonic ("_File");
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
-				   create_file_submenu ());
+				   create_file_submenu (window));
 
 	help_menu_item = gtk_menu_item_new_with_mnemonic ("_Help");
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (help_menu_item),
@@ -614,7 +617,7 @@ gcsv_window_init (GcsvWindow *window)
 	vgrid = gtk_grid_new ();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (vgrid), GTK_ORIENTATION_VERTICAL);
 
-	menu_bar = create_menu_bar ();
+	menu_bar = create_menu_bar (window);
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (menu_bar));
 
 	/* Properties chooser */
