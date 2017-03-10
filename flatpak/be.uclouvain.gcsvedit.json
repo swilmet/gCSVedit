@@ -1,7 +1,7 @@
 {
     "app-id": "be.uclouvain.gcsvedit",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "3.22",
+    "runtime-version": "3.24",
     "sdk": "org.gnome.Sdk",
     "command": "gcsvedit",
     "finish-args": [
@@ -9,8 +9,6 @@
         "--share=ipc", "--socket=x11",
         /* Wayland access */
         "--socket=wayland",
-        /* We want full fs access so we can read the files */
-        "--filesystem=host",
         /* Needed for dconf to work */
         "--filesystem=xdg-run/dconf", "--filesystem=~/.config/dconf:ro",
         "--talk-name=ca.desrt.dconf", "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
@@ -29,12 +27,35 @@
                 "*.la", "*.a"],
     "modules": [
         {
+            "name": "uchardet",
+            "buildsystem": "cmake",
+            "builddir": true,
+            "config-opts": [ "-DCMAKE_INSTALL_LIBDIR=lib" ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.6.tar.xz",
+                    "sha256": "8351328cdfbcb2432e63938721dd781eb8c11ebc56e3a89d0f84576b96002c61"
+                }
+            ]
+        },
+        {
             "name": "gtksourceview",
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtksourceview/3.22/gtksourceview-3.22.2.tar.xz",
-                    "sha256": "6ce84231dd0931cc747708434ca2f344c65a092dd6e1a800283fe0748773af5e"
+                    "url": "https://download.gnome.org/sources/gtksourceview/3.24/gtksourceview-3.24.0.tar.xz",
+                    "sha256": "4f7bfd06ea7a79886483e8a7769f7b05e1a41430cca258dd2b06be4a8a0e57f9"
+                }
+            ]
+        },
+        {
+            "name": "gtef",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.gnome.org/sources/gtef/2.0/gtef-2.0.0.tar.xz",
+                    "sha256": "12fb28b101bc14a7ed266a25e8ff41c0535e1201ce38905e443c8fca83e5ac71"
                 }
             ]
         },
@@ -43,8 +64,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://sourceforge.net/projects/gcsvedit/files/v0.2/gcsvedit-0.2.2.tar.xz",
-                    "sha256": "e2a5e44be60ae68e15e3e8d4d7bf4fc3b01e724c6c9cae199efa2ea4aa4ae7e0"
+                    "url": "https://sourceforge.net/projects/gcsvedit/files/v0.4/gcsvedit-0.4.0.tar.xz",
+                    "sha256": "cede957c5a4d02b42a7fd197d9510f4f73a2a6378d8322175937609ac7de5ce8"
                 }
             ]
         }
