@@ -1,3 +1,27 @@
+News in 0.4.0, 2017-03-18
+-------------------------
+
+User-visible changes:
+* When hovering a menu item, show a longer description in the statusbar.
+* Add a sub-menu to open recently used files, with the full path of the files
+  shown in the statusbar.
+
+Under-the-hood changes:
+* Use GtkSourceRegion (now a public class of GtkSourceView).
+* Create a Flatpak build manifest.
+* Use GtkFileChooserNative (required to properly sandbox the application with
+  Flatpak).
+* Use the new Gtef library. Some general-purpose text editor features of
+  gCSVedit have been moved to Gtef.
+* Use GtefFileLoader, GtefFileSaver and GtefFileMetadata.
+* Create the menu bar with the Gtef API.
+* Create the GcsvApplication class.
+* Improvements to the build system.
+
+News in 0.2.2, 2016-08-16
+-------------------------
+* Support for Microsoft Windows, an installer will land soon.
+
 News in 0.2.1, 2016-04-04
 -------------------------
 * gCSVedit is now hosted on SourceForge instead of GitHub

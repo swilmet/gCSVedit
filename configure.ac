@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.64)
 
 AC_INIT([gCSVedit],
-        [0.3.0],
+        [0.4.0],
 	[https://sourceforge.net/p/gcsvedit/tickets/],
 	[gcsvedit],
 	[http://gcsvedit.sourceforge.net/])
@@ -15,7 +15,7 @@ AX_IS_RELEASE([git-directory])
 GLIB_REQUIRED_VERSION=2.44
 GTK_REQUIRED_VERSION=3.20
 GTKSOURCEVIEW_REQUIRED_VERSION=3.23.1
-GTEF_REQUIRED_VERSION=1.99.2
+GTEF_REQUIRED_VERSION=2.0
 
 AC_CONFIG_SRCDIR([src/gcsv-main.c])
 AC_CONFIG_HEADER([config.h])

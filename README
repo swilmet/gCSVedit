@@ -1,7 +1,7 @@
 gCSVedit
 ========
 
-This is version 0.3.0 of gCSVedit.
+This is version 0.4.0 of gCSVedit.
 
 gCSVedit is a simple CSV text editor.
 
@@ -45,7 +45,7 @@ Dependencies
 - GLib >= 2.44
 - GTK+ >= 3.20
 - GtkSourceView >= 3.23.1
-- Gtef >= 1.99.2 : https://wiki.gnome.org/Projects/Gtef
+- Gtef >= 2.0 : https://wiki.gnome.org/Projects/Gtef
 
 Installation
 ------------
