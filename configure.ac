@@ -37,9 +37,10 @@ LT_INIT([disable-static])
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
 AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
 
-# Compile warnings
+# Compile warnings. There can be deprecation warnings at any time, so disable
+# -Werror by default with the [yes] argument.
 AX_REQUIRE_DEFINED([AX_COMPILER_FLAGS])
-AX_COMPILER_FLAGS([WARN_CFLAGS], [WARN_LDFLAGS])
+AX_COMPILER_FLAGS([WARN_CFLAGS], [WARN_LDFLAGS], [yes])
 
 # pkg-config
 AX_REQUIRE_DEFINED([PKG_CHECK_MODULES])
