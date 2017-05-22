@@ -206,6 +206,20 @@ init_metadata_manager (void)
 	g_free (metadata_filename);
 }
 
+static void
+set_app_menu_if_needed (GtkApplication *app)
+{
+	GMenu *manual_app_menu;
+
+	manual_app_menu = gtk_application_get_menu_by_id (app, "manual-app-menu");
+	g_return_if_fail (manual_app_menu != NULL);
+
+	if (gtk_application_prefers_app_menu (app))
+	{
+		gtk_application_set_app_menu (app, G_MENU_MODEL (manual_app_menu));
+	}
+}
+
 /* Code taken from gedit. */
 #ifdef G_OS_WIN32
 static void
@@ -271,6 +285,7 @@ gcsv_application_startup (GApplication *app)
 	add_action_info_entries (GCSV_APPLICATION (app));
 	add_action_entries (GCSV_APPLICATION (app));
 	init_metadata_manager ();
+	set_app_menu_if_needed (GTK_APPLICATION (app));
 
 #ifdef G_OS_WIN32
 	setup_path ();
