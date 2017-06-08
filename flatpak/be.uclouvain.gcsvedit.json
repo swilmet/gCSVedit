@@ -44,8 +44,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtksourceview/3.24/gtksourceview-3.24.0.tar.xz",
-                    "sha256": "4f7bfd06ea7a79886483e8a7769f7b05e1a41430cca258dd2b06be4a8a0e57f9"
+                    "url": "https://download.gnome.org/sources/gtksourceview/3.24/gtksourceview-3.24.2.tar.xz",
+                    "sha256": "c96c88f1c6ea936db57239f489f5772940de9f9da90a194f51eba52da0cdb89f"
                 }
             ]
         },
@@ -54,8 +54,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtef/2.0/gtef-2.0.0.tar.xz",
-                    "sha256": "12fb28b101bc14a7ed266a25e8ff41c0535e1201ce38905e443c8fca83e5ac71"
+                    "url": "https://download.gnome.org/sources/gtef/2.0/gtef-2.0.1.tar.xz",
+                    "sha256": "8432f0f404b93e5a2702978b5f121b8f9ae2167c906e9f2ed7b5165142e27a4f"
                 }
             ]
         },
