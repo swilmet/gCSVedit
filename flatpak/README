@@ -1,7 +1,4 @@
 Flatpak for gCSVedit
 ====================
 
-1. build.sh
-2. add-remote.sh
-3. install-app.sh
-4. run-app.sh
+Scripts are provided to test easily the Flatpak manifest.
