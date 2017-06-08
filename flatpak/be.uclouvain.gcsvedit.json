@@ -67,9 +67,9 @@
             "name": "gcsvedit",
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://sourceforge.net/projects/gcsvedit/files/v0.4/gcsvedit-0.4.0.tar.xz",
-                    "sha256": "cede957c5a4d02b42a7fd197d9510f4f73a2a6378d8322175937609ac7de5ce8"
+                    "type": "git",
+                    "url": "git://git.code.sf.net/p/gcsvedit/code",
+                    "branch": "master"
                 }
             ]
         }
