@@ -110,23 +110,55 @@ gcsv_window_close (GcsvWindow *window)
 }
 
 static void
+open_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
+			       gint                  response_id,
+			       GcsvWindow           *window)
+{
+	if (response_id == GTK_RESPONSE_ACCEPT)
+	{
+		GtefApplication *app;
+		GFile *file;
+
+		file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog));
+
+		app = gtef_application_get_default ();
+		gtef_application_open_simple (app, file);
+
+		g_object_unref (file);
+	}
+
+	gtk_widget_destroy (GTK_WIDGET (file_chooser_dialog));
+}
+
+static void
 open_activate_cb (GSimpleAction *open_action,
 		  GVariant      *parameter,
 		  gpointer       user_data)
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
-	GtkFileChooserNative *file_chooser;
+	GtkWidget *file_chooser_dialog;
+	GtkFileChooser *file_chooser;
 	GtkFileFilter *dsv_filter;
 	GtkFileFilter *all_filter;
-	gint response_id;
 
-	file_chooser = gtk_file_chooser_native_new (_("Open File"),
-						    GTK_WINDOW (window),
-						    GTK_FILE_CHOOSER_ACTION_OPEN,
-						    _("_Open"),
-						    _("_Cancel"));
+	/* Create a GtkFileChooserDialog, not a GtkFileChooserNative, because
+	 * with GtkFileChooserNative the GFile that we obtain (in flatpak)
+	 * doesn't have the real path to the file, so it would screw up some
+	 * features in gCSVedit:
+	 * - showing the directory in parentheses in the window title;
+	 * - opening a recent file.
+	 */
+	file_chooser_dialog = gtk_file_chooser_dialog_new (_("Open File"),
+							   GTK_WINDOW (window),
+							   GTK_FILE_CHOOSER_ACTION_OPEN,
+							   _("_Cancel"), GTK_RESPONSE_CANCEL,
+							   _("_Open"), GTK_RESPONSE_ACCEPT,
+							   NULL);
 
-	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (file_chooser), FALSE);
+	gtk_dialog_set_default_response (GTK_DIALOG (file_chooser_dialog), GTK_RESPONSE_ACCEPT);
+
+	file_chooser = GTK_FILE_CHOOSER (file_chooser_dialog);
+	gtk_file_chooser_set_local_only (file_chooser, FALSE);
 
 	dsv_filter = gtk_file_filter_new ();
 	gtk_file_filter_set_name (dsv_filter, _("CSV and TSV Files"));
@@ -139,30 +171,22 @@ open_activate_cb (GSimpleAction *open_action,
 	gtk_file_filter_add_mime_type (dsv_filter, "text/csv");
 	gtk_file_filter_add_mime_type (dsv_filter, "text/tab-separated-values");
 #endif
-	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (file_chooser), dsv_filter);
+	gtk_file_chooser_add_filter (file_chooser, dsv_filter);
 
 	all_filter = gtk_file_filter_new ();
 	gtk_file_filter_set_name (all_filter, _("All Files"));
 	gtk_file_filter_add_pattern (all_filter, "*");
-	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (file_chooser), all_filter);
+	gtk_file_chooser_add_filter (file_chooser, all_filter);
 
-	gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (file_chooser), dsv_filter);
+	gtk_file_chooser_set_filter (file_chooser, dsv_filter);
 
-	response_id = gtk_native_dialog_run (GTK_NATIVE_DIALOG (file_chooser));
-	if (response_id == GTK_RESPONSE_ACCEPT)
-	{
-		GtefApplication *app;
-		GFile *file;
+	g_signal_connect_object (file_chooser_dialog,
+				 "response",
+				 G_CALLBACK (open_file_chooser_response_cb),
+				 window,
+				 0);
 
-		file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser));
-
-		app = gtef_application_get_default ();
-		gtef_application_open_simple (app, file);
-
-		g_object_unref (file);
-	}
-
-	g_object_unref (file_chooser);
+	gtk_widget_show (file_chooser_dialog);
 }
 
 static void
