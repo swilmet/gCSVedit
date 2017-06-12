@@ -22,14 +22,14 @@
 #ifndef GCSV_BUFFER_H
 #define GCSV_BUFFER_H
 
-#include <gtef/gtef.h>
+#include <tepl/tepl.h>
 
 G_BEGIN_DECLS
 
 #define GCSV_TYPE_BUFFER (gcsv_buffer_get_type ())
 G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 		      GCSV, BUFFER,
-		      GtefBuffer)
+		      TeplBuffer)
 
 GcsvBuffer *		gcsv_buffer_new				(void);
 

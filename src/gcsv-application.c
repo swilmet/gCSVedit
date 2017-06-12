@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "gcsv-application.h"
-#include <gtef/gtef.h>
+#include <tepl/tepl.h>
 #include <glib/gi18n.h>
 #include "gcsv-window.h"
 
@@ -54,10 +54,10 @@ G_DEFINE_TYPE_WITH_PRIVATE (GcsvApplication, gcsv_application, GTK_TYPE_APPLICAT
 static void
 add_action_info_entries (GcsvApplication *gcsv_app)
 {
-	GtefApplication *gtef_app;
-	GtefActionInfoStore *store;
+	TeplApplication *tepl_app;
+	TeplActionInfoStore *store;
 
-	const GtefActionInfoEntry entries[] =
+	const TeplActionInfoEntry entries[] =
 	{
 		/* action, icon, label, accel, tooltip */
 
@@ -77,10 +77,10 @@ add_action_info_entries (GcsvApplication *gcsv_app)
 		  N_("Save the current file with a different name") },
 	};
 
-	gtef_app = gtef_application_get_from_gtk_application (GTK_APPLICATION (gcsv_app));
-	store = gtef_application_get_app_action_info_store (gtef_app);
+	tepl_app = tepl_application_get_from_gtk_application (GTK_APPLICATION (gcsv_app));
+	store = tepl_application_get_app_action_info_store (tepl_app);
 
-	gtef_action_info_store_add_entries (store,
+	tepl_action_info_store_add_entries (store,
 					    entries,
 					    G_N_ELEMENTS (entries),
 					    GETTEXT_PACKAGE);
@@ -185,7 +185,7 @@ add_action_entries (GcsvApplication *app)
 		{ "about", about_activate_cb },
 	};
 
-	gtef_action_map_add_action_entries_check_dups (G_ACTION_MAP (app),
+	tepl_action_map_add_action_entries_check_dups (G_ACTION_MAP (app),
 						       app_entries,
 						       G_N_ELEMENTS (app_entries),
 						       app);
@@ -201,7 +201,7 @@ init_metadata_manager (void)
 					      "gcsvedit-metadata.xml",
 					      NULL);
 
-	gtef_metadata_manager_init (metadata_filename);
+	tepl_metadata_manager_init (metadata_filename);
 
 	g_free (metadata_filename);
 }
@@ -354,7 +354,7 @@ gcsv_application_shutdown (GApplication *app)
 		G_APPLICATION_CLASS (gcsv_application_parent_class)->shutdown (app);
 	}
 
-	gtef_metadata_manager_shutdown ();
+	tepl_metadata_manager_shutdown ();
 }
 
 static void

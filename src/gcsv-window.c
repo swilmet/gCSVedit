@@ -23,7 +23,7 @@
 #include "config.h"
 #include "gcsv-window.h"
 #include <gtksourceview/gtksource.h>
-#include <gtef/gtef.h>
+#include <tepl/tepl.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
 #include "gcsv-application.h"
@@ -50,11 +50,11 @@ get_buffer (GcsvWindow *window)
 	return GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
 }
 
-static GtefFile *
+static TeplFile *
 get_file (GcsvWindow *window)
 {
 	GcsvBuffer *buffer = get_buffer (window);
-	return gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	return tepl_buffer_get_file (TEPL_BUFFER (buffer));
 }
 
 /* Returns whether @window has been closed. */
@@ -65,7 +65,7 @@ launch_close_confirmation_dialog (GcsvWindow *window)
 	const gchar *document_name;
 	gint response_id;
 
-	document_name = gtef_file_get_short_name (GTEF_FILE (get_file (window)));
+	document_name = tepl_file_get_short_name (TEPL_FILE (get_file (window)));
 
 	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
 					 GTK_DIALOG_DESTROY_WITH_PARENT |
@@ -116,13 +116,13 @@ open_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
 {
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
-		GtefApplication *app;
+		TeplApplication *app;
 		GFile *file;
 
 		file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog));
 
-		app = gtef_application_get_default ();
-		gtef_application_open_simple (app, file);
+		app = tepl_application_get_default ();
+		tepl_application_open_simple (app, file);
 
 		g_object_unref (file);
 	}
@@ -190,15 +190,15 @@ open_activate_cb (GSimpleAction *open_action,
 }
 
 static void
-save_cb (GtefFileSaver *saver,
+save_cb (TeplFileSaver *saver,
 	 GAsyncResult  *result,
 	 GcsvWindow    *window)
 {
 	GError *error = NULL;
-	GtefBuffer *buffer_without_align;
+	TeplBuffer *buffer_without_align;
 	GApplication *app;
 
-	if (gtef_file_saver_save_finish (saver, result, &error))
+	if (tepl_file_saver_save_finish (saver, result, &error))
 	{
 		GcsvBuffer *buffer;
 
@@ -217,7 +217,7 @@ save_cb (GtefFileSaver *saver,
 		g_clear_error (&error);
 	}
 
-	buffer_without_align = gtef_file_saver_get_buffer (saver);
+	buffer_without_align = tepl_file_saver_get_buffer (saver);
 	g_object_unref (buffer_without_align);
 	g_object_unref (saver);
 
@@ -230,7 +230,7 @@ save_cb (GtefFileSaver *saver,
 
 static void
 launch_saver (GcsvWindow    *window,
-	      GtefFileSaver *saver)
+	      TeplFileSaver *saver)
 {
 	GApplication *app;
 
@@ -238,7 +238,7 @@ launch_saver (GcsvWindow    *window,
 	g_application_hold (app);
 	g_application_mark_busy (app);
 
-	gtef_file_saver_save_async (saver,
+	tepl_file_saver_save_async (saver,
 				    G_PRIORITY_DEFAULT,
 				    NULL,
 				    NULL,
@@ -254,18 +254,18 @@ save_activate_cb (GSimpleAction *save_action,
 		  gpointer       user_data)
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
-	GtefFile *file;
+	TeplFile *file;
 	GFile *location;
-	GtefBuffer *buffer_without_align;
-	GtefFileSaver *saver;
+	TeplBuffer *buffer_without_align;
+	TeplFileSaver *saver;
 
 	file = get_file (window);
-	location = gtef_file_get_location (file);
+	location = tepl_file_get_location (file);
 	g_return_if_fail (location != NULL);
 
 	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
 
-	saver = gtef_file_saver_new (buffer_without_align, file);
+	saver = tepl_file_saver_new (buffer_without_align, file);
 	launch_saver (window, saver);
 }
 
@@ -277,14 +277,14 @@ save_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
 		GFile *location;
-		GtefBuffer *buffer_without_align;
-		GtefFileSaver *saver;
+		TeplBuffer *buffer_without_align;
+		TeplFileSaver *saver;
 
 		location = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog));
 
 		buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
 
-		saver = gtef_file_saver_new_with_target (buffer_without_align,
+		saver = tepl_file_saver_new_with_target (buffer_without_align,
 							 get_file (window),
 							 location);
 		launch_saver (window, saver);
@@ -332,14 +332,14 @@ update_save_action_sensitivity (GcsvWindow *window)
 {
 	GAction *action;
 	GcsvBuffer *buffer;
-	GtefFile *file;
+	TeplFile *file;
 
 	buffer = get_buffer (window);
 	file = get_file (window);
 
 	action = g_action_map_lookup_action (G_ACTION_MAP (window), "save");
 	g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
-				     gtef_file_get_location (file) != NULL &&
+				     tepl_file_get_location (file) != NULL &&
 				     gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)));
 }
 
@@ -358,7 +358,7 @@ add_actions (GcsvWindow *window)
 		{ "save-as", save_as_activate_cb },
 	};
 
-	gtef_action_map_add_action_entries_check_dups (G_ACTION_MAP (window),
+	tepl_action_map_add_action_entries_check_dups (G_ACTION_MAP (window),
 						       entries,
 						       G_N_ELEMENTS (entries),
 						       window);
@@ -404,7 +404,7 @@ update_title (GcsvWindow *window)
 	gchar *buffer_title;
 	gchar *window_title;
 
-	buffer_title = gtef_buffer_get_title (GTEF_BUFFER (get_buffer (window)));
+	buffer_title = tepl_buffer_get_title (TEPL_BUFFER (get_buffer (window)));
 
 	window_title = g_strdup_printf ("%s - %s",
 					buffer_title,
@@ -417,7 +417,7 @@ update_title (GcsvWindow *window)
 }
 
 static void
-buffer_title_notify_cb (GtefBuffer *buffer,
+buffer_title_notify_cb (TeplBuffer *buffer,
 			GParamSpec *pspec,
 			GcsvWindow *window)
 {
@@ -432,7 +432,7 @@ buffer_modified_changed_cb (GtkTextBuffer *buffer,
 }
 
 static void
-location_notify_cb (GtefFile   *file,
+location_notify_cb (TeplFile   *file,
 		    GParamSpec *pspec,
 		    GcsvWindow *window)
 {
@@ -518,35 +518,35 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 	widget_class->delete_event = gcsv_window_delete_event;
 }
 
-static GtefActionInfoStore *
+static TeplActionInfoStore *
 get_action_info_store (void)
 {
-	GtefApplication *app;
+	TeplApplication *app;
 
-	app = gtef_application_get_default ();
+	app = tepl_application_get_default ();
 
-	return gtef_application_get_app_action_info_store (app);
+	return tepl_application_get_app_action_info_store (app);
 }
 
 static GtkWidget *
 create_file_submenu (GcsvWindow *gcsv_window)
 {
-	GtefActionInfoStore *store;
+	TeplActionInfoStore *store;
 	GtkMenuShell *file_submenu;
-	GtefApplicationWindow *gtef_window;
+	TeplApplicationWindow *tepl_window;
 
 	store = get_action_info_store ();
 	file_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
-	gtef_window = gtef_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
 
-	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.open"));
-	gtk_menu_shell_append (file_submenu, gtef_application_window_create_open_recent_menu_item (gtef_window));
+	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "win.open"));
+	gtk_menu_shell_append (file_submenu, tepl_application_window_create_open_recent_menu_item (tepl_window));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
-	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save"));
-	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "win.save-as"));
+	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "win.save"));
+	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "win.save-as"));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
-	gtk_menu_shell_append (file_submenu, gtef_action_info_store_create_menu_item (store, "app.quit"));
+	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "app.quit"));
 
 	return GTK_WIDGET (file_submenu);
 }
@@ -554,13 +554,13 @@ create_file_submenu (GcsvWindow *gcsv_window)
 static GtkWidget *
 create_help_submenu (void)
 {
-	GtefActionInfoStore *store;
+	TeplActionInfoStore *store;
 	GtkMenuShell *help_submenu;
 
 	store = get_action_info_store ();
 	help_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
-	gtk_menu_shell_append (help_submenu, gtef_action_info_store_create_menu_item (store, "app.about"));
+	gtk_menu_shell_append (help_submenu, tepl_action_info_store_create_menu_item (store, "app.about"));
 
 	return GTK_WIDGET (help_submenu);
 }
@@ -571,7 +571,7 @@ create_menu_bar (GcsvWindow *window)
 	GtkWidget *file_menu_item;
 	GtkWidget *help_menu_item;
 	GtkMenuBar *menu_bar;
-	GtefActionInfoStore *store;
+	TeplActionInfoStore *store;
 
 	file_menu_item = gtk_menu_item_new_with_mnemonic ("_File");
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
@@ -586,7 +586,7 @@ create_menu_bar (GcsvWindow *window)
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), help_menu_item);
 
 	store = get_action_info_store ();
-	gtef_action_info_store_check_all_used (store);
+	tepl_action_info_store_check_all_used (store);
 
 	return menu_bar;
 }
@@ -596,11 +596,11 @@ gcsv_window_init (GcsvWindow *window)
 {
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
-	GtefMenuShell *gtef_menu_shell;
+	TeplMenuShell *tepl_menu_shell;
 	GtkWidget *scrolled_window;
 	GtkWidget *statusbar;
 	GcsvBuffer *buffer;
-	GtefApplicationWindow *gtef_window;
+	TeplApplicationWindow *tepl_window;
 
 	window->view = create_view ();
 	buffer = get_buffer (window);
@@ -644,10 +644,10 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_container_add (GTK_CONTAINER (vgrid), statusbar);
 
 	/* Connect menubar to statusbar */
-	gtef_window = gtef_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
-	gtef_application_window_set_statusbar (gtef_window, GTK_STATUSBAR (statusbar));
-	gtef_menu_shell = gtef_menu_shell_get_from_gtk_menu_shell (GTK_MENU_SHELL (menu_bar));
-	gtef_application_window_connect_menu_to_statusbar (gtef_window, gtef_menu_shell);
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	tepl_application_window_set_statusbar (tepl_window, GTK_STATUSBAR (statusbar));
+	tepl_menu_shell = tepl_menu_shell_get_from_gtk_menu_shell (GTK_MENU_SHELL (menu_bar));
+	tepl_application_window_connect_menu_to_statusbar (tepl_window, tepl_menu_shell);
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
 	gtk_widget_grab_focus (GTK_WIDGET (window->view));
@@ -659,7 +659,7 @@ gcsv_window_init (GcsvWindow *window)
 	update_statusbar_label (window);
 
 	g_signal_connect_object (buffer,
-				 "notify::gtef-title",
+				 "notify::tepl-title",
 				 G_CALLBACK (buffer_title_notify_cb),
 				 window,
 				 0);
@@ -671,7 +671,7 @@ gcsv_window_init (GcsvWindow *window)
 				 0);
 
 	g_signal_connect_object (buffer,
-				 "gtef-cursor-moved",
+				 "tepl-cursor-moved",
 				 G_CALLBACK (cursor_moved),
 				 window,
 				 G_CONNECT_SWAPPED);
@@ -713,11 +713,11 @@ load_metadata_cb (GObject      *source_object,
 		  GAsyncResult *result,
 		  gpointer      user_data)
 {
-	GtefFileMetadata *metadata = GTEF_FILE_METADATA (source_object);
+	TeplFileMetadata *metadata = TEPL_FILE_METADATA (source_object);
 	GcsvWindow *window = GCSV_WINDOW (user_data);
 	GError *error = NULL;
 
-	gtef_file_metadata_load_finish (metadata, result, &error);
+	tepl_file_metadata_load_finish (metadata, result, &error);
 
 	if (error != NULL)
 	{
@@ -731,7 +731,7 @@ load_metadata_cb (GObject      *source_object,
 }
 
 static void
-load_file_content_cb (GtefFileLoader *loader,
+load_file_content_cb (TeplFileLoader *loader,
 		      GAsyncResult   *result,
 		      GcsvWindow     *window)
 {
@@ -740,17 +740,17 @@ load_file_content_cb (GtefFileLoader *loader,
 
 	buffer = get_buffer (window);
 
-	if (gtef_file_loader_load_finish (loader, result, &error))
+	if (tepl_file_loader_load_finish (loader, result, &error))
 	{
-		GtefFile *file;
-		GtefFileMetadata *metadata;
+		TeplFile *file;
+		TeplFileMetadata *metadata;
 
 		gcsv_buffer_add_uri_to_recent_manager (buffer);
 
-		file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
-		metadata = gtef_file_get_file_metadata (file);
+		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+		metadata = tepl_file_get_file_metadata (file);
 
-		gtef_file_metadata_load_async (metadata,
+		tepl_file_metadata_load_async (metadata,
 					       G_PRIORITY_DEFAULT,
 					       NULL,
 					       load_metadata_cb,
@@ -779,8 +779,8 @@ gcsv_window_load_file (GcsvWindow *window,
 		       GFile      *location)
 {
 	GcsvBuffer *buffer;
-	GtefFile *file;
-	GtefFileLoader *loader;
+	TeplFile *file;
+	TeplFileLoader *loader;
 
 	g_return_if_fail (GCSV_IS_WINDOW (window));
 	g_return_if_fail (G_IS_FILE (location));
@@ -788,13 +788,13 @@ gcsv_window_load_file (GcsvWindow *window,
 	buffer = get_buffer (window);
 	file = get_file (window);
 
-	gtef_file_set_location (file, location);
+	tepl_file_set_location (file, location);
 
-	loader = gtef_file_loader_new (GTEF_BUFFER (buffer), file);
+	loader = tepl_file_loader_new (TEPL_BUFFER (buffer), file);
 
 	gcsv_alignment_set_enabled (window->align, FALSE);
 
-	gtef_file_loader_load_async (loader,
+	tepl_file_loader_load_async (loader,
 				     G_PRIORITY_DEFAULT,
 				     NULL, /* cancellable */
 				     NULL, NULL, NULL, /* progress */
@@ -807,5 +807,5 @@ gcsv_window_is_untouched (GcsvWindow *window)
 {
 	g_return_val_if_fail (GCSV_IS_WINDOW (window), FALSE);
 
-	return gtef_buffer_is_untouched (GTEF_BUFFER (get_buffer (window)));
+	return tepl_buffer_is_untouched (TEPL_BUFFER (get_buffer (window)));
 }

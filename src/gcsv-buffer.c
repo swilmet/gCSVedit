@@ -25,7 +25,7 @@
 
 struct _GcsvBuffer
 {
-	GtefBuffer parent;
+	TeplBuffer parent;
 
 	/* The delimiter is at most one Unicode character. If it is the nul
 	 * character ('\0'), there is no alignment.
@@ -50,7 +50,7 @@ enum
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
-G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTEF_TYPE_BUFFER)
+G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, TEPL_TYPE_BUFFER)
 
 #define METADATA_DELIMITER	"gcsvedit-delimiter"
 #define METADATA_TITLE_LINE	"gcsvedit-title-line"
@@ -58,16 +58,16 @@ G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, GTEF_TYPE_BUFFER)
 static void
 save_metadata (GcsvBuffer *buffer)
 {
-	GtefFile *file;
-	GtefFileMetadata *metadata;
+	TeplFile *file;
+	TeplFileMetadata *metadata;
 	gchar *delimiter;
 	GError *error = NULL;
 
-	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
-	metadata = gtef_file_get_file_metadata (file);
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+	metadata = tepl_file_get_file_metadata (file);
 
 	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	gtef_file_metadata_set (metadata, METADATA_DELIMITER, delimiter);
+	tepl_file_metadata_set (metadata, METADATA_DELIMITER, delimiter);
 	g_free (delimiter);
 
 	if (buffer->title_mark != NULL)
@@ -80,12 +80,12 @@ save_metadata (GcsvBuffer *buffer)
 		title_line = gtk_text_iter_get_line (&title_iter);
 		title_line_str = g_strdup_printf ("%d", title_line);
 
-		gtef_file_metadata_set (metadata, METADATA_TITLE_LINE, title_line_str);
+		tepl_file_metadata_set (metadata, METADATA_TITLE_LINE, title_line_str);
 
 		g_free (title_line_str);
 	}
 
-	gtef_file_metadata_save (metadata, NULL, &error);
+	tepl_file_metadata_save (metadata, NULL, &error);
 
 	if (error != NULL)
 	{
@@ -158,9 +158,9 @@ static void
 gcsv_buffer_dispose (GObject *object)
 {
 	GcsvBuffer *buffer = GCSV_BUFFER (object);
-	GtefFile *file;
+	TeplFile *file;
 
-	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
 	if (file != NULL)
 	{
 		save_metadata (buffer);
@@ -266,14 +266,14 @@ void
 gcsv_buffer_add_uri_to_recent_manager (GcsvBuffer *buffer)
 {
 	GtkRecentManager *recent_manager;
-	GtefFile *file;
+	TeplFile *file;
 	GFile *location;
 	gchar *uri;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
-	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
-	location = gtef_file_get_location (file);
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+	location = tepl_file_get_location (file);
 	if (location == NULL)
 	{
 		return;
@@ -542,17 +542,17 @@ guess_delimiter (GcsvBuffer *buffer)
 void
 gcsv_buffer_setup_state (GcsvBuffer *buffer)
 {
-	GtefFile *file;
-	GtefFileMetadata *metadata;
+	TeplFile *file;
+	TeplFileMetadata *metadata;
 	gchar *delimiter;
 	gchar *title_line_str;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
-	file = gtef_buffer_get_file (GTEF_BUFFER (buffer));
-	metadata = gtef_file_get_file_metadata (file);
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+	metadata = tepl_file_get_file_metadata (file);
 
-	delimiter = gtef_file_metadata_get (metadata, METADATA_DELIMITER);
+	delimiter = tepl_file_metadata_get (metadata, METADATA_DELIMITER);
 	if (delimiter != NULL)
 	{
 		gcsv_buffer_set_delimiter (buffer, g_utf8_get_char (delimiter));
@@ -563,7 +563,7 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 		guess_delimiter (buffer);
 	}
 
-	title_line_str = gtef_file_metadata_get (metadata, METADATA_TITLE_LINE);
+	title_line_str = tepl_file_metadata_get (metadata, METADATA_TITLE_LINE);
 	if (title_line_str != NULL)
 	{
 		gint title_line;

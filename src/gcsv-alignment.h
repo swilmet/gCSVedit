@@ -22,7 +22,7 @@
 #ifndef GCSV_ALIGNMENT_H
 #define GCSV_ALIGNMENT_H
 
-#include <gtef/gtef.h>
+#include <tepl/tepl.h>
 #include "gcsv-buffer.h"
 
 G_BEGIN_DECLS
@@ -37,7 +37,7 @@ GcsvAlignment *	gcsv_alignment_new				(GcsvBuffer *buffer);
 void		gcsv_alignment_set_enabled			(GcsvAlignment *align,
 								 gboolean       enabled);
 
-GtefBuffer *	gcsv_alignment_copy_buffer_without_alignment	(GcsvAlignment *align);
+TeplBuffer *	gcsv_alignment_copy_buffer_without_alignment	(GcsvAlignment *align);
 
 void		gcsv_alignment_set_unit_test_mode		(GcsvAlignment *align,
 								 gboolean       unit_test_mode);

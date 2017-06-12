@@ -1338,14 +1338,14 @@ gcsv_alignment_set_enabled (GcsvAlignment *align,
 	g_object_notify (G_OBJECT (align), "enabled");
 }
 
-GtefBuffer *
+TeplBuffer *
 gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
 {
 	GtkTextBuffer *copy;
 	GtkTextIter iter;
 	GtkTextIter insert;
 
-	copy = GTK_TEXT_BUFFER (gtef_buffer_new ());
+	copy = GTK_TEXT_BUFFER (tepl_buffer_new ());
 
 	gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (align->buffer), &iter);
 	gtk_text_buffer_get_start_iter (copy, &insert);
@@ -1387,7 +1387,7 @@ gcsv_alignment_copy_buffer_without_alignment (GcsvAlignment *align)
 		iter = end;
 	}
 
-	return GTEF_BUFFER (copy);
+	return TEPL_BUFFER (copy);
 }
 
 void

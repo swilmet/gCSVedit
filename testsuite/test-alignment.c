@@ -48,7 +48,7 @@ check_alignment (const gchar *before,
 {
 	GcsvBuffer *csv_buffer;
 	GtkTextBuffer *buffer;
-	GtefBuffer *copy_without_align;
+	TeplBuffer *copy_without_align;
 	GcsvAlignment *align;
 	gchar *buffer_text;
 
