@@ -1,3 +1,19 @@
+News in 0.4.1, 2017-06-26
+-------------------------
+
+* Create app menu only if the desktop prefers one, to avoid a double menubar on
+  e.g. Xfce.
+* All problems with the Flatpak packaging are fixed:
+	* Revert to using GtkFileChooserDialog. Using GtkFileChooserNative was
+	  a bad idea because the GFile that we obtained (in flatpak) didn't
+	  have the real path to the file, so it screwed up some features in
+	  gCSVedit:
+		- showing the directory in parentheses in the window title;
+		- opening a recent file.
+	* Add --talk-name=org.gtk.vfs.* in the finish-args to be able to load
+	  and save GVfs metadata (to remember the DSV delimiter and the column
+	  titles line).
+
 News in 0.4.0, 2017-03-18
 -------------------------
 
