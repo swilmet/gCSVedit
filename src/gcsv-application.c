@@ -3,6 +3,9 @@
  *
  * Copyright 2017 - Sébastien Wilmet <swilmet@gnome.org>
  *
+ * From gedit for Windows support:
+ * Copyright 2010 - Jesse van den Kieboom
+ *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
