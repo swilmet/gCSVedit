@@ -573,11 +573,11 @@ create_menu_bar (GcsvWindow *window)
 	GtkMenuBar *menu_bar;
 	TeplActionInfoStore *store;
 
-	file_menu_item = gtk_menu_item_new_with_mnemonic ("_File");
+	file_menu_item = gtk_menu_item_new_with_mnemonic (_("_File"));
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
 				   create_file_submenu (window));
 
-	help_menu_item = gtk_menu_item_new_with_mnemonic ("_Help");
+	help_menu_item = gtk_menu_item_new_with_mnemonic (_("_Help"));
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (help_menu_item),
 				   create_help_submenu ());
 
