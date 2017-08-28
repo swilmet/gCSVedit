@@ -4,9 +4,9 @@ AC_PREREQ(2.64)
 
 AC_INIT([gCSVedit],
         [0.4.1],
-	[https://sourceforge.net/p/gcsvedit/tickets/],
+	[https://github.com/swilmet/gCSVedit/issues],
 	[gcsvedit],
-	[http://gcsvedit.sourceforge.net/])
+	[https://github.com/swilmet/gCSVedit])
 
 AX_REQUIRE_DEFINED([AX_IS_RELEASE])
 AX_IS_RELEASE([git-directory])
@@ -14,7 +14,7 @@ AX_IS_RELEASE([git-directory])
 # Dependencies
 GLIB_REQUIRED_VERSION=2.44
 GTK_REQUIRED_VERSION=3.20
-GTKSOURCEVIEW_REQUIRED_VERSION=3.23.1
+GTKSOURCEVIEW_REQUIRED_VERSION=3.24
 TEPL_REQUIRED_VERSION=2.99.0
 
 AC_CONFIG_SRCDIR([src/gcsv-main.c])
