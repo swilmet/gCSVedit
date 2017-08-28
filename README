@@ -3,17 +3,17 @@ gCSVedit
 
 This is version 0.4.1 of gCSVedit.
 
-gCSVedit is a simple CSV text editor.
+gCSVedit is a simple CSV/TSV text editor.
 
 See the announcement:
 
     https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/
 
 Currently, the main features of gCSVedit are:
-- Columns alignment
+- Columns alignment.
 - File loading and saving (the virtual spaces added for the alignment are
   removed when saving the file).
-- Syntax highlighting
+- Syntax highlighting.
 - Draw spaces and tabs (only those present in the file).
 - Header support: specify on which line the column titles are located, so that
   the header is not taken into account for the alignment.
@@ -23,28 +23,24 @@ comma-separated values (CSV) files. The application is called gCSVedit, because
 “CSV” is commonly used to also refer to TSV (tab-separated values) or DSV in
 general.
 
-gCSVedit is a free/libre software (GPLv3+ license) and is hosted on
-SourceForge:
+gCSVedit is a free/libre software (GPLv3+ license) and is hosted on GitHub:
 
-    http://gcsvedit.sourceforge.net/
-
-You are encouraged to report bugs or feature requests:
-
-    https://sourceforge.net/p/gcsvedit/tickets/
+    https://github.com/swilmet/gCSVedit
 
 About Versions
 --------------
 
 gCSVedit follows the GNOME versioning scheme. That is, the package version has
 the form 'major.minor.micro' with an even minor version for stable releases,
-and an odd minor version for unstable/development releases.
+and an odd minor version for unstable/development releases. For example the
+0.4.x versions are stable and the 0.5.x versions are alpha/beta/rc versions.
 
 Dependencies
 ------------
 
 - GLib >= 2.44
 - GTK+ >= 3.20
-- GtkSourceView >= 3.23.1
+- GtkSourceView >= 3.24
 - Tepl >= 2.99.0 : https://wiki.gnome.org/Projects/Tepl
 
 Installation
