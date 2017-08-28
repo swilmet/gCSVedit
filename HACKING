@@ -26,3 +26,7 @@ See the following blog post to know the reasons:
 It is recommended to use Jhbuild to develop gCSVedit:
 
     https://wiki.gnome.org/Projects/Jhbuild
+
+RFC for the CSV file format:
+
+    https://www.ietf.org/rfc/rfc4180.txt
