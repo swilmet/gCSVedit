@@ -54,9 +54,4 @@ gcsv-resources.c: $(xml_res) $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(src
 
 CLEANFILES = $(BUILT_SOURCES)
 
-if OS_WIN32
-# Do not open a console, open directly the application window.
-AM_LDFLAGS += -mwindows
-endif
-
 -include $(top_srcdir)/git.mk
