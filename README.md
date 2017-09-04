@@ -5,9 +5,7 @@ This is version 0.5.0 of gCSVedit.
 
 gCSVedit is a simple CSV/TSV text editor.
 
-See the announcement:
-
-    https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/
+See the [announcement](https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/).
 
 Currently, the main features of gCSVedit are:
 - Columns alignment.
@@ -23,11 +21,12 @@ comma-separated values (CSV) files. The application is called gCSVedit, because
 “CSV” is commonly used to also refer to TSV (tab-separated values) or DSV in
 general.
 
-gCSVedit is a free/libre software (GPLv3+ license) and is hosted on GitHub:
+gCSVedit is a Free/_Libre_ software, it is licensed under the GPLv3+, see the
+`COPYING` file for more information.
 
-    https://github.com/swilmet/gCSVedit
+gCSVedit is [hosted on GitHub](https://github.com/swilmet/gCSVedit).
 
-About Versions
+About versions
 --------------
 
 gCSVedit follows the GNOME versioning scheme. That is, the package version has
@@ -39,30 +38,32 @@ Dependencies
 ------------
 
 - GLib >= 2.44
-- GTK+ >= 3.20
-- GtkSourceView >= 3.24
-- Tepl >= 2.99.0 : https://wiki.gnome.org/Projects/Tepl
+- GTK+ 3 >= 3.22
+- GtkSourceView 3 >= 3.24
+- [Tepl](https://wiki.gnome.org/Projects/Tepl) >= 2.99.4
 
 Installation
 ------------
 
-If you want to install from a tarball, take the *.tar.xz tarball, not the
+If you want to install from a tarball, take the `*.tar.xz` tarball, not the
 tarballs generated automatically by GitHub.
 
 Simple install procedure:
 
+```
 $ ./configure
 $ make
 [ Become root if necessary ]
 $ make install
+```
 
-See the file 'INSTALL' for more detailed information.
+See the `INSTALL` file for more detailed information.
 
-From the Git repository, the 'configure' script and the 'INSTALL' file are not
-yet generated, so you need to run 'autogen.sh' instead, which takes the same
-arguments as 'configure'.
+From the Git repository, the `configure` script and the `INSTALL` file are not
+yet generated, so you need to run `autogen.sh` instead, which takes the same
+arguments as `configure`.
 
-Developer Documentation
+Developer documentation
 -----------------------
 
-See the file 'HACKING'.
+See the `HACKING` file.
