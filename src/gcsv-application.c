@@ -145,7 +145,7 @@ about_activate_cb (GSimpleAction *about_action,
 	GcsvWindow *active_window = get_active_gcsv_window (app);
 
 	const gchar *authors[] = {
-		"Sébastien Wilmet <sebastien.wilmet@uclouvain.be>",
+		"Sébastien Wilmet <swilmet@gnome.org>",
 		NULL
 	};
 

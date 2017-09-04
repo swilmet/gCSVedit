@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with gCSVedit.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Author: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
+ * Author: Sébastien Wilmet <swilmet@gnome.org>
  */
 
 #ifndef GCSV_BUFFER_H
