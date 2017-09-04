@@ -46,9 +46,9 @@ static void
 add_action_info_entries (GcsvApplication *gcsv_app)
 {
 	TeplApplication *tepl_app;
-	TeplActionInfoStore *store;
+	AmtkActionInfoStore *store;
 
-	const TeplActionInfoEntry entries[] =
+	const AmtkActionInfoEntry entries[] =
 	{
 		/* action, icon, label, accel, tooltip */
 
@@ -71,7 +71,7 @@ add_action_info_entries (GcsvApplication *gcsv_app)
 	tepl_app = tepl_application_get_from_gtk_application (GTK_APPLICATION (gcsv_app));
 	store = tepl_application_get_app_action_info_store (tepl_app);
 
-	tepl_action_info_store_add_entries (store,
+	amtk_action_info_store_add_entries (store,
 					    entries,
 					    G_N_ELEMENTS (entries),
 					    GETTEXT_PACKAGE);
@@ -176,7 +176,7 @@ add_action_entries (GcsvApplication *app)
 		{ "about", about_activate_cb },
 	};
 
-	tepl_action_map_add_action_entries_check_dups (G_ACTION_MAP (app),
+	amtk_action_map_add_action_entries_check_dups (G_ACTION_MAP (app),
 						       app_entries,
 						       G_N_ELEMENTS (app_entries),
 						       app);
