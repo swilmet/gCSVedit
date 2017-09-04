@@ -68,7 +68,7 @@
             "sources": [
                 {
                     "type": "git",
-                    "url": "git://git.code.sf.net/p/gcsvedit/code",
+                    "url": "https://github.com/swilmet/gCSVedit.git",
                     "branch": "master"
                 }
             ]
