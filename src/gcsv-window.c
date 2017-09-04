@@ -351,7 +351,7 @@ add_actions (GcsvWindow *window)
 		{ "save-as", save_as_activate_cb },
 	};
 
-	tepl_action_map_add_action_entries_check_dups (G_ACTION_MAP (window),
+	amtk_action_map_add_action_entries_check_dups (G_ACTION_MAP (window),
 						       entries,
 						       G_N_ELEMENTS (entries),
 						       window);
@@ -397,7 +397,7 @@ update_title (GcsvWindow *window)
 	gchar *buffer_title;
 	gchar *window_title;
 
-	buffer_title = tepl_buffer_get_title (TEPL_BUFFER (get_buffer (window)));
+	buffer_title = tepl_buffer_get_full_title (TEPL_BUFFER (get_buffer (window)));
 
 	window_title = g_strdup_printf ("%s - %s",
 					buffer_title,
@@ -410,9 +410,9 @@ update_title (GcsvWindow *window)
 }
 
 static void
-buffer_title_notify_cb (TeplBuffer *buffer,
-			GParamSpec *pspec,
-			GcsvWindow *window)
+buffer_full_title_notify_cb (TeplBuffer *buffer,
+			     GParamSpec *pspec,
+			     GcsvWindow *window)
 {
 	update_title (window);
 }
@@ -511,35 +511,26 @@ gcsv_window_class_init (GcsvWindowClass *klass)
 	widget_class->delete_event = gcsv_window_delete_event;
 }
 
-static TeplActionInfoStore *
-get_action_info_store (void)
-{
-	TeplApplication *app;
-
-	app = tepl_application_get_default ();
-
-	return tepl_application_get_app_action_info_store (app);
-}
-
 static GtkWidget *
 create_file_submenu (GcsvWindow *gcsv_window)
 {
-	TeplActionInfoStore *store;
 	GtkMenuShell *file_submenu;
-	TeplApplicationWindow *tepl_window;
+	AmtkApplicationWindow *amtk_window;
+	AmtkFactory *factory;
 
-	store = get_action_info_store ();
 	file_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
-	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
+	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
 
-	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "win.open"));
-	gtk_menu_shell_append (file_submenu, tepl_application_window_create_open_recent_menu_item (tepl_window));
+	factory = amtk_factory_new_with_default_application ();
+	gtk_menu_shell_append (file_submenu, amtk_factory_create_menu_item (factory, "win.open"));
+	gtk_menu_shell_append (file_submenu, amtk_application_window_create_open_recent_menu_item (amtk_window));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
-	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "win.save"));
-	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "win.save-as"));
+	gtk_menu_shell_append (file_submenu, amtk_factory_create_menu_item (factory, "win.save"));
+	gtk_menu_shell_append (file_submenu, amtk_factory_create_menu_item (factory, "win.save-as"));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
-	gtk_menu_shell_append (file_submenu, tepl_action_info_store_create_menu_item (store, "app.quit"));
+	gtk_menu_shell_append (file_submenu, amtk_factory_create_menu_item (factory, "app.quit"));
+	g_object_unref (factory);
 
 	return GTK_WIDGET (file_submenu);
 }
@@ -547,13 +538,14 @@ create_file_submenu (GcsvWindow *gcsv_window)
 static GtkWidget *
 create_help_submenu (void)
 {
-	TeplActionInfoStore *store;
 	GtkMenuShell *help_submenu;
+	AmtkFactory *factory;
 
-	store = get_action_info_store ();
 	help_submenu = GTK_MENU_SHELL (gtk_menu_new ());
 
-	gtk_menu_shell_append (help_submenu, tepl_action_info_store_create_menu_item (store, "app.about"));
+	factory = amtk_factory_new_with_default_application ();
+	gtk_menu_shell_append (help_submenu, amtk_factory_create_menu_item (factory, "app.about"));
+	g_object_unref (factory);
 
 	return GTK_WIDGET (help_submenu);
 }
@@ -564,7 +556,8 @@ create_menu_bar (GcsvWindow *window)
 	GtkWidget *file_menu_item;
 	GtkWidget *help_menu_item;
 	GtkMenuBar *menu_bar;
-	TeplActionInfoStore *store;
+	TeplApplication *app;
+	AmtkActionInfoStore *store;
 
 	file_menu_item = gtk_menu_item_new_with_mnemonic (_("_File"));
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
@@ -578,8 +571,9 @@ create_menu_bar (GcsvWindow *window)
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), file_menu_item);
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), help_menu_item);
 
-	store = get_action_info_store ();
-	tepl_action_info_store_check_all_used (store);
+	app = tepl_application_get_default ();
+	store = tepl_application_get_app_action_info_store (app);
+	amtk_action_info_store_check_all_used (store);
 
 	return menu_bar;
 }
@@ -587,13 +581,14 @@ create_menu_bar (GcsvWindow *window)
 static void
 gcsv_window_init (GcsvWindow *window)
 {
+	AmtkApplicationWindow *amtk_window;
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
-	TeplMenuShell *tepl_menu_shell;
 	GtkWidget *scrolled_window;
 	GtkWidget *statusbar;
 	GcsvBuffer *buffer;
-	TeplApplicationWindow *tepl_window;
+
+	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 
 	window->view = create_view ();
 	buffer = get_buffer (window);
@@ -637,10 +632,9 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_container_add (GTK_CONTAINER (vgrid), statusbar);
 
 	/* Connect menubar to statusbar */
-	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
-	tepl_application_window_set_statusbar (tepl_window, GTK_STATUSBAR (statusbar));
-	tepl_menu_shell = tepl_menu_shell_get_from_gtk_menu_shell (GTK_MENU_SHELL (menu_bar));
-	tepl_application_window_connect_menu_to_statusbar (tepl_window, tepl_menu_shell);
+	amtk_application_window_set_statusbar (amtk_window, GTK_STATUSBAR (statusbar));
+	amtk_application_window_connect_menu_to_statusbar (amtk_window,
+							   GTK_MENU_SHELL (menu_bar));
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
 	gtk_widget_grab_focus (GTK_WIDGET (window->view));
@@ -652,8 +646,8 @@ gcsv_window_init (GcsvWindow *window)
 	update_statusbar_label (window);
 
 	g_signal_connect_object (buffer,
-				 "notify::tepl-title",
-				 G_CALLBACK (buffer_title_notify_cb),
+				 "notify::tepl-full-title",
+				 G_CALLBACK (buffer_full_title_notify_cb),
 				 window,
 				 0);
 
