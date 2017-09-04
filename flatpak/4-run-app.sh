@@ -1,3 +1,3 @@
 #!/bin/sh
 
-flatpak run be.uclouvain.gcsvedit
+flatpak run com.github.swilmet.gcsvedit

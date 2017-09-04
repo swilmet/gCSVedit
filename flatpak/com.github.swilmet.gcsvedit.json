@@ -1,5 +1,5 @@
 {
-    "app-id": "be.uclouvain.gcsvedit",
+    "app-id": "com.github.swilmet.gcsvedit",
     "runtime": "org.gnome.Platform",
     "runtime-version": "3.24",
     "sdk": "org.gnome.Sdk",

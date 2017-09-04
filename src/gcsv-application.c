@@ -316,7 +316,7 @@ GcsvApplication *
 gcsv_application_new (void)
 {
 	return g_object_new (GCSV_TYPE_APPLICATION,
-			     "application-id", "be.uclouvain.gcsvedit",
+			     "application-id", "com.github.swilmet.gcsvedit",
 			     "flags", G_APPLICATION_HANDLES_OPEN,
 			     NULL);
 }
