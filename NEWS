@@ -1,6 +1,11 @@
+News in 0.6.0, 2017-10-16
+-------------------------
+* gCSVedit has moved to GitHub, it is no longer on SourceForge.
+* The Gtef library has been renamed to Tepl, adapt the code for the namespace
+  change, and port to the new APIs.
+
 News in 0.4.1, 2017-06-26
 -------------------------
-
 * Create app menu only if the desktop prefers one, to avoid a double menubar on
   e.g. Xfce.
 * All problems with the Flatpak packaging are fixed:

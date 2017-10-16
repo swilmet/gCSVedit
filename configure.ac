@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.64)
 
 AC_INIT([gCSVedit],
-        [0.5.0],
+        [0.6.0],
 	[https://github.com/swilmet/gCSVedit/issues],
 	[gcsvedit],
 	[https://github.com/swilmet/gCSVedit])
@@ -13,7 +13,7 @@ AX_IS_RELEASE([git-directory])
 
 # Dependencies
 GLIB_REQUIRED_VERSION=2.44
-GTK_REQUIRED_VERSION=3.20
+GTK_REQUIRED_VERSION=3.22
 GTKSOURCEVIEW_REQUIRED_VERSION=3.24
 TEPL_REQUIRED_VERSION=3.0
 
