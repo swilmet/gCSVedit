@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.64)
 
 AC_INIT([gCSVedit],
-        [0.6.0],
+        [0.6.1],
 	[https://github.com/swilmet/gCSVedit/issues],
 	[gcsvedit],
 	[https://github.com/swilmet/gCSVedit])
