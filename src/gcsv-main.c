@@ -1,7 +1,7 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2015, 2016 - Université Catholique de Louvain
+ * Copyright 2015, 2016, 2017 - Université Catholique de Louvain
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "config.h"
 #include <locale.h>
 #include <libintl.h>
+#include <tepl/tepl.h>
 #include "gcsv-application.h"
 
 static gchar *
@@ -45,18 +46,21 @@ setup_i18n (void)
 	textdomain (GETTEXT_PACKAGE);
 }
 
-gint
-main (gint    argc,
-      gchar **argv)
+int
+main (int    argc,
+      char **argv)
 {
 	GcsvApplication *app;
 	gint status;
 
 	setup_i18n ();
+	tepl_init ();
 
 	app = gcsv_application_new ();
 	status = g_application_run (G_APPLICATION (app), argc, argv);
 	g_object_unref (app);
+
+	tepl_finalize ();
 
 	return status;
 }
