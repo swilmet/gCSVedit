@@ -24,6 +24,7 @@
 #include <libintl.h>
 #include <tepl/tepl.h>
 #include "gcsv-application.h"
+#include "gcsv-factory.h"
 
 static gchar *
 get_locale_directory (void)
@@ -50,11 +51,15 @@ int
 main (int    argc,
       char **argv)
 {
+	GcsvFactory *factory;
 	GcsvApplication *app;
 	gint status;
 
 	setup_i18n ();
+
 	tepl_init ();
+	factory = gcsv_factory_new ();
+	tepl_abstract_factory_set_singleton (TEPL_ABSTRACT_FACTORY (factory));
 
 	app = gcsv_application_new ();
 	status = g_application_run (G_APPLICATION (app), argc, argv);

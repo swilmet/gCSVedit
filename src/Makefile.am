@@ -24,6 +24,8 @@ libgcsvedit_la_SOURCES =		\
 	gcsv-application.h		\
 	gcsv-buffer.c			\
 	gcsv-buffer.h			\
+	gcsv-factory.c			\
+	gcsv-factory.h			\
 	gcsv-properties-chooser.c	\
 	gcsv-properties-chooser.h	\
 	gcsv-utils.c			\

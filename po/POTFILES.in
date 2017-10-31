@@ -2,6 +2,7 @@
 src/gcsv-alignment.c
 src/gcsv-application.c
 src/gcsv-buffer.c
+src/gcsv-factory.c
 src/gcsv-main.c
 src/gcsv-properties-chooser.c
 src/gcsv-utils.c
