@@ -38,9 +38,9 @@ Dependencies
 ------------
 
 - GLib >= 2.44
-- GTK+ 3 >= 3.22
-- GtkSourceView 3 >= 3.24
-- [Tepl](https://wiki.gnome.org/Projects/Tepl) >= 3.0
+- GTK+ >= 3.22
+- GtkSourceView >= 3.99.6
+- [Tepl](https://wiki.gnome.org/Projects/Tepl) >= 3.99.0
 
 Installation
 ------------
