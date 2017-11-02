@@ -48,7 +48,7 @@ Installation
 If you want to install from a tarball, take the `*.tar.xz` tarball, not the
 tarballs generated automatically by GitHub.
 
-Simple install procedure:
+Simple install procedure from a tarball:
 
 ```
 $ ./configure
