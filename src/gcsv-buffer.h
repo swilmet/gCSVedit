@@ -33,8 +33,6 @@ G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 
 GcsvBuffer *		gcsv_buffer_new				(void);
 
-void			gcsv_buffer_add_uri_to_recent_manager	(GcsvBuffer *buffer);
-
 gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 
 gchar *			gcsv_buffer_get_delimiter_as_string	(GcsvBuffer *buffer);

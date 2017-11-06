@@ -194,11 +194,13 @@ save_cb (TeplFileSaver *saver,
 	if (tepl_file_saver_save_finish (saver, result, &error))
 	{
 		GcsvBuffer *buffer;
+		TeplFile *file;
 
 		buffer = get_buffer (window);
 		gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (buffer), FALSE);
 
-		gcsv_buffer_add_uri_to_recent_manager (buffer);
+		file = get_file (window);
+		tepl_file_add_uri_to_recent_manager (file);
 	}
 
 	if (error != NULL)
@@ -732,9 +734,9 @@ load_file_content_cb (TeplFileLoader *loader,
 		TeplFile *file;
 		TeplFileMetadata *metadata;
 
-		gcsv_buffer_add_uri_to_recent_manager (buffer);
-
 		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+		tepl_file_add_uri_to_recent_manager (file);
+
 		metadata = tepl_file_get_file_metadata (file);
 
 		tepl_file_metadata_load_async (metadata,

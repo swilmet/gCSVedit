@@ -262,30 +262,6 @@ gcsv_buffer_new (void)
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
 }
 
-void
-gcsv_buffer_add_uri_to_recent_manager (GcsvBuffer *buffer)
-{
-	GtkRecentManager *recent_manager;
-	TeplFile *file;
-	GFile *location;
-	gchar *uri;
-
-	g_return_if_fail (GCSV_IS_BUFFER (buffer));
-
-	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
-	location = tepl_file_get_location (file);
-	if (location == NULL)
-	{
-		return;
-	}
-
-	recent_manager = gtk_recent_manager_get_default ();
-
-	uri = g_file_get_uri (location);
-	gtk_recent_manager_add_item (recent_manager, uri);
-	g_free (uri);
-}
-
 gunichar
 gcsv_buffer_get_delimiter (GcsvBuffer *buffer)
 {
