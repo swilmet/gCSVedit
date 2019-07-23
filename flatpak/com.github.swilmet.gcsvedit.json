@@ -1,7 +1,7 @@
 {
     "app-id": "com.github.swilmet.gcsvedit",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "3.24",
+    "runtime-version": "3.32",
     "sdk": "org.gnome.Sdk",
     "command": "gcsvedit",
     "finish-args": [
@@ -48,8 +48,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://download.gnome.org/sources/gtksourceview/3.24/gtksourceview-3.24.3.tar.xz",
-                    "sha256": "3eed05486a6420c3e2fdda0bbb19a0d905ed09ebf442302a026ab7e574204cbd"
+                    "url": "https://download.gnome.org/sources/gtksourceview/3.24/gtksourceview-3.24.8.tar.xz",
+                    "sha256": "1e9bb8ff190db705deb916dd23ff681f0e8803aec407bf0fd64c7e615ac436fe"
                 }
             ]
         },
@@ -57,9 +57,9 @@
             "name": "tepl",
             "sources": [
                 {
-                    "type": "git",
-                    "url": "git://git.gnome.org/tepl",
-                    "branch": "master"
+                    "type": "archive",
+                    "url": "https://download.gnome.org/sources/tepl/3.0/tepl-3.0.0.tar.xz",
+                    "sha256": "9eb6fceb0b521de7bf684508138a5b8428d9f575c395ba54f9e31597980fd0ef"
                 }
             ]
         },
@@ -67,9 +67,9 @@
             "name": "gcsvedit",
             "sources": [
                 {
-                    "type": "git",
-                    "url": "https://github.com/swilmet/gCSVedit.git",
-                    "branch": "master"
+                    "type": "archive",
+                    "url": "https://github.com/swilmet/gCSVedit/releases/download/0.6.0/gcsvedit-0.6.0.tar.xz",
+                    "sha256": "722a844f9717921cf263b36dcc9083b0da5e99dcd81311a111b5f3c73dd0bce2"
                 }
             ]
         }
