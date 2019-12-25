@@ -7,4 +7,3 @@ src/gcsv-main.c
 src/gcsv-properties-chooser.c
 src/gcsv-utils.c
 src/gcsv-window.c
-src/resources/menus.ui

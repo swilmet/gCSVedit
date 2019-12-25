@@ -35,7 +35,7 @@ LT_INIT([disable-static])
 
 # Pull glib-mkenums & co.
 AC_PATH_PROG(GLIB_MKENUMS, glib-mkenums)
-AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
+#AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
 
 # Compile warnings. There can be deprecation warnings at any time, so disable
 # -Werror by default with the [yes] argument.
@@ -74,7 +74,6 @@ AC_CONFIG_FILES([
 	data/Makefile
 	po/Makefile.in
 	src/Makefile
-	src/resources/Makefile
 	testsuite/Makefile
 ])
 
