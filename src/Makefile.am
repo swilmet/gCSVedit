@@ -44,4 +44,9 @@ gcsvedit_LDADD =	\
 	libgcsvedit.la	\
 	$(DEP_LIBS)
 
+if OS_WIN32
+# Do not open a console, open directly the application window.
+AM_LDFLAGS += -mwindows
+endif
+
 -include $(top_srcdir)/git.mk
