@@ -1,22 +1,22 @@
-# Maintainer: Sébastien Wilmet <sebastien.wilmet@uclouvain.be>
+# Maintainer: Sébastien Wilmet <swilmet@gnome.org>
 
 _realname=gcsvedit
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.2.2
+pkgver=0.7.0
 pkgrel=1
 arch=('any')
-pkgdesc="A simple CSV text editor (mingw-w64)"
+pkgdesc="A simple CSV/TSV text editor (mingw-w64)"
 depends=("${MINGW_PACKAGE_PREFIX}-adwaita-icon-theme"
-         "${MINGW_PACKAGE_PREFIX}-gtksourceview3")
+         "${MINGW_PACKAGE_PREFIX}-tepl4")
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
              "${MINGW_PACKAGE_PREFIX}-pkg-config"
              "gettext-devel")
 options=('strip' 'staticlibs')
 license=("GPL")
-url="http://gcsvedit.sourceforge.net/"
+url="https://github.com/swilmet/gCSVedit"
 #install=${_realname}-${CARCH}.install
-source=(https://sourceforge.net/projects/${_realname}/files/v${pkgver%.*}/${_realname}-${pkgver}.tar.xz)
+source=(${_realname}-${pkgver}.tar.xz)
 sha256sums=('e2a5e44be60ae68e15e3e8d4d7bf4fc3b01e724c6c9cae199efa2ea4aa4ae7e0')
 
 prepare() {
