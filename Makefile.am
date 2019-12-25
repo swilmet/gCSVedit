@@ -1,6 +1,8 @@
 SUBDIRS = data po src testsuite
 
-@CODE_COVERAGE_RULES@
+include $(top_srcdir)/aminclude_static.am
+clean-local: code-coverage-clean
+distclean-local: code-coverage-dist-clean
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --enable-appstream-util
 
@@ -12,6 +14,7 @@ MAINTAINERCLEANFILES = \
 	$(GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL) \
 	$(GITIGNORE_MAINTAINERCLEANFILES_MAKEFILE_IN) \
 	$(GITIGNORE_MAINTAINERCLEANFILES_M4_LIBTOOL) \
+	aminclude_static.am \
 	INSTALL
 
 -include $(top_srcdir)/git.mk
