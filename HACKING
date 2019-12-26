@@ -1,27 +1,24 @@
-Developer documentation of gCSVedit
-===================================
+Developer documentation for gCSVedit
+====================================
 
 gCSVedit follows the same guidelines and code conventions as GtkSourceView:
 
-    https://git.gnome.org/browse/gtksourceview/tree/HACKING
+    https://gitlab.gnome.org/GNOME/gtksourceview/blob/master/HACKING
 
-gCSVedit uses the GLib/GTK+ development platform, with GtkSourceView for
-showing the CSV content:
+gCSVedit uses the GLib/GTK development platform, with GtkSourceView for showing
+the CSV content:
 
     http://www.gtk.org/
     https://people.gnome.org/~swilmet/gtk-brochure.pdf
     https://wiki.gnome.org/Projects/GtkSourceView
 
-You can read an introduction about GLib/GTK+ in the following document, which
+You can read an introduction about GLib/GTK in the following document, which
 also describes the reasons why the C language is a good choice when developing
-a GTK+ application:
+a GTK application:
 
     https://people.gnome.org/~swilmet/glib-gtk-book/
 
 For the build system, the Autotools (Autoconf, Automake and Libtool) are used.
-See the following blog post to know the reasons:
-
-    https://blogs.gnome.org/swilmet/2012/09/05/switch-from-cmake-to-autotools/
 
 It is recommended to use Jhbuild to develop gCSVedit:
 
