@@ -196,7 +196,7 @@ init_metadata_manager (void)
 {
 	gchar *metadata_filename;
 
-	metadata_filename = g_build_filename (g_get_user_cache_dir (),
+	metadata_filename = g_build_filename (g_get_user_data_dir (),
 					      "gcsvedit",
 					      "gcsvedit-metadata.xml",
 					      NULL);
