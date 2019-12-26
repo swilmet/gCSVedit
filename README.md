@@ -5,7 +5,7 @@ This is version 0.7.0 of gCSVedit.
 
 gCSVedit is a simple CSV/TSV text editor.
 
-See the [announcement](https://blogs.gnome.org/swilmet/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/).
+See the [announcement](https://swilmet.be/blog/2015/11/03/announcing-gcsvedit-a-simple-text-editor-to-edit-csv-files/).
 
 Currently, the main features of gCSVedit are:
 - Columns alignment.
