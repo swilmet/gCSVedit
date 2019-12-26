@@ -56,7 +56,7 @@ struct _GcsvAlignment
 	 * the columns don't shift, like in a spreadsheet. But it is possible
 	 * only when the subregion to scan/align is small (e.g. one line).
 	 * Using threads would not be convenient because this class uses lots of
-	 * GTK+ functions, and the GTK+ API can be accessed only by the main
+	 * GTK functions, and the GTK API can be accessed only by the main
 	 * thread.
 	 */
 	guint timeout_id;
