@@ -327,22 +327,6 @@ gcsv_application_open (GApplication  *app,
 }
 
 static void
-gcsv_application_shutdown (GApplication *app)
-{
-	/* Chain-up first, so we are sure that everything in GTK+ is shutdown
-	 * and we can shutdown our stuff. If we chain-up after our code, GTK+
-	 * can still hold some references to some objects, and those objects can
-	 * still save settings, metadata, etc in their destructors.
-	 */
-	if (G_APPLICATION_CLASS (gcsv_application_parent_class)->shutdown != NULL)
-	{
-		G_APPLICATION_CLASS (gcsv_application_parent_class)->shutdown (app);
-	}
-
-	tepl_metadata_manager_shutdown ();
-}
-
-static void
 gcsv_application_class_init (GcsvApplicationClass *klass)
 {
 	GApplicationClass *gapp_class = G_APPLICATION_CLASS (klass);
@@ -351,7 +335,6 @@ gcsv_application_class_init (GcsvApplicationClass *klass)
 	gapp_class->startup = gcsv_application_startup;
 	gapp_class->activate = gcsv_application_activate;
 	gapp_class->open = gcsv_application_open;
-	gapp_class->shutdown = gcsv_application_shutdown;
 }
 
 static void
