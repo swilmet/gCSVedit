@@ -1,7 +1,8 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2015, 2016 - Université Catholique de Louvain
+ * Copyright 2015-2016 - Université Catholique de Louvain
+ * Copyright 2019 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,7 +151,7 @@ gcsv_buffer_constructed (GObject *object)
 	gtk_source_buffer_set_language (GTK_SOURCE_BUFFER (buffer), csv_lang);
 
 	scheme_manager = gtk_source_style_scheme_manager_get_default ();
-	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
+	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "solarized-light");
 	gtk_source_buffer_set_style_scheme (GTK_SOURCE_BUFFER (buffer), scheme);
 }
 
