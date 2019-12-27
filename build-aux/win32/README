@@ -1,8 +1,0 @@
-To create the installer you need to follow the next steps:
- - Install the latest version of MSYS2: http://www.msys2.org/
- - Follow the MSYS2 instructions to update the packages with pacman.
- - Install git: pacman -S git
- - Clone gCSVedit with git.
- - cd $to_this_directory
- - Edit make-gcsvedit-installer and set the right version of gCSVedit.
- - ./make-gcsvedit-installer.bat
