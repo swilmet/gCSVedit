@@ -3,6 +3,7 @@
 _version='0.7.0'
 _pacman_root=/tmp/gcsvedit
 _mingw_package_dir=mingw-w64-gcsvedit
+_package_dir=/tmp/gcsvedit-package
 
 create_pacman_root() {
 	rm -rf "${_pacman_root}"
@@ -28,5 +29,58 @@ install_gcsvedit_packages() {
 	popd > /dev/null
 }
 
+create_package_dir() {
+	rm -rf "${_package_dir}"
+	cp -r "${_pacman_root}/mingw64/" "${_package_dir}"
+}
+
+remove_useless_stuff_from_package_dir() {
+	pushd "${_package_dir}" > /dev/null
+
+	find . -name "*.a" -exec rm -f {} \;
+
+	# Remove unneeded binaries
+	find . -not -name "g*.exe" -name "*.exe" -exec rm -f {} \;
+	rm -rf bin/gtk3-demo*.exe
+	rm -rf bin/py*
+	rm -rf bin/*-config
+
+	# Remove other useless folders
+	rm -rf var/
+	rm -rf ssl/
+	rm -rf include/
+	rm -rf share/man/
+	rm -rf share/readline/
+	rm -rf share/info/
+	rm -rf share/aclocal/
+	rm -rf share/gettext*
+	rm -rf share/terminfo/
+	rm -rf share/tabset/
+	rm -rf share/pkgconfig/
+	rm -rf share/bash-completion/
+	rm -rf share/gdb/
+
+	# On windows we show the online help
+	rm -rf share/gtk-doc/
+	rm -rf share/doc/
+
+	# Remove things from the lib/ folder
+	rm -rf lib/terminfo/
+	rm -rf lib/python2*
+	rm -rf lib/pkgconfig/
+
+	# Strip the binaries to reduce the size
+	find . -name *.dll | xargs strip
+	find . -name *.exe | xargs strip
+
+	# Remove all translations, gCSVedit is in English only
+	find share/locale/ -name "*.mo" | xargs rm
+	find share/locale -type d | xargs rmdir -p --ignore-fail-on-non-empty
+
+	popd > /dev/null
+}
+
 create_pacman_root
 install_gcsvedit_packages
+create_package_dir
+remove_useless_stuff_from_package_dir
