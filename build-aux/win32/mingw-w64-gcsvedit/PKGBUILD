@@ -17,7 +17,7 @@ license=("GPL")
 url="https://github.com/swilmet/gCSVedit"
 #install=${_realname}-${CARCH}.install
 source=(${_realname}-${pkgver}.tar.xz)
-sha256sums=('e2a5e44be60ae68e15e3e8d4d7bf4fc3b01e724c6c9cae199efa2ea4aa4ae7e0')
+sha256sums=('61f91993fdf2ee231fc0825e59efde7fa8ccf36530c94e2aed62641dfbe8b785')
 
 prepare() {
   cd "${srcdir}"/${_realname}-${pkgver}
