@@ -25,7 +25,7 @@ install_gcsvedit_packages() {
 	pushd "${_mingw_package_dir}" > /dev/null
 
 	./build.sh
-	pacman --upgrade mingw-w64-x86_64-gcsvedit-${_version}-1-any.pkg.tar.xz \
+	pacman --upgrade mingw-w64-x86_64-gcsvedit-${_version}-1-any.pkg.tar.zst \
 		--noconfirm --root "${_pacman_root}" || exit 1
 
 	popd > /dev/null
