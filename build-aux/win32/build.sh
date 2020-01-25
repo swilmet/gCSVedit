@@ -88,8 +88,13 @@ remove_useless_stuff_from_package_dir() {
 	popd > /dev/null
 }
 
+copy_msix_files() {
+	cp msix/* "${_package_dir}"
+}
+
 # Execute the different steps.
 create_pacman_root
 install_gcsvedit_packages
 create_package_dir
 remove_useless_stuff_from_package_dir
+copy_msix_files

@@ -1,16 +1,17 @@
-To create the installer you need to follow the next steps:
+To create the `*.msix` file you need to follow the next steps:
 - Install the latest version of [MSYS2](http://www.msys2.org/).
 - Follow the MSYS2 instructions to update the packages with pacman.
 - Install git: pacman -S git
 - Clone this repository with git.
 - `cd $to_this_directory`
+- Run build.sh
 
-Then, create the old installer (it worked for version 0.2):
-- Edit make-gcsvedit-installer and set the right version of the application.
-- ./make-gcsvedit-installer.bat
+Then in PowerShell run as administrator:
 
-New attempt at packaging again gCSVedit, in 2019-2020, still with MSYS2:
-- build.sh
+```
+cd 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\'
+.\makeappx.exe pack /d "C:\msys64\tmp\gcsvedit-package\" /p "C:\gCSVedit-0.7.0.0.msix"
+```
 
 The mingw package can be tested independently, see the README.md file in that
 directory.
