@@ -9,7 +9,7 @@
   <Identity
     Name="SeWilmet.gCSVedit"
     Version="0.7.0.0"
-    Publisher="CN=SeWilmet"
+    Publisher="CN=SeWilmet, O=SeWilmet, C=Belgium"
     ProcessorArchitecture="x64" />
 
   <Properties>
