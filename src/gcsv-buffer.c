@@ -151,7 +151,7 @@ gcsv_buffer_constructed (GObject *object)
 	gtk_source_buffer_set_language (GTK_SOURCE_BUFFER (buffer), csv_lang);
 
 	scheme_manager = gtk_source_style_scheme_manager_get_default ();
-	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "solarized-light");
+	scheme = gtk_source_style_scheme_manager_get_scheme (scheme_manager, "tango");
 	gtk_source_buffer_set_style_scheme (GTK_SOURCE_BUFFER (buffer), scheme);
 }
 
