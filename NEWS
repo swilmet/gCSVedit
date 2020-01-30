@@ -1,3 +1,11 @@
+News in 0.8.0, 2020-01-30
+-------------------------
+* Remove App menu (GNOME apps no longer have an app menu).
+* Re-add support for Microsoft Windows.
+* Use GtkSourceView 4 and Tepl 4.
+* Update AppData.
+* Various small maintenance tasks.
+
 News in 0.6.0, 2017-10-16
 -------------------------
 * gCSVedit has moved to GitHub, it is no longer on SourceForge.
