@@ -37,10 +37,6 @@ gulong *	gcsv_utils_block_all_signal_handlers	(GObject     *instance,
 void		gcsv_utils_unblock_signal_handlers	(GObject      *instance,
 							 const gulong *handler_ids);
 
-void		gcsv_warning				(GtkWindow   *parent,
-							 const gchar *format,
-							 ...) G_GNUC_PRINTF(2, 3);
-
 G_END_DECLS
 
 #endif /* GCSV_UTILS_H */

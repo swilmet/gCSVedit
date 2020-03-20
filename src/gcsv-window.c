@@ -212,9 +212,9 @@ save_cb (TeplFileSaver *saver,
 
 	if (error != NULL)
 	{
-		gcsv_warning (GTK_WINDOW (window),
-			      _("Error when saving the file: %s"),
-			      error->message);
+		tepl_utils_show_warning_dialog (GTK_WINDOW (window),
+						_("Error when saving the file: %s"),
+						error->message);
 
 		g_clear_error (&error);
 	}
@@ -759,9 +759,9 @@ load_file_content_cb (TeplFileLoader *loader,
 
 	if (error != NULL)
 	{
-		gcsv_warning (GTK_WINDOW (window),
-			      _("Error when loading file: %s"),
-			      error->message);
+		tepl_utils_show_warning_dialog (GTK_WINDOW (window),
+						_("Error when loading file: %s"),
+						error->message);
 
 		g_clear_error (&error);
 	}
