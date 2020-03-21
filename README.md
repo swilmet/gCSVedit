@@ -26,6 +26,12 @@ gCSVedit is a Free/_Libre_ software, it is licensed under the GPLv3+, see the
 
 gCSVedit is [hosted on GitHub](https://github.com/swilmet/gCSVedit).
 
+Buy the application on the Microsoft Store
+------------------------------------------
+
+gCSVedit is available for purchase on the Microsoft Store:
+[gCSVedit for Windows](https://www.microsoft.com/store/apps/9N7MP1CQ3M32).
+
 About versions
 --------------
 
