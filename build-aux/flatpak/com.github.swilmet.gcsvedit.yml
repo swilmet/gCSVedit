@@ -1,7 +1,7 @@
 ---
 app-id: com.github.swilmet.gcsvedit
 runtime: org.gnome.Platform
-runtime-version: '3.24'
+runtime-version: '3.36'
 sdk: org.gnome.Sdk
 command: gcsvedit
 
@@ -17,10 +17,10 @@ finish-args:
   - "--filesystem=host"
 
   # Needed for dconf to work
-  - "--filesystem=xdg-run/dconf"
-  - "--filesystem=~/.config/dconf:ro"
-  - "--talk-name=ca.desrt.dconf"
-  - "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
+#  - "--filesystem=xdg-run/dconf"
+#  - "--filesystem=~/.config/dconf:ro"
+#  - "--talk-name=ca.desrt.dconf"
+#  - "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
 
   # Needed for GVfs metadata to work
   - "--talk-name=org.gtk.vfs.*"
@@ -54,20 +54,20 @@ modules:
         url: https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.6.tar.xz
         sha256: 8351328cdfbcb2432e63938721dd781eb8c11ebc56e3a89d0f84576b96002c61
 
-  - name: gtksourceview
+  - name: amtk
     sources:
-    - type: archive
-      url: https://download.gnome.org/sources/gtksourceview/3.24/gtksourceview-3.24.8.tar.xz
-      sha256: 1e9bb8ff190db705deb916dd23ff681f0e8803aec407bf0fd64c7e615ac436fe
+      - type: archive
+        url: https://download.gnome.org/sources/amtk/5.0/amtk-5.0.2.tar.xz
+        sha256: 71cc891fbaaa3d0cb87eeef9a2f7e1a2acab62f738d09ea922fb4b9ea2f84f86
 
   - name: tepl
     sources:
-    - type: archive
-      url: https://download.gnome.org/sources/tepl/3.0/tepl-3.0.0.tar.xz
-      sha256: 9eb6fceb0b521de7bf684508138a5b8428d9f575c395ba54f9e31597980fd0ef
+      - type: archive
+        url: https://download.gnome.org/sources/tepl/4.4/tepl-4.4.0.tar.xz
+        sha256: e6f6673a8a27e8f280725db8fbacec79b20676ae0558755239d15a9808faa256
 
   - name: gcsvedit
     sources:
-    - type: archive
-      url: https://github.com/swilmet/gCSVedit/releases/download/0.6.0/gcsvedit-0.6.0.tar.xz
-      sha256: 722a844f9717921cf263b36dcc9083b0da5e99dcd81311a111b5f3c73dd0bce2
+      - type: archive
+        url: https://github.com/swilmet/gCSVedit/releases/download/0.8.0/gcsvedit-0.8.0.tar.xz
+        sha256: 5d1f49d1e21b2b682cab83296a16f345cbb8fcc5f6c803b4e16a254b59ebb9aa
