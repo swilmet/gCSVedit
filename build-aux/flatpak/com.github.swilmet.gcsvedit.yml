@@ -16,12 +16,6 @@ finish-args:
   # We want full fs access so we can read the files
   - "--filesystem=host"
 
-  # Needed for dconf to work
-#  - "--filesystem=xdg-run/dconf"
-#  - "--filesystem=~/.config/dconf:ro"
-#  - "--talk-name=ca.desrt.dconf"
-#  - "--env=DCONF_USER_CONFIG_DIR=.config/dconf"
-
   # Needed for GVfs metadata to work
   - "--talk-name=org.gtk.vfs.*"
 
