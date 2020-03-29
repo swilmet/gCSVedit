@@ -46,6 +46,7 @@
   <developer_name>Sébastien Wilmet</developer_name>
 
   <releases>
+    <release version="0.8.0" date="2020-01-30" />
     <release version="0.6.0" date="2017-10-16" />
   </releases>
 </component>
