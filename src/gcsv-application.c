@@ -1,7 +1,7 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2017-2019 - Sébastien Wilmet <swilmet@gnome.org>
+ * Copyright 2017-2020 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -187,8 +187,10 @@ add_action_entries (GcsvApplication *app)
 }
 
 static void
-init_metadata_manager (void)
+init_metadata_store (void)
 {
+	/* TODO */
+#if 0
 	gchar *metadata_filename;
 
 	metadata_filename = g_build_filename (g_get_user_data_dir (),
@@ -196,9 +198,8 @@ init_metadata_manager (void)
 					      "gcsvedit-metadata.xml",
 					      NULL);
 
-	tepl_metadata_manager_init (metadata_filename);
-
 	g_free (metadata_filename);
+#endif
 }
 
 /* Code taken from gedit. */
@@ -265,7 +266,7 @@ gcsv_application_startup (GApplication *app)
 
 	add_action_info_entries (GCSV_APPLICATION (app));
 	add_action_entries (GCSV_APPLICATION (app));
-	init_metadata_manager ();
+	init_metadata_store ();
 
 #ifdef G_OS_WIN32
 	setup_path ();

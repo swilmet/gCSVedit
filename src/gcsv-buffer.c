@@ -2,7 +2,7 @@
  * This file is part of gCSVedit.
  *
  * Copyright 2015-2016 - Université Catholique de Louvain
- * Copyright 2019 - Sébastien Wilmet <swilmet@gnome.org>
+ * Copyright 2019-2020 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 struct _GcsvBuffer
 {
 	TeplBuffer parent;
+
+	TeplFileMetadata *metadata;
 
 	/* The delimiter is at most one Unicode character. If it is the nul
 	 * character ('\0'), there is no alignment.
@@ -55,45 +57,6 @@ G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, TEPL_TYPE_BUFFER)
 
 #define METADATA_DELIMITER	"gcsvedit-delimiter"
 #define METADATA_TITLE_LINE	"gcsvedit-title-line"
-
-static void
-save_metadata (GcsvBuffer *buffer)
-{
-	TeplFile *file;
-	TeplFileMetadata *metadata;
-	gchar *delimiter;
-	GError *error = NULL;
-
-	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
-	metadata = tepl_file_get_file_metadata (file);
-
-	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	tepl_file_metadata_set (metadata, METADATA_DELIMITER, delimiter);
-	g_free (delimiter);
-
-	if (buffer->title_mark != NULL)
-	{
-		GtkTextIter title_iter;
-		gint title_line;
-		gchar *title_line_str;
-
-		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
-		title_line = gtk_text_iter_get_line (&title_iter);
-		title_line_str = g_strdup_printf ("%d", title_line);
-
-		tepl_file_metadata_set (metadata, METADATA_TITLE_LINE, title_line_str);
-
-		g_free (title_line_str);
-	}
-
-	tepl_file_metadata_save (metadata, NULL, &error);
-
-	if (error != NULL)
-	{
-		g_warning ("Saving metadata failed: %s", error->message);
-		g_clear_error (&error);
-	}
-}
 
 static void
 gcsv_buffer_get_property (GObject    *object,
@@ -159,13 +122,8 @@ static void
 gcsv_buffer_dispose (GObject *object)
 {
 	GcsvBuffer *buffer = GCSV_BUFFER (object);
-	TeplFile *file;
 
-	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
-	if (file != NULL)
-	{
-		save_metadata (buffer);
-	}
+	g_clear_object (&buffer->metadata);
 
 	G_OBJECT_CLASS (gcsv_buffer_parent_class)->dispose (object);
 }
@@ -251,6 +209,8 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 static void
 gcsv_buffer_init (GcsvBuffer *buffer)
 {
+	buffer->metadata = tepl_file_metadata_new ();
+
 	/* Disable the undo/redo, because it doesn't work well currently with
 	 * the virtual spaces.
 	 */
@@ -261,6 +221,42 @@ GcsvBuffer *
 gcsv_buffer_new (void)
 {
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
+}
+
+TeplFileMetadata *
+gcsv_buffer_get_metadata (GcsvBuffer *buffer)
+{
+	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
+
+	return buffer->metadata;
+}
+
+void
+gcsv_buffer_collect_metadata (GcsvBuffer *buffer)
+{
+	gchar *delimiter;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
+	tepl_file_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
+	g_free (delimiter);
+
+	if (buffer->title_mark != NULL)
+	{
+		GtkTextIter title_iter;
+		gint title_line;
+		gchar *title_line_str;
+
+		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
+		title_line = gtk_text_iter_get_line (&title_iter);
+		title_line_str = g_strdup_printf ("%d", title_line);
+
+		/* FIXME: set metadata value to NULL in case the buffer->title_mark isn't set? */
+		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
+
+		g_free (title_line_str);
+	}
 }
 
 gunichar
@@ -519,17 +515,12 @@ guess_delimiter (GcsvBuffer *buffer)
 void
 gcsv_buffer_setup_state (GcsvBuffer *buffer)
 {
-	TeplFile *file;
-	TeplFileMetadata *metadata;
 	gchar *delimiter;
 	gchar *title_line_str;
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
-	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
-	metadata = tepl_file_get_file_metadata (file);
-
-	delimiter = tepl_file_metadata_get (metadata, METADATA_DELIMITER);
+	delimiter = tepl_file_metadata_get (buffer->metadata, METADATA_DELIMITER);
 	if (delimiter != NULL)
 	{
 		gcsv_buffer_set_delimiter (buffer, g_utf8_get_char (delimiter));
@@ -540,7 +531,7 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 		guess_delimiter (buffer);
 	}
 
-	title_line_str = tepl_file_metadata_get (metadata, METADATA_TITLE_LINE);
+	title_line_str = tepl_file_metadata_get (buffer->metadata, METADATA_TITLE_LINE);
 	if (title_line_str != NULL)
 	{
 		gint title_line;

@@ -1,8 +1,8 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2015, 2016 - Université Catholique de Louvain
- * Copyright 2017 - Sébastien Wilmet
+ * Copyright 2015-2016 - Université Catholique de Louvain
+ * Copyright 2017-2020 - Sébastien Wilmet
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,11 @@
 
 #include "config.h"
 #include "gcsv-window.h"
-#include <gtksourceview/gtksource.h>
 #include <tepl/tepl.h>
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
-#include "gcsv-application.h"
 #include "gcsv-buffer.h"
 #include "gcsv-properties-chooser.h"
-#include "gcsv-utils.h"
 
 struct _GcsvWindow
 {
@@ -86,6 +83,7 @@ launch_close_confirmation_dialog (GcsvWindow *window)
 
 	if (response_id == GTK_RESPONSE_CLOSE)
 	{
+		/* TODO save metadata (async). */
 		gtk_widget_destroy (GTK_WIDGET (window));
 		return TRUE;
 	}
@@ -105,6 +103,7 @@ gcsv_window_close (GcsvWindow *window)
 		return launch_close_confirmation_dialog (window);
 	}
 
+	/* TODO save metadata (async). */
 	gtk_widget_destroy (GTK_WIDGET (window));
 	return TRUE;
 }
@@ -208,6 +207,8 @@ save_cb (TeplFileSaver *saver,
 
 		file = get_file (window);
 		tepl_file_add_uri_to_recent_manager (file);
+
+		/* TODO save metadata (async). */
 	}
 
 	if (error != NULL)
@@ -499,6 +500,8 @@ gcsv_window_delete_event (GtkWidget   *widget,
 	GcsvWindow *window = GCSV_WINDOW (widget);
 	GcsvBuffer *buffer;
 
+	/* TODO save metadata (async). */
+
 	buffer = get_buffer (window);
 	if (gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)))
 	{
@@ -739,14 +742,12 @@ load_file_content_cb (TeplFileLoader *loader,
 	if (tepl_file_loader_load_finish (loader, result, &error))
 	{
 		TeplFile *file;
-		TeplFileMetadata *metadata;
 
 		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
 		tepl_file_add_uri_to_recent_manager (file);
 
-		metadata = tepl_file_get_file_metadata (file);
-
-		tepl_file_metadata_load_async (metadata,
+		tepl_file_metadata_load_async (gcsv_buffer_get_metadata (buffer),
+					       tepl_file_get_location (file),
 					       G_PRIORITY_DEFAULT,
 					       NULL,
 					       load_metadata_cb,

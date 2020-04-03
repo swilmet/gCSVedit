@@ -2,6 +2,7 @@
  * This file is part of gCSVedit.
  *
  * Copyright 2015, 2016 - Université Catholique de Louvain
+ * Copyright 2020 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +33,10 @@ G_DECLARE_FINAL_TYPE (GcsvBuffer, gcsv_buffer,
 		      TeplBuffer)
 
 GcsvBuffer *		gcsv_buffer_new				(void);
+
+TeplFileMetadata *	gcsv_buffer_get_metadata		(GcsvBuffer *buffer);
+
+void			gcsv_buffer_collect_metadata		(GcsvBuffer *buffer);
 
 gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 
