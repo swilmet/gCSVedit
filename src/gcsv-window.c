@@ -143,7 +143,7 @@ open_activate_cb (GSimpleAction *open_action,
 
 	/* Create a GtkFileChooserDialog, not a GtkFileChooserNative, because
 	 * with GtkFileChooserNative the GFile that we obtain (in flatpak)
-	 * doesn't have the real path to the file, so it would screw up some
+	 * doesn't have the real path to the file, so it would ruin some
 	 * features in gCSVedit:
 	 * - showing the directory in parentheses in the window title;
 	 * - opening a recent file.
