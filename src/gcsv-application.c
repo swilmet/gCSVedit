@@ -32,11 +32,6 @@
 #  include <windows.h>
 #endif
 
-struct _GcsvApplicationPrivate
-{
-	gint something;
-};
-
 static gboolean option_version;
 
 static GOptionEntry options[] = {
@@ -49,7 +44,7 @@ static GOptionEntry options[] = {
         { NULL }
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (GcsvApplication, gcsv_application, GTK_TYPE_APPLICATION)
+G_DEFINE_TYPE (GcsvApplication, gcsv_application, GTK_TYPE_APPLICATION)
 
 static void
 add_action_info_entries (GcsvApplication *gcsv_app)
@@ -340,8 +335,6 @@ gcsv_application_class_init (GcsvApplicationClass *klass)
 static void
 gcsv_application_init (GcsvApplication *app)
 {
-	app->priv = gcsv_application_get_instance_private (app);
-
 	g_set_application_name (PACKAGE_NAME);
 	gtk_window_set_default_icon_name ("accessories-text-editor");
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2017 - Sébastien Wilmet <swilmet@gnome.org>
+ * Copyright 2017-2020 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,15 +31,12 @@ G_BEGIN_DECLS
 #define GCSV_IS_APPLICATION_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GCSV_TYPE_APPLICATION))
 #define GCSV_APPLICATION_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GCSV_TYPE_APPLICATION, GcsvApplicationClass))
 
-typedef struct _GcsvApplication         GcsvApplication;
-typedef struct _GcsvApplicationClass    GcsvApplicationClass;
-typedef struct _GcsvApplicationPrivate  GcsvApplicationPrivate;
+typedef struct _GcsvApplication      GcsvApplication;
+typedef struct _GcsvApplicationClass GcsvApplicationClass;
 
 struct _GcsvApplication
 {
 	GtkApplication parent;
-
-	GcsvApplicationPrivate *priv;
 };
 
 struct _GcsvApplicationClass
