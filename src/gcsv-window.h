@@ -2,6 +2,7 @@
  * This file is part of gCSVedit.
  *
  * Copyright 2015 - Université Catholique de Louvain
+ * Copyright 2020 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +34,12 @@ G_DECLARE_FINAL_TYPE (GcsvWindow, gcsv_window,
 
 GcsvWindow *	gcsv_window_new			(GtkApplication *app);
 
-gboolean	gcsv_window_close		(GcsvWindow *window);
+void		gcsv_window_close_async		(GcsvWindow          *window,
+						 GAsyncReadyCallback  callback,
+						 gpointer             user_data);
+
+gboolean	gcsv_window_close_finish	(GcsvWindow   *window,
+						 GAsyncResult *result);
 
 void		gcsv_window_load_file		(GcsvWindow *window,
 						 GFile      *location);

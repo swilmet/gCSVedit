@@ -46,6 +46,8 @@ static GOptionEntry options[] = {
 
 G_DEFINE_TYPE (GcsvApplication, gcsv_application, GTK_TYPE_APPLICATION)
 
+static void quit_next_window (GcsvApplication *app);
+
 static void
 add_action_info_entries (GcsvApplication *gcsv_app)
 {
@@ -121,23 +123,48 @@ gcsv_application_handle_local_options (GApplication *app,
 }
 
 static void
+quit_next_window_cb (GObject      *source_object,
+		     GAsyncResult *result,
+		     gpointer      user_data)
+{
+	GcsvWindow *window = GCSV_WINDOW (source_object);
+	GcsvApplication *app = GCSV_APPLICATION (user_data);
+
+	if (gcsv_window_close_finish (window, result))
+	{
+		gtk_widget_destroy (GTK_WIDGET (window));
+		quit_next_window (app);
+	}
+	else
+	{
+		g_application_release (G_APPLICATION (app));
+	}
+}
+
+static void
+quit_next_window (GcsvApplication *app)
+{
+	GcsvWindow *window = get_active_gcsv_window (app);
+
+	if (window != NULL)
+	{
+		gcsv_window_close_async (window, quit_next_window_cb, app);
+	}
+	else
+	{
+		g_application_release (G_APPLICATION (app));
+	}
+}
+
+static void
 quit_activate_cb (GSimpleAction *quit_action,
 		  GVariant      *parameter,
 		  gpointer       user_data)
 {
 	GcsvApplication *app = GCSV_APPLICATION (user_data);
 
-	while (TRUE)
-	{
-		GcsvWindow *window = get_active_gcsv_window (app);
-
-		if (window != NULL && gcsv_window_close (window))
-		{
-			continue;
-		}
-
-		break;
-	}
+	g_application_hold (G_APPLICATION (app));
+	quit_next_window (app);
 }
 
 static void
