@@ -18,6 +18,7 @@
  */
 
 #include "gcsv-tab.h"
+#include <glib/gi18n.h>
 #include "gcsv-buffer.h"
 #include "gcsv-properties-chooser.h"
 
@@ -116,4 +117,114 @@ gcsv_tab_get_alignment (GcsvTab *tab)
 	g_return_val_if_fail (GCSV_IS_TAB (tab), NULL);
 
 	return tab->priv->align;
+}
+
+static void
+save_cb (GObject      *source_object,
+	 GAsyncResult *result,
+	 gpointer      user_data)
+{
+	TeplFileSaver *saver = TEPL_FILE_SAVER (source_object);
+	GcsvTab *tab = GCSV_TAB (user_data);
+	TeplBuffer *buffer_without_align;
+	GApplication *app = g_application_get_default ();
+	GError *error = NULL;
+
+	if (tepl_file_saver_save_finish (saver, result, &error))
+	{
+		TeplBuffer *buffer;
+		TeplFile *file;
+
+		buffer = tepl_tab_get_buffer (TEPL_TAB (tab));
+		gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (buffer), FALSE);
+
+		file = tepl_buffer_get_file (buffer);
+		tepl_file_add_uri_to_recent_manager (file);
+
+		/* TODO save metadata (async). */
+	}
+
+	if (error != NULL)
+	{
+		TeplInfoBar *info_bar;
+
+		info_bar = tepl_info_bar_new_simple (GTK_MESSAGE_ERROR,
+						     _("Error when saving the file:"),
+						     error->message);
+		tepl_info_bar_add_close_button (info_bar);
+
+		tepl_tab_add_info_bar (TEPL_TAB (tab), GTK_INFO_BAR (info_bar));
+		gtk_widget_show (GTK_WIDGET (info_bar));
+
+		g_clear_error (&error);
+	}
+
+	buffer_without_align = tepl_file_saver_get_buffer (saver);
+	g_object_unref (buffer_without_align);
+	g_object_unref (saver);
+
+	g_application_unmark_busy (app);
+	g_application_release (app);
+
+	g_object_unref (tab);
+}
+
+static void
+launch_saver (GcsvTab       *tab,
+	      TeplFileSaver *saver)
+{
+	GApplication *app = g_application_get_default ();
+
+	g_application_hold (app);
+	g_application_mark_busy (app);
+
+	tepl_file_saver_save_async (saver,
+				    G_PRIORITY_DEFAULT,
+				    NULL, /* Cancellable */
+				    NULL, NULL, NULL, /* Progress */
+				    save_cb,
+				    g_object_ref (tab));
+}
+
+void
+gcsv_tab_save (GcsvTab *tab)
+{
+	TeplBuffer *buffer;
+	TeplFile *file;
+	GFile *location;
+	TeplBuffer *buffer_without_align;
+	TeplFileSaver *saver;
+
+	g_return_if_fail (GCSV_IS_TAB (tab));
+
+	buffer = tepl_tab_get_buffer (TEPL_TAB (tab));
+	file = tepl_buffer_get_file (buffer);
+	location = tepl_file_get_location (file);
+	g_return_if_fail (location != NULL);
+
+	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (tab->priv->align);
+
+	saver = tepl_file_saver_new (buffer_without_align, file);
+	launch_saver (tab, saver);
+}
+
+void
+gcsv_tab_save_as (GcsvTab *tab,
+		  GFile   *target_location)
+{
+	TeplBuffer *buffer;
+	TeplFile *file;
+	TeplBuffer *buffer_without_align;
+	TeplFileSaver *saver;
+
+	g_return_if_fail (GCSV_IS_TAB (tab));
+	g_return_if_fail (G_IS_FILE (target_location));
+
+	buffer = tepl_tab_get_buffer (TEPL_TAB (tab));
+	file = tepl_buffer_get_file (buffer);
+
+	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (tab->priv->align);
+
+	saver = tepl_file_saver_new_with_target (buffer_without_align, file, target_location);
+	launch_saver (tab, saver);
 }

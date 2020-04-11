@@ -54,6 +54,11 @@ GcsvTab *	gcsv_tab_new		(void);
 
 GcsvAlignment *	gcsv_tab_get_alignment	(GcsvTab *tab);
 
+void		gcsv_tab_save		(GcsvTab *tab);
+
+void		gcsv_tab_save_as	(GcsvTab *tab,
+					 GFile   *target_location);
+
 G_END_DECLS
 
 #endif /* GCSV_TAB_H */

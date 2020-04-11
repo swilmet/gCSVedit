@@ -37,6 +37,15 @@ struct _GcsvWindow
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 
+static GcsvTab *
+get_tab (GcsvWindow *window)
+{
+	TeplApplicationWindow *tepl_window;
+
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	return GCSV_TAB (tepl_tab_group_get_active_tab (TEPL_TAB_GROUP (tepl_window)));
+}
+
 static GcsvBuffer *
 get_buffer (GcsvWindow *window)
 {
@@ -56,12 +65,7 @@ get_file (GcsvWindow *window)
 static GcsvAlignment *
 get_alignment (GcsvWindow *window)
 {
-	TeplApplicationWindow *tepl_window;
-	GcsvTab *tab;
-
-	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
-	tab = GCSV_TAB (tepl_tab_group_get_active_tab (TEPL_TAB_GROUP (tepl_window)));
-	return gcsv_tab_get_alignment (tab);
+	return gcsv_tab_get_alignment (get_tab (window));
 }
 
 static void
@@ -230,87 +234,12 @@ open_activate_cb (GSimpleAction *open_action,
 }
 
 static void
-save_cb (TeplFileSaver *saver,
-	 GAsyncResult  *result,
-	 GcsvWindow    *window)
-{
-	GError *error = NULL;
-	TeplBuffer *buffer_without_align;
-	GApplication *app;
-
-	if (tepl_file_saver_save_finish (saver, result, &error))
-	{
-		GcsvBuffer *buffer;
-		TeplFile *file;
-
-		buffer = get_buffer (window);
-		gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (buffer), FALSE);
-
-		file = get_file (window);
-		tepl_file_add_uri_to_recent_manager (file);
-
-		/* TODO save metadata (async). */
-	}
-
-	if (error != NULL)
-	{
-		tepl_utils_show_warning_dialog (GTK_WINDOW (window),
-						_("Error when saving the file: %s"),
-						error->message);
-
-		g_clear_error (&error);
-	}
-
-	buffer_without_align = tepl_file_saver_get_buffer (saver);
-	g_object_unref (buffer_without_align);
-	g_object_unref (saver);
-
-	app = g_application_get_default ();
-	g_application_unmark_busy (app);
-	g_application_release (app);
-
-	g_object_unref (window);
-}
-
-static void
-launch_saver (GcsvWindow    *window,
-	      TeplFileSaver *saver)
-{
-	GApplication *app;
-
-	app = g_application_get_default ();
-	g_application_hold (app);
-	g_application_mark_busy (app);
-
-	tepl_file_saver_save_async (saver,
-				    G_PRIORITY_DEFAULT,
-				    NULL,
-				    NULL,
-				    NULL,
-				    NULL,
-				    (GAsyncReadyCallback) save_cb,
-				    g_object_ref (window));
-}
-
-static void
 save_activate_cb (GSimpleAction *save_action,
 		  GVariant      *parameter,
 		  gpointer       user_data)
 {
 	GcsvWindow *window = GCSV_WINDOW (user_data);
-	TeplFile *file;
-	GFile *location;
-	TeplBuffer *buffer_without_align;
-	TeplFileSaver *saver;
-
-	file = get_file (window);
-	location = tepl_file_get_location (file);
-	g_return_if_fail (location != NULL);
-
-	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (get_alignment (window));
-
-	saver = tepl_file_saver_new (buffer_without_align, file);
-	launch_saver (window, saver);
+	gcsv_tab_save (get_tab (window));
 }
 
 static void
@@ -321,18 +250,9 @@ save_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
 		GFile *location;
-		TeplBuffer *buffer_without_align;
-		TeplFileSaver *saver;
 
 		location = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog));
-
-		buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (get_alignment (window));
-
-		saver = tepl_file_saver_new_with_target (buffer_without_align,
-							 get_file (window),
-							 location);
-		launch_saver (window, saver);
-
+		gcsv_tab_save_as (get_tab (window), location);
 		g_object_unref (location);
 	}
 
