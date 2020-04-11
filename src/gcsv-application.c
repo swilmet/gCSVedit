@@ -86,22 +86,8 @@ add_action_info_entries (GcsvApplication *gcsv_app)
 static GcsvWindow *
 get_active_gcsv_window (GcsvApplication *app)
 {
-	GList *windows;
-	GList *l;
-
-	windows = gtk_application_get_windows (GTK_APPLICATION (app));
-
-	for (l = windows; l != NULL; l = l->next)
-	{
-		GtkWindow *window = l->data;
-
-		if (GCSV_IS_WINDOW (window))
-		{
-			return GCSV_WINDOW (window);
-		}
-	}
-
-	return NULL;
+	TeplApplication *tepl_app = tepl_application_get_from_gtk_application (GTK_APPLICATION (app));
+	return GCSV_WINDOW (tepl_application_get_active_main_window (tepl_app));
 }
 
 static gint
