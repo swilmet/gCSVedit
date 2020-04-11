@@ -34,7 +34,6 @@ struct _GcsvWindow
 	GtkApplicationWindow parent;
 
 	GcsvPropertiesChooser *properties_chooser;
-	GcsvTab *tab;
 	GtkLabel *statusbar_label;
 
 	GcsvAlignment *align;
@@ -45,7 +44,10 @@ G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 static GcsvBuffer *
 get_buffer (GcsvWindow *window)
 {
-	return GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (window->tab)));
+	TeplApplicationWindow *tepl_window;
+
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	return GCSV_BUFFER (tepl_tab_group_get_active_buffer (TEPL_TAB_GROUP (tepl_window)));
 }
 
 static TeplFile *
@@ -577,14 +579,15 @@ gcsv_window_init (GcsvWindow *window)
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
 	GtkWidget *statusbar;
+	GcsvTab *tab;
 	TeplView *view;
 	GcsvBuffer *buffer;
 
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 
-	window->tab = gcsv_tab_new ();
-	buffer = get_buffer (window);
+	tab = gcsv_tab_new ();
+	buffer = GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (tab)));
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
@@ -600,8 +603,8 @@ gcsv_window_init (GcsvWindow *window)
 			   GTK_WIDGET (window->properties_chooser));
 
 	/* TeplTab */
-	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (window->tab));
-	tepl_application_window_set_tab_group (tepl_window, TEPL_TAB_GROUP (window->tab));
+	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (tab));
+	tepl_application_window_set_tab_group (tepl_window, TEPL_TAB_GROUP (tab));
 
 	tepl_application_window_set_handle_title (tepl_window, TRUE);
 
@@ -622,7 +625,7 @@ gcsv_window_init (GcsvWindow *window)
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
 
-	view = tepl_tab_get_view (TEPL_TAB (window->tab));
+	view = tepl_tab_get_view (TEPL_TAB (tab));
 	gtk_widget_grab_focus (GTK_WIDGET (view));
 
 	window->align = gcsv_alignment_new (buffer);
