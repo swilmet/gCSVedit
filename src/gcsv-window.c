@@ -632,7 +632,7 @@ gcsv_window_init (GcsvWindow *window)
 	AmtkApplicationWindow *amtk_window;
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
-	GtkWidget *scrolled_window;
+	TeplTab *tab;
 	GtkWidget *statusbar;
 	GcsvBuffer *buffer;
 
@@ -654,20 +654,9 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_container_add (GTK_CONTAINER (vgrid),
 			   GTK_WIDGET (window->properties_chooser));
 
-	/* GtkSourceView */
-	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (window->view));
-	gtk_container_add (GTK_CONTAINER (vgrid), scrolled_window);
-
-	/* Disable overlay scrolling, because it currently doesn't work well
-	 * with a GtkTextView. It is for example more difficult to place the
-	 * cursor on the last line if there is an horizontal scrollbar getting
-	 * in the way. Or when placing the cursor on the last visible character
-	 * on a line, the vertical scrollbar also gets in the way.
-	 * Ideally margins/padding should be set to handle correctly overlay
-	 * scrollbars.
-	 */
-	gtk_scrolled_window_set_overlay_scrolling (GTK_SCROLLED_WINDOW (scrolled_window), FALSE);
+	/* TeplTab */
+	tab = tepl_tab_new_with_view (window->view);
+	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (tab));
 
 	/* Statusbar */
 	statusbar = gtk_statusbar_new ();
