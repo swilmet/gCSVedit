@@ -287,20 +287,6 @@ gcsv_application_startup (GApplication *app)
 #endif
 }
 
-static void
-gcsv_application_activate (GApplication *app)
-{
-	GcsvWindow *window;
-
-	if (G_APPLICATION_CLASS (gcsv_application_parent_class)->activate != NULL)
-	{
-		G_APPLICATION_CLASS (gcsv_application_parent_class)->activate (app);
-	}
-
-	window = gcsv_window_new (GTK_APPLICATION (app));
-	gtk_widget_show (GTK_WIDGET (window));
-}
-
 static gboolean
 window_is_untouched (GcsvWindow *window)
 {
@@ -353,17 +339,21 @@ gcsv_application_class_init (GcsvApplicationClass *klass)
 
 	gapp_class->handle_local_options = gcsv_application_handle_local_options;
 	gapp_class->startup = gcsv_application_startup;
-	gapp_class->activate = gcsv_application_activate;
 	gapp_class->open = gcsv_application_open;
 }
 
 static void
 gcsv_application_init (GcsvApplication *app)
 {
+	TeplApplication *tepl_app;
+
 	g_set_application_name (PACKAGE_NAME);
 	gtk_window_set_default_icon_name ("accessories-text-editor");
 
 	g_application_add_main_option_entries (G_APPLICATION (app), options);
+
+	tepl_app = tepl_application_get_from_gtk_application (GTK_APPLICATION (app));
+	tepl_application_handle_activate (tepl_app);
 }
 
 GcsvApplication *
