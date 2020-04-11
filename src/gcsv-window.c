@@ -359,6 +359,17 @@ create_file_submenu (GcsvWindow *gcsv_window)
 }
 
 static GtkWidget *
+create_edit_submenu (void)
+{
+	GtkMenuShell *edit_submenu;
+
+	edit_submenu = GTK_MENU_SHELL (gtk_menu_new ());
+	tepl_menu_shell_append_edit_actions (edit_submenu);
+
+	return GTK_WIDGET (edit_submenu);
+}
+
+static GtkWidget *
 create_help_submenu (void)
 {
 	GtkMenuShell *help_submenu;
@@ -377,6 +388,7 @@ static GtkMenuBar *
 create_menu_bar (GcsvWindow *window)
 {
 	GtkWidget *file_menu_item;
+	GtkWidget *edit_menu_item;
 	GtkWidget *help_menu_item;
 	GtkMenuBar *menu_bar;
 	TeplApplication *app;
@@ -386,12 +398,17 @@ create_menu_bar (GcsvWindow *window)
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_menu_item),
 				   create_file_submenu (window));
 
+	edit_menu_item = gtk_menu_item_new_with_mnemonic (_("_Edit"));
+	gtk_menu_item_set_submenu (GTK_MENU_ITEM (edit_menu_item),
+				   create_edit_submenu ());
+
 	help_menu_item = gtk_menu_item_new_with_mnemonic (_("_Help"));
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (help_menu_item),
 				   create_help_submenu ());
 
 	menu_bar = GTK_MENU_BAR (gtk_menu_bar_new ());
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), file_menu_item);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), edit_menu_item);
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), help_menu_item);
 
 	app = tepl_application_get_default ();
