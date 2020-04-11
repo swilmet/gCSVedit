@@ -36,7 +36,12 @@ GcsvBuffer *		gcsv_buffer_new				(void);
 
 TeplFileMetadata *	gcsv_buffer_get_metadata		(GcsvBuffer *buffer);
 
-void			gcsv_buffer_collect_metadata		(GcsvBuffer *buffer);
+void			gcsv_buffer_save_metadata_async		(GcsvBuffer          *buffer,
+								 GAsyncReadyCallback  callback,
+								 gpointer             user_data);
+
+void			gcsv_buffer_save_metadata_finish	(GcsvBuffer   *buffer,
+								 GAsyncResult *result);
 
 gunichar		gcsv_buffer_get_delimiter		(GcsvBuffer *buffer);
 

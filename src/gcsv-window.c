@@ -55,76 +55,14 @@ get_file (GcsvWindow *window)
 }
 
 static void
-file_metadata_save_cb (GObject      *source_object,
-		       GAsyncResult *result,
-		       gpointer      user_data)
-{
-	TeplFileMetadata *metadata = TEPL_FILE_METADATA (source_object);
-	GTask *task = G_TASK (user_data);
-	GError *error = NULL;
-
-	tepl_file_metadata_save_finish (metadata, result, &error);
-	if (error != NULL)
-	{
-		g_warning ("Saving metadata failed: %s", error->message);
-		g_clear_error (&error);
-	}
-
-	g_task_return_boolean (task, TRUE);
-	g_object_unref (task);
-}
-
-static void
-save_metadata_async (GcsvWindow          *window,
-		     GAsyncReadyCallback  callback,
-		     gpointer             user_data)
-{
-	GTask *task;
-	TeplFile *file;
-	GFile *location;
-	GcsvBuffer *buffer;
-
-	task = g_task_new (window, NULL, callback, user_data);
-
-	file = get_file (window);
-	location = tepl_file_get_location (file);
-
-	if (location == NULL)
-	{
-		g_task_return_boolean (task, TRUE);
-		g_object_unref (task);
-		return;
-	}
-
-	buffer = get_buffer (window);
-	gcsv_buffer_collect_metadata (buffer);
-
-	tepl_file_metadata_save_async (gcsv_buffer_get_metadata (buffer),
-				       location,
-				       FALSE,
-				       G_PRIORITY_DEFAULT,
-				       NULL,
-				       file_metadata_save_cb,
-				       task);
-}
-
-static void
-save_metadata_finish (GcsvWindow   *window,
-		      GAsyncResult *result)
-{
-	g_return_if_fail (g_task_is_valid (result, window));
-	g_task_propagate_boolean (G_TASK (result), NULL);
-}
-
-static void
 window_close__save_metadata_cb (GObject      *source_object,
 				GAsyncResult *result,
 				gpointer      user_data)
 {
-	GcsvWindow *window = GCSV_WINDOW (source_object);
+	GcsvBuffer *buffer = GCSV_BUFFER (source_object);
 	GTask *task = G_TASK (user_data);
 
-	save_metadata_finish (window, result);
+	gcsv_buffer_save_metadata_finish (buffer, result);
 
 	g_task_return_boolean (task, TRUE);
 	g_object_unref (task);
@@ -159,7 +97,8 @@ launch_close_confirmation_dialog (GTask *task)
 
 	if (response_id == GTK_RESPONSE_CLOSE)
 	{
-		save_metadata_async (window, window_close__save_metadata_cb, task);
+		GcsvBuffer *buffer = get_buffer (window);
+		gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
 		return;
 	}
 
@@ -186,7 +125,7 @@ gcsv_window_close_async (GcsvWindow          *window,
 		return;
 	}
 
-	save_metadata_async (window, window_close__save_metadata_cb, task);
+	gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
 }
 
 /* Returns whether the window can be destroyed. */

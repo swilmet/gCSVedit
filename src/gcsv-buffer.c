@@ -231,8 +231,8 @@ gcsv_buffer_get_metadata (GcsvBuffer *buffer)
 	return buffer->metadata;
 }
 
-void
-gcsv_buffer_collect_metadata (GcsvBuffer *buffer)
+static void
+collect_metadata (GcsvBuffer *buffer)
 {
 	gchar *delimiter;
 
@@ -257,6 +257,75 @@ gcsv_buffer_collect_metadata (GcsvBuffer *buffer)
 
 		g_free (title_line_str);
 	}
+}
+
+static void
+metadata_save_cb (GObject      *source_object,
+		  GAsyncResult *result,
+		  gpointer      user_data)
+{
+	TeplFileMetadata *metadata = TEPL_FILE_METADATA (source_object);
+	GTask *task = G_TASK (user_data);
+	GError *error = NULL;
+
+	tepl_file_metadata_save_finish (metadata, result, &error);
+	if (error != NULL)
+	{
+		g_warning ("Saving metadata failed: %s", error->message);
+		g_clear_error (&error);
+	}
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+void
+gcsv_buffer_save_metadata_async (GcsvBuffer          *buffer,
+				 GAsyncReadyCallback  callback,
+				 gpointer             user_data)
+{
+	GTask *task;
+	TeplFile *file;
+	GFile *location;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	if (buffer->metadata == NULL)
+	{
+		return;
+	}
+
+	task = g_task_new (buffer, NULL, callback, user_data);
+
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+	location = tepl_file_get_location (file);
+
+	if (location == NULL)
+	{
+		g_task_return_boolean (task, TRUE);
+		g_object_unref (task);
+		return;
+	}
+
+	collect_metadata (buffer);
+
+	tepl_file_metadata_save_async (buffer->metadata,
+				       location,
+				       FALSE,
+				       G_PRIORITY_DEFAULT,
+				       NULL,
+				       metadata_save_cb,
+				       task);
+}
+
+void
+gcsv_buffer_save_metadata_finish (GcsvBuffer   *buffer,
+				  GAsyncResult *result)
+{
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+	g_return_if_fail (g_task_is_valid (result, buffer));
+
+	g_task_propagate_boolean (G_TASK (result), NULL);
 }
 
 gunichar
