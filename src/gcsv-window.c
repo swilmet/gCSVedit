@@ -433,32 +433,6 @@ create_view (void)
 }
 
 static void
-update_title (GcsvWindow *window)
-{
-	gchar *buffer_title;
-	gchar *window_title;
-
-	buffer_title = tepl_buffer_get_full_title (TEPL_BUFFER (get_buffer (window)));
-
-	window_title = g_strdup_printf ("%s - %s",
-					buffer_title,
-					g_get_application_name ());
-
-	gtk_window_set_title (GTK_WINDOW (window), window_title);
-
-	g_free (buffer_title);
-	g_free (window_title);
-}
-
-static void
-buffer_full_title_notify_cb (TeplBuffer *buffer,
-			     GParamSpec *pspec,
-			     GcsvWindow *window)
-{
-	update_title (window);
-}
-
-static void
 buffer_modified_changed_cb (GtkTextBuffer *buffer,
 			    GcsvWindow    *window)
 {
@@ -630,6 +604,7 @@ static void
 gcsv_window_init (GcsvWindow *window)
 {
 	AmtkApplicationWindow *amtk_window;
+	TeplApplicationWindow *tepl_window;
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
 	TeplTab *tab;
@@ -637,6 +612,7 @@ gcsv_window_init (GcsvWindow *window)
 	GcsvBuffer *buffer;
 
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 
 	window->view = create_view ();
 	buffer = get_buffer (window);
@@ -657,6 +633,9 @@ gcsv_window_init (GcsvWindow *window)
 	/* TeplTab */
 	tab = tepl_tab_new_with_view (window->view);
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (tab));
+	tepl_application_window_set_tab_group (tepl_window, TEPL_TAB_GROUP (tab));
+
+	tepl_application_window_set_handle_title (tepl_window, TRUE);
 
 	/* Statusbar */
 	statusbar = gtk_statusbar_new ();
@@ -679,14 +658,7 @@ gcsv_window_init (GcsvWindow *window)
 	window->align = gcsv_alignment_new (buffer);
 
 	add_actions (window);
-	update_title (window);
 	update_statusbar_label (window);
-
-	g_signal_connect_object (buffer,
-				 "notify::tepl-full-title",
-				 G_CALLBACK (buffer_full_title_notify_cb),
-				 window,
-				 0);
 
 	g_signal_connect_object (buffer,
 				 "modified-changed",
