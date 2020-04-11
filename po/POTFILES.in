@@ -5,5 +5,6 @@ src/gcsv-buffer.c
 src/gcsv-factory.c
 src/gcsv-main.c
 src/gcsv-properties-chooser.c
+src/gcsv-tab.c
 src/gcsv-utils.c
 src/gcsv-window.c
