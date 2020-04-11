@@ -33,9 +33,7 @@ struct _GcsvWindow
 {
 	GtkApplicationWindow parent;
 
-	GcsvPropertiesChooser *properties_chooser;
 	GtkLabel *statusbar_label;
-
 	GcsvAlignment *align;
 };
 
@@ -582,6 +580,7 @@ gcsv_window_init (GcsvWindow *window)
 	GcsvTab *tab;
 	TeplView *view;
 	GcsvBuffer *buffer;
+	GcsvPropertiesChooser *properties_chooser;
 
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
@@ -598,9 +597,8 @@ gcsv_window_init (GcsvWindow *window)
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (menu_bar));
 
 	/* Properties chooser */
-	window->properties_chooser = gcsv_properties_chooser_new (buffer);
-	gtk_container_add (GTK_CONTAINER (vgrid),
-			   GTK_WIDGET (window->properties_chooser));
+	properties_chooser = gcsv_properties_chooser_new (buffer);
+	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (properties_chooser));
 
 	/* TeplTab */
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (tab));
