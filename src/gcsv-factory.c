@@ -1,7 +1,7 @@
 /*
  * This file is part of gCSVedit.
  *
- * Copyright 2017 - Sébastien Wilmet <swilmet@gnome.org>
+ * Copyright 2017-2020 - Sébastien Wilmet <swilmet@gnome.org>
  *
  * gCSVedit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 
 #include "gcsv-factory.h"
+#include "gcsv-tab.h"
 #include "gcsv-window.h"
 
 G_DEFINE_TYPE (GcsvFactory, gcsv_factory, TEPL_TYPE_ABSTRACT_FACTORY)
@@ -29,12 +30,19 @@ gcsv_factory_create_main_window (TeplAbstractFactory *factory,
 	return GTK_APPLICATION_WINDOW (gcsv_window_new (app));
 }
 
+static TeplTab *
+gcsv_factory_create_tab (TeplAbstractFactory *factory)
+{
+	return TEPL_TAB (gcsv_tab_new ());
+}
+
 static void
 gcsv_factory_class_init (GcsvFactoryClass *klass)
 {
 	TeplAbstractFactoryClass *factory_class = TEPL_ABSTRACT_FACTORY_CLASS (klass);
 
 	factory_class->create_main_window = gcsv_factory_create_main_window;
+	factory_class->create_tab = gcsv_factory_create_tab;
 }
 
 static void
