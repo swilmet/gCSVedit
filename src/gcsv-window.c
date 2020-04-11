@@ -33,7 +33,7 @@ struct _GcsvWindow
 	GtkApplicationWindow parent;
 
 	GcsvPropertiesChooser *properties_chooser;
-	TeplView *view;
+	TeplTab *tab;
 	GtkLabel *statusbar_label;
 
 	GcsvAlignment *align;
@@ -44,7 +44,7 @@ G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 static GcsvBuffer *
 get_buffer (GcsvWindow *window)
 {
-	return GCSV_BUFFER (gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->view)));
+	return GCSV_BUFFER (tepl_tab_get_buffer (window->tab));
 }
 
 static TeplFile *
@@ -607,14 +607,14 @@ gcsv_window_init (GcsvWindow *window)
 	TeplApplicationWindow *tepl_window;
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
-	TeplTab *tab;
 	GtkWidget *statusbar;
+	TeplView *view;
 	GcsvBuffer *buffer;
 
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 
-	window->view = create_view ();
+	window->tab = tepl_tab_new_with_view (create_view ());
 	buffer = get_buffer (window);
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
@@ -631,9 +631,8 @@ gcsv_window_init (GcsvWindow *window)
 			   GTK_WIDGET (window->properties_chooser));
 
 	/* TeplTab */
-	tab = tepl_tab_new_with_view (window->view);
-	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (tab));
-	tepl_application_window_set_tab_group (tepl_window, TEPL_TAB_GROUP (tab));
+	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (window->tab));
+	tepl_application_window_set_tab_group (tepl_window, TEPL_TAB_GROUP (window->tab));
 
 	tepl_application_window_set_handle_title (tepl_window, TRUE);
 
@@ -653,7 +652,9 @@ gcsv_window_init (GcsvWindow *window)
 							   GTK_MENU_SHELL (menu_bar));
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
-	gtk_widget_grab_focus (GTK_WIDGET (window->view));
+
+	view = tepl_tab_get_view (window->tab);
+	gtk_widget_grab_focus (GTK_WIDGET (view));
 
 	window->align = gcsv_alignment_new (buffer);
 
