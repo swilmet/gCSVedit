@@ -44,8 +44,6 @@ gboolean	gcsv_window_close_finish	(GcsvWindow   *window,
 void		gcsv_window_load_file		(GcsvWindow *window,
 						 GFile      *location);
 
-gboolean	gcsv_window_is_untouched	(GcsvWindow *window);
-
 G_END_DECLS
 
 #endif /* GCSV_WINDOW_H */

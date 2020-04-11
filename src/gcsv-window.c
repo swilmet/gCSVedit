@@ -759,11 +759,3 @@ gcsv_window_load_file (GcsvWindow *window,
 				     (GAsyncReadyCallback) load_file_content_cb,
 				     g_object_ref (window));
 }
-
-gboolean
-gcsv_window_is_untouched (GcsvWindow *window)
-{
-	g_return_val_if_fail (GCSV_IS_WINDOW (window), FALSE);
-
-	return tepl_buffer_is_untouched (TEPL_BUFFER (get_buffer (window)));
-}

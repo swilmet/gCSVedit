@@ -301,6 +301,17 @@ gcsv_application_activate (GApplication *app)
 	gtk_widget_show (GTK_WIDGET (window));
 }
 
+static gboolean
+window_is_untouched (GcsvWindow *window)
+{
+	TeplApplicationWindow *tepl_window;
+	TeplBuffer *buffer;
+
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	buffer = tepl_tab_group_get_active_buffer (TEPL_TAB_GROUP (tepl_window));
+	return tepl_buffer_is_untouched (buffer);
+}
+
 static void
 gcsv_application_open (GApplication  *app,
 		       GFile        **files,
@@ -322,7 +333,7 @@ gcsv_application_open (GApplication  *app,
 
 	active_window = get_active_gcsv_window (GCSV_APPLICATION (app));
 
-	if (active_window != NULL && gcsv_window_is_untouched (active_window))
+	if (active_window != NULL && window_is_untouched (active_window))
 	{
 		window = active_window;
 	}
