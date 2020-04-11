@@ -34,15 +34,15 @@ G_DECLARE_FINAL_TYPE (GcsvWindow, gcsv_window,
 
 GcsvWindow *	gcsv_window_new			(GtkApplication *app);
 
+void		gcsv_window_load_file		(GcsvWindow *window,
+						 GFile      *location);
+
 void		gcsv_window_close_async		(GcsvWindow          *window,
 						 GAsyncReadyCallback  callback,
 						 gpointer             user_data);
 
 gboolean	gcsv_window_close_finish	(GcsvWindow   *window,
 						 GAsyncResult *result);
-
-void		gcsv_window_load_file		(GcsvWindow *window,
-						 GFile      *location);
 
 G_END_DECLS
 

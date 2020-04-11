@@ -69,91 +69,6 @@ get_alignment (GcsvWindow *window)
 }
 
 static void
-window_close__save_metadata_cb (GObject      *source_object,
-				GAsyncResult *result,
-				gpointer      user_data)
-{
-	GcsvBuffer *buffer = GCSV_BUFFER (source_object);
-	GTask *task = G_TASK (user_data);
-
-	gcsv_buffer_save_metadata_finish (buffer, result);
-
-	g_task_return_boolean (task, TRUE);
-	g_object_unref (task);
-}
-
-static void
-launch_close_confirmation_dialog (GTask *task)
-{
-	GcsvWindow *window = g_task_get_source_object (task);
-	GtkWidget *dialog;
-	const gchar *document_name;
-	gint response_id;
-
-	document_name = tepl_file_get_short_name (TEPL_FILE (get_file (window)));
-
-	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
-					 GTK_DIALOG_DESTROY_WITH_PARENT |
-					 GTK_DIALOG_MODAL,
-					 GTK_MESSAGE_WARNING,
-					 GTK_BUTTONS_NONE,
-					 _("The document “%s” has unsaved changes."),
-					 document_name);
-
-	gtk_dialog_add_buttons (GTK_DIALOG (dialog),
-				_("Close _without Saving"), GTK_RESPONSE_CLOSE,
-				_("_Don't Close"), GTK_RESPONSE_CANCEL,
-				NULL);
-
-	response_id = gtk_dialog_run (GTK_DIALOG (dialog));
-
-	gtk_widget_destroy (dialog);
-
-	if (response_id == GTK_RESPONSE_CLOSE)
-	{
-		GcsvBuffer *buffer = get_buffer (window);
-		gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
-		return;
-	}
-
-	g_task_return_boolean (task, FALSE);
-	g_object_unref (task);
-}
-
-void
-gcsv_window_close_async (GcsvWindow          *window,
-			 GAsyncReadyCallback  callback,
-			 gpointer             user_data)
-{
-	GTask *task;
-	GcsvBuffer *buffer;
-
-	g_return_if_fail (GCSV_IS_WINDOW (window));
-
-	task = g_task_new (window, NULL, callback, user_data);
-
-	buffer = get_buffer (window);
-	if (gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)))
-	{
-		launch_close_confirmation_dialog (task);
-		return;
-	}
-
-	gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
-}
-
-/* Returns whether the window can be destroyed. */
-gboolean
-gcsv_window_close_finish (GcsvWindow   *window,
-			  GAsyncResult *result)
-{
-	g_return_val_if_fail (GCSV_IS_WINDOW (window), FALSE);
-	g_return_val_if_fail (g_task_is_valid (result, window), FALSE);
-
-	return g_task_propagate_boolean (G_TASK (result), NULL);
-}
-
-static void
 open_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
 			       gint                  response_id,
 			       GcsvWindow           *window)
@@ -674,4 +589,89 @@ gcsv_window_load_file (GcsvWindow *window,
 				     NULL, NULL, NULL, /* progress */
 				     (GAsyncReadyCallback) load_file_content_cb,
 				     g_object_ref (window));
+}
+
+static void
+window_close__save_metadata_cb (GObject      *source_object,
+				GAsyncResult *result,
+				gpointer      user_data)
+{
+	GcsvBuffer *buffer = GCSV_BUFFER (source_object);
+	GTask *task = G_TASK (user_data);
+
+	gcsv_buffer_save_metadata_finish (buffer, result);
+
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
+}
+
+static void
+launch_close_confirmation_dialog (GTask *task)
+{
+	GcsvWindow *window = g_task_get_source_object (task);
+	GtkWidget *dialog;
+	const gchar *document_name;
+	gint response_id;
+
+	document_name = tepl_file_get_short_name (TEPL_FILE (get_file (window)));
+
+	dialog = gtk_message_dialog_new (GTK_WINDOW (window),
+					 GTK_DIALOG_DESTROY_WITH_PARENT |
+					 GTK_DIALOG_MODAL,
+					 GTK_MESSAGE_WARNING,
+					 GTK_BUTTONS_NONE,
+					 _("The document “%s” has unsaved changes."),
+					 document_name);
+
+	gtk_dialog_add_buttons (GTK_DIALOG (dialog),
+				_("Close _without Saving"), GTK_RESPONSE_CLOSE,
+				_("_Don't Close"), GTK_RESPONSE_CANCEL,
+				NULL);
+
+	response_id = gtk_dialog_run (GTK_DIALOG (dialog));
+
+	gtk_widget_destroy (dialog);
+
+	if (response_id == GTK_RESPONSE_CLOSE)
+	{
+		GcsvBuffer *buffer = get_buffer (window);
+		gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
+		return;
+	}
+
+	g_task_return_boolean (task, FALSE);
+	g_object_unref (task);
+}
+
+void
+gcsv_window_close_async (GcsvWindow          *window,
+			 GAsyncReadyCallback  callback,
+			 gpointer             user_data)
+{
+	GTask *task;
+	GcsvBuffer *buffer;
+
+	g_return_if_fail (GCSV_IS_WINDOW (window));
+
+	task = g_task_new (window, NULL, callback, user_data);
+
+	buffer = get_buffer (window);
+	if (gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (buffer)))
+	{
+		launch_close_confirmation_dialog (task);
+		return;
+	}
+
+	gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
+}
+
+/* Returns whether the window can be destroyed. */
+gboolean
+gcsv_window_close_finish (GcsvWindow   *window,
+			  GAsyncResult *result)
+{
+	g_return_val_if_fail (GCSV_IS_WINDOW (window), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, window), FALSE);
+
+	return g_task_propagate_boolean (G_TASK (result), NULL);
 }
