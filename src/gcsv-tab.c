@@ -23,7 +23,7 @@
 
 struct _GcsvTabPrivate
 {
-	gint something;
+	GcsvAlignment *align;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (GcsvTab, gcsv_tab, TEPL_TYPE_TAB)
@@ -73,13 +73,18 @@ gcsv_tab_constructed (GObject *object)
 	properties_chooser = gcsv_properties_chooser_new (buffer);
 	gtk_grid_insert_row (GTK_GRID (tab), 0);
 	gtk_grid_attach (GTK_GRID (tab), GTK_WIDGET (properties_chooser), 0, 0, 1, 1);
+
+	tab->priv->align = gcsv_alignment_new (buffer);
 }
 
 static void
-gcsv_tab_finalize (GObject *object)
+gcsv_tab_dispose (GObject *object)
 {
+	GcsvTab *tab = GCSV_TAB (object);
 
-	G_OBJECT_CLASS (gcsv_tab_parent_class)->finalize (object);
+	g_clear_object (&tab->priv->align);
+
+	G_OBJECT_CLASS (gcsv_tab_parent_class)->dispose (object);
 }
 
 static void
@@ -88,7 +93,7 @@ gcsv_tab_class_init (GcsvTabClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
 	object_class->constructed = gcsv_tab_constructed;
-	object_class->finalize = gcsv_tab_finalize;
+	object_class->dispose = gcsv_tab_dispose;
 }
 
 static void
@@ -103,4 +108,12 @@ gcsv_tab_new (void)
 	return g_object_new (GCSV_TYPE_TAB,
 			     "view", create_view (),
 			     NULL);
+}
+
+GcsvAlignment *
+gcsv_tab_get_alignment (GcsvTab *tab)
+{
+	g_return_val_if_fail (GCSV_IS_TAB (tab), NULL);
+
+	return tab->priv->align;
 }

@@ -33,7 +33,6 @@ struct _GcsvWindow
 	GtkApplicationWindow parent;
 
 	GtkLabel *statusbar_label;
-	GcsvAlignment *align;
 };
 
 G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -52,6 +51,17 @@ get_file (GcsvWindow *window)
 {
 	GcsvBuffer *buffer = get_buffer (window);
 	return tepl_buffer_get_file (TEPL_BUFFER (buffer));
+}
+
+static GcsvAlignment *
+get_alignment (GcsvWindow *window)
+{
+	TeplApplicationWindow *tepl_window;
+	GcsvTab *tab;
+
+	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	tab = GCSV_TAB (tepl_tab_group_get_active_tab (TEPL_TAB_GROUP (tepl_window)));
+	return gcsv_tab_get_alignment (tab);
 }
 
 static void
@@ -297,7 +307,7 @@ save_activate_cb (GSimpleAction *save_action,
 	location = tepl_file_get_location (file);
 	g_return_if_fail (location != NULL);
 
-	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
+	buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (get_alignment (window));
 
 	saver = tepl_file_saver_new (buffer_without_align, file);
 	launch_saver (window, saver);
@@ -316,7 +326,7 @@ save_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
 
 		location = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_dialog));
 
-		buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (window->align);
+		buffer_without_align = gcsv_alignment_copy_buffer_without_alignment (get_alignment (window));
 
 		saver = tepl_file_saver_new_with_target (buffer_without_align,
 							 get_file (window),
@@ -457,16 +467,6 @@ buffer_notify_delimiter_cb (GcsvBuffer *buffer,
 }
 
 static void
-gcsv_window_dispose (GObject *object)
-{
-	GcsvWindow *window = GCSV_WINDOW (object);
-
-	g_clear_object (&window->align);
-
-	G_OBJECT_CLASS (gcsv_window_parent_class)->dispose (object);
-}
-
-static void
 delete_event__window_close_cb (GObject      *source_object,
 			       GAsyncResult *result,
 			       gpointer      user_data)
@@ -493,10 +493,7 @@ gcsv_window_delete_event (GtkWidget   *widget,
 static void
 gcsv_window_class_init (GcsvWindowClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-
-	object_class->dispose = gcsv_window_dispose;
 
 	widget_class->delete_event = gcsv_window_delete_event;
 }
@@ -618,11 +615,10 @@ gcsv_window_init (GcsvWindow *window)
 	view = tepl_tab_get_view (TEPL_TAB (tab));
 	gtk_widget_grab_focus (GTK_WIDGET (view));
 
-	buffer = get_buffer (window);
-	window->align = gcsv_alignment_new (buffer);
-
 	add_actions (window);
 	update_statusbar_label (window);
+
+	buffer = get_buffer (window);
 
 	g_signal_connect_object (buffer,
 				 "modified-changed",
@@ -665,7 +661,7 @@ static void
 finish_file_loading (GcsvWindow *window)
 {
 	gcsv_buffer_setup_state (get_buffer (window));
-	gcsv_alignment_set_enabled (window->align, TRUE);
+	gcsv_alignment_set_enabled (get_alignment (window), TRUE);
 }
 
 static void
@@ -750,7 +746,7 @@ gcsv_window_load_file (GcsvWindow *window,
 
 	loader = tepl_file_loader_new (TEPL_BUFFER (buffer), file);
 
-	gcsv_alignment_set_enabled (window->align, FALSE);
+	gcsv_alignment_set_enabled (get_alignment (window), FALSE);
 
 	tepl_file_loader_load_async (loader,
 				     G_PRIORITY_DEFAULT,

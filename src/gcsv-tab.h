@@ -21,6 +21,7 @@
 #define GCSV_TAB_H
 
 #include <tepl/tepl.h>
+#include "gcsv-alignment.h"
 
 G_BEGIN_DECLS
 
@@ -50,6 +51,8 @@ struct _GcsvTabClass
 GType		gcsv_tab_get_type	(void);
 
 GcsvTab *	gcsv_tab_new		(void);
+
+GcsvAlignment *	gcsv_tab_get_alignment	(GcsvTab *tab);
 
 G_END_DECLS
 
