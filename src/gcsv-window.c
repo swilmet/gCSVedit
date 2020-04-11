@@ -449,9 +449,9 @@ cursor_moved (GcsvWindow *window)
 }
 
 static void
-buffer_notify_delimiter_cb (GcsvAlignment *align,
-			    GParamSpec    *pspec,
-			    GcsvWindow    *window)
+buffer_notify_delimiter_cb (GcsvBuffer *buffer,
+			    GParamSpec *pspec,
+			    GcsvWindow *window)
 {
 	update_statusbar_label (window);
 }
