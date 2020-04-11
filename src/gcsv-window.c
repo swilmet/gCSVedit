@@ -33,7 +33,7 @@ struct _GcsvWindow
 	GtkApplicationWindow parent;
 
 	GcsvPropertiesChooser *properties_chooser;
-	GtkSourceView *view;
+	TeplView *view;
 	GtkLabel *statusbar_label;
 
 	GcsvAlignment *align;
@@ -400,7 +400,7 @@ add_actions (GcsvWindow *window)
 	update_actions_sensitivity (window);
 }
 
-static GtkSourceView *
+static TeplView *
 create_view (void)
 {
 	GcsvBuffer *buffer;
@@ -408,7 +408,7 @@ create_view (void)
 	GtkSourceSpaceDrawer *space_drawer;
 
 	buffer = gcsv_buffer_new ();
-	view = GTK_SOURCE_VIEW (gtk_source_view_new_with_buffer (GTK_SOURCE_BUFFER (buffer)));
+	view = GTK_SOURCE_VIEW (tepl_view_new_with_buffer (GTK_SOURCE_BUFFER (buffer)));
 	g_object_unref (buffer);
 
 	gtk_text_view_set_monospace (GTK_TEXT_VIEW (view), TRUE);
@@ -429,7 +429,7 @@ create_view (void)
 	gtk_widget_set_hexpand (GTK_WIDGET (view), TRUE);
 	gtk_widget_set_vexpand (GTK_WIDGET (view), TRUE);
 
-	return view;
+	return TEPL_VIEW (view);
 }
 
 static void
