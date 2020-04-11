@@ -27,13 +27,14 @@
 #include "gcsv-alignment.h"
 #include "gcsv-buffer.h"
 #include "gcsv-properties-chooser.h"
+#include "gcsv-tab.h"
 
 struct _GcsvWindow
 {
 	GtkApplicationWindow parent;
 
 	GcsvPropertiesChooser *properties_chooser;
-	TeplTab *tab;
+	GcsvTab *tab;
 	GtkLabel *statusbar_label;
 
 	GcsvAlignment *align;
@@ -44,7 +45,7 @@ G_DEFINE_TYPE (GcsvWindow, gcsv_window, GTK_TYPE_APPLICATION_WINDOW)
 static GcsvBuffer *
 get_buffer (GcsvWindow *window)
 {
-	return GCSV_BUFFER (tepl_tab_get_buffer (window->tab));
+	return GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (window->tab)));
 }
 
 static TeplFile *
@@ -400,38 +401,6 @@ add_actions (GcsvWindow *window)
 	update_actions_sensitivity (window);
 }
 
-static TeplView *
-create_view (void)
-{
-	GcsvBuffer *buffer;
-	GtkSourceView *view;
-	GtkSourceSpaceDrawer *space_drawer;
-
-	buffer = gcsv_buffer_new ();
-	view = GTK_SOURCE_VIEW (tepl_view_new_with_buffer (GTK_SOURCE_BUFFER (buffer)));
-	g_object_unref (buffer);
-
-	gtk_text_view_set_monospace (GTK_TEXT_VIEW (view), TRUE);
-	gtk_source_view_set_show_line_numbers (view, TRUE);
-	gtk_source_view_set_highlight_current_line (view, TRUE);
-
-	/* Draw all kind of spaces everywhere except CR and LF.
-	 * Line numbers are already displayed, so drawing line breaks would be
-	 * redundant and is not very useful.
-	 */
-	space_drawer = gtk_source_view_get_space_drawer (view);
-	gtk_source_space_drawer_set_enable_matrix (space_drawer, TRUE);
-	gtk_source_space_drawer_set_types_for_locations (space_drawer,
-							 GTK_SOURCE_SPACE_LOCATION_ALL,
-							 GTK_SOURCE_SPACE_TYPE_ALL &
-							 ~GTK_SOURCE_SPACE_TYPE_NEWLINE);
-
-	gtk_widget_set_hexpand (GTK_WIDGET (view), TRUE);
-	gtk_widget_set_vexpand (GTK_WIDGET (view), TRUE);
-
-	return TEPL_VIEW (view);
-}
-
 static void
 buffer_modified_changed_cb (GtkTextBuffer *buffer,
 			    GcsvWindow    *window)
@@ -614,7 +583,7 @@ gcsv_window_init (GcsvWindow *window)
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 
-	window->tab = tepl_tab_new_with_view (create_view ());
+	window->tab = gcsv_tab_new ();
 	buffer = get_buffer (window);
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
@@ -653,7 +622,7 @@ gcsv_window_init (GcsvWindow *window)
 
 	gtk_container_add (GTK_CONTAINER (window), vgrid);
 
-	view = tepl_tab_get_view (window->tab);
+	view = tepl_tab_get_view (TEPL_TAB (window->tab));
 	gtk_widget_grab_focus (GTK_WIDGET (view));
 
 	window->align = gcsv_alignment_new (buffer);
