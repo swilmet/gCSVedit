@@ -345,6 +345,7 @@ create_file_submenu (GcsvWindow *gcsv_window)
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (gcsv_window));
 
 	factory = amtk_factory_new_with_default_application ();
+	gtk_menu_shell_append (file_submenu, amtk_factory_create_menu_item (factory, "app.tepl-new-window"));
 	gtk_menu_shell_append (file_submenu, amtk_factory_create_menu_item (factory, "win.open"));
 	gtk_menu_shell_append (file_submenu, amtk_application_window_create_open_recent_menu_item (amtk_window));
 	gtk_menu_shell_append (file_submenu, gtk_separator_menu_item_new ());
