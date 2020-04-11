@@ -26,7 +26,6 @@
 #include <glib/gi18n.h>
 #include "gcsv-alignment.h"
 #include "gcsv-buffer.h"
-#include "gcsv-properties-chooser.h"
 #include "gcsv-tab.h"
 
 struct _GcsvWindow
@@ -580,13 +579,9 @@ gcsv_window_init (GcsvWindow *window)
 	GcsvTab *tab;
 	TeplView *view;
 	GcsvBuffer *buffer;
-	GcsvPropertiesChooser *properties_chooser;
 
 	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
 	tepl_window = tepl_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
-
-	tab = gcsv_tab_new ();
-	buffer = GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (tab)));
 
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
@@ -596,11 +591,8 @@ gcsv_window_init (GcsvWindow *window)
 	menu_bar = create_menu_bar (window);
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (menu_bar));
 
-	/* Properties chooser */
-	properties_chooser = gcsv_properties_chooser_new (buffer);
-	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (properties_chooser));
-
 	/* TeplTab */
+	tab = gcsv_tab_new ();
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (tab));
 	tepl_application_window_set_tab_group (tepl_window, TEPL_TAB_GROUP (tab));
 
@@ -626,6 +618,7 @@ gcsv_window_init (GcsvWindow *window)
 	view = tepl_tab_get_view (TEPL_TAB (tab));
 	gtk_widget_grab_focus (GTK_WIDGET (view));
 
+	buffer = get_buffer (window);
 	window->align = gcsv_alignment_new (buffer);
 
 	add_actions (window);

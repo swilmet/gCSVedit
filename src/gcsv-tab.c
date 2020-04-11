@@ -19,6 +19,7 @@
 
 #include "gcsv-tab.h"
 #include "gcsv-buffer.h"
+#include "gcsv-properties-chooser.h"
 
 struct _GcsvTabPrivate
 {
@@ -60,6 +61,21 @@ create_view (void)
 }
 
 static void
+gcsv_tab_constructed (GObject *object)
+{
+	GcsvTab *tab = GCSV_TAB (object);
+	GcsvBuffer *buffer;
+	GcsvPropertiesChooser *properties_chooser;
+
+	G_OBJECT_CLASS (gcsv_tab_parent_class)->constructed (object);
+
+	buffer = GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (tab)));
+	properties_chooser = gcsv_properties_chooser_new (buffer);
+	gtk_grid_insert_row (GTK_GRID (tab), 0);
+	gtk_grid_attach (GTK_GRID (tab), GTK_WIDGET (properties_chooser), 0, 0, 1, 1);
+}
+
+static void
 gcsv_tab_finalize (GObject *object)
 {
 
@@ -71,6 +87,7 @@ gcsv_tab_class_init (GcsvTabClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+	object_class->constructed = gcsv_tab_constructed;
 	object_class->finalize = gcsv_tab_finalize;
 }
 
