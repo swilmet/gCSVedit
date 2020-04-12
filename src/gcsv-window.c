@@ -62,12 +62,6 @@ get_file (GcsvWindow *window)
 	return tepl_buffer_get_file (TEPL_BUFFER (buffer));
 }
 
-static GcsvAlignment *
-get_alignment (GcsvWindow *window)
-{
-	return gcsv_tab_get_alignment (get_tab (window));
-}
-
 static void
 open_file_chooser_response_cb (GtkFileChooserDialog *file_chooser_dialog,
 			       gint                  response_id,
@@ -542,103 +536,14 @@ gcsv_window_new (GtkApplication *app)
 			     NULL);
 }
 
-static void
-finish_file_loading (GcsvWindow *window)
-{
-	gcsv_buffer_setup_state (get_buffer (window));
-	gcsv_alignment_set_enabled (get_alignment (window), TRUE);
-}
-
-static void
-load_metadata_cb (GObject      *source_object,
-		  GAsyncResult *result,
-		  gpointer      user_data)
-{
-	TeplFileMetadata *metadata = TEPL_FILE_METADATA (source_object);
-	GcsvWindow *window = GCSV_WINDOW (user_data);
-	GError *error = NULL;
-
-	tepl_file_metadata_load_finish (metadata, result, &error);
-
-	if (error != NULL)
-	{
-		g_warning ("Loading metadata failed: %s", error->message);
-		g_clear_error (&error);
-	}
-
-	finish_file_loading (window);
-
-	g_object_unref (window);
-}
-
-static void
-load_file_content_cb (TeplFileLoader *loader,
-		      GAsyncResult   *result,
-		      GcsvWindow     *window)
-{
-	GcsvBuffer *buffer;
-	GError *error = NULL;
-
-	buffer = get_buffer (window);
-
-	if (tepl_file_loader_load_finish (loader, result, &error))
-	{
-		TeplFile *file;
-
-		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
-		tepl_file_add_uri_to_recent_manager (file);
-
-		tepl_file_metadata_load_async (gcsv_buffer_get_metadata (buffer),
-					       tepl_file_get_location (file),
-					       G_PRIORITY_DEFAULT,
-					       NULL,
-					       load_metadata_cb,
-					       g_object_ref (window));
-	}
-	else
-	{
-		finish_file_loading (window);
-	}
-
-	if (error != NULL)
-	{
-		tepl_utils_show_warning_dialog (GTK_WINDOW (window),
-						_("Error when loading file: %s"),
-						error->message);
-
-		g_clear_error (&error);
-	}
-
-	g_object_unref (loader);
-	g_object_unref (window);
-}
-
 void
 gcsv_window_load_file (GcsvWindow *window,
 		       GFile      *location)
 {
-	GcsvBuffer *buffer;
-	TeplFile *file;
-	TeplFileLoader *loader;
-
 	g_return_if_fail (GCSV_IS_WINDOW (window));
 	g_return_if_fail (G_IS_FILE (location));
 
-	buffer = get_buffer (window);
-	file = get_file (window);
-
-	tepl_file_set_location (file, location);
-
-	loader = tepl_file_loader_new (TEPL_BUFFER (buffer), file);
-
-	gcsv_alignment_set_enabled (get_alignment (window), FALSE);
-
-	tepl_file_loader_load_async (loader,
-				     G_PRIORITY_DEFAULT,
-				     NULL, /* cancellable */
-				     NULL, NULL, NULL, /* progress */
-				     (GAsyncReadyCallback) load_file_content_cb,
-				     g_object_ref (window));
+	gcsv_tab_load_file (get_tab (window), location);
 }
 
 static void

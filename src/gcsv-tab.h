@@ -52,7 +52,8 @@ GType		gcsv_tab_get_type	(void);
 
 GcsvTab *	gcsv_tab_new		(void);
 
-GcsvAlignment *	gcsv_tab_get_alignment	(GcsvTab *tab);
+void		gcsv_tab_load_file	(GcsvTab *tab,
+					 GFile   *location);
 
 void		gcsv_tab_save		(GcsvTab *tab);
 
