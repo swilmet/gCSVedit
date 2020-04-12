@@ -418,6 +418,37 @@ create_menu_bar (GcsvWindow *window)
 	return menu_bar;
 }
 
+static GtkWidget *
+create_toolbar (GcsvWindow *window)
+{
+	GtkToolbar *toolbar;
+	AmtkFactory *factory;
+	AmtkApplicationWindow *amtk_window;
+	GtkMenuToolButton *open_tool_button;
+
+	toolbar = GTK_TOOLBAR (gtk_toolbar_new ());
+	factory = amtk_factory_new (NULL);
+
+	open_tool_button = amtk_factory_create_menu_tool_button (factory, "win.open");
+	gtk_menu_tool_button_set_arrow_tooltip_text (open_tool_button,
+						     _("Open a file recently used with gCSVedit"));
+	amtk_window = amtk_application_window_get_from_gtk_application_window (GTK_APPLICATION_WINDOW (window));
+	gtk_menu_tool_button_set_menu (open_tool_button,
+				       amtk_application_window_create_open_recent_menu (amtk_window));
+
+	gtk_toolbar_insert (toolbar, GTK_TOOL_ITEM (open_tool_button), -1);
+	gtk_toolbar_insert (toolbar, amtk_factory_create_tool_button (factory, "win.save"), -1);
+	gtk_toolbar_insert (toolbar, amtk_factory_create_tool_button (factory, "win.save-as"), -1);
+	gtk_toolbar_insert (toolbar, gtk_separator_tool_item_new (), -1);
+	gtk_toolbar_insert (toolbar, amtk_factory_create_tool_button (factory, "win.tepl-cut"), -1);
+	gtk_toolbar_insert (toolbar, amtk_factory_create_tool_button (factory, "win.tepl-copy"), -1);
+	gtk_toolbar_insert (toolbar, amtk_factory_create_tool_button (factory, "win.tepl-paste"), -1);
+
+	g_object_unref (factory);
+
+	return GTK_WIDGET (toolbar);
+}
+
 static void
 gcsv_window_init (GcsvWindow *window)
 {
@@ -440,6 +471,7 @@ gcsv_window_init (GcsvWindow *window)
 
 	menu_bar = create_menu_bar (window);
 	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (menu_bar));
+	gtk_container_add (GTK_CONTAINER (vgrid), create_toolbar (window));
 
 	/* TeplTab */
 	tab = gcsv_tab_new ();
