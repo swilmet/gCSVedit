@@ -1,3 +1,22 @@
+News in 0.x.y, 2020-xx-yy (not yet released)
+-------------------------
+User-visible changes:
+* gCSVedit is available on the Microsoft Store (since version 0.8.0).
+* The Flatpak (available in build-aux/flatpak/) has been updated.
+* Add a menu item to create a new window.
+* Add an Edit menu.
+* Add a toolbar.
+* A file loading or saving error is now shown in an infobar instead of a dialog
+  window.
+
+Under-the-hood changes:
+* Flatpak: convert the manifest to Yaml, and do some updates.
+* Start to port to Tepl 5, it has a new metadata API, the metadata are now
+  loaded and saved asynchronously.
+* Use more Tepl framework features.
+* Factor out GcsvTab class, to have a smaller GcsvWindow class and to prepare
+  the ground for having multiple tabs in a single window.
+
 News in 0.8.0, 2020-01-30
 -------------------------
 * Remove App menu (GNOME apps no longer have an app menu).
