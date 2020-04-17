@@ -575,7 +575,8 @@ launch_close_confirmation_dialog (GTask *task)
 
 	if (response_id == GTK_RESPONSE_CLOSE)
 	{
-		/* TODO save metadata. */
+		gcsv_buffer_save_metadata (get_buffer (window));
+
 		g_task_return_boolean (task, TRUE);
 		g_object_unref (task);
 		return;
@@ -604,7 +605,8 @@ gcsv_window_close_async (GcsvWindow          *window,
 		return;
 	}
 
-	/* TODO save metadata. */
+	gcsv_buffer_save_metadata (buffer);
+
 	g_task_return_boolean (task, TRUE);
 	g_object_unref (task);
 }

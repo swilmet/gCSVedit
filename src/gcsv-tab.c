@@ -208,16 +208,16 @@ save_cb (GObject      *source_object,
 
 	if (tepl_file_saver_save_finish (saver, result, &error))
 	{
-		TeplBuffer *buffer;
+		GcsvBuffer *buffer;
 		TeplFile *file;
 
-		buffer = tepl_tab_get_buffer (TEPL_TAB (tab));
+		buffer = GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (tab)));
 		gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (buffer), FALSE);
 
-		file = tepl_buffer_get_file (buffer);
+		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
 		tepl_file_add_uri_to_recent_manager (file);
 
-		/* TODO save metadata. */
+		gcsv_buffer_save_metadata (buffer);
 	}
 
 	if (error != NULL)
