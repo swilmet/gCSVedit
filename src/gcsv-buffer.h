@@ -61,6 +61,8 @@ void			gcsv_buffer_get_field_bounds		(GcsvBuffer  *buffer,
 
 void			gcsv_buffer_setup_state			(GcsvBuffer *buffer);
 
+void			gcsv_buffer_load_metadata		(GcsvBuffer *buffer);
+
 void			gcsv_buffer_save_metadata		(GcsvBuffer *buffer);
 
 G_END_DECLS

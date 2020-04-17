@@ -507,6 +507,26 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 	}
 }
 
+void
+gcsv_buffer_load_metadata (GcsvBuffer *buffer)
+{
+	TeplFile *file;
+	GFile *location;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+	location = tepl_file_get_location (file);
+
+	if (location != NULL)
+	{
+		TeplMetadataStore *store;
+
+		store = tepl_metadata_store_get_singleton ();
+		tepl_metadata_store_load_file_metadata (store, location, buffer->metadata);
+	}
+}
+
 static void
 set_metadata (GcsvBuffer *buffer)
 {
