@@ -547,20 +547,6 @@ gcsv_window_load_file (GcsvWindow *window,
 }
 
 static void
-window_close__save_metadata_cb (GObject      *source_object,
-				GAsyncResult *result,
-				gpointer      user_data)
-{
-	GcsvBuffer *buffer = GCSV_BUFFER (source_object);
-	GTask *task = G_TASK (user_data);
-
-	gcsv_buffer_save_metadata_finish (buffer, result);
-
-	g_task_return_boolean (task, TRUE);
-	g_object_unref (task);
-}
-
-static void
 launch_close_confirmation_dialog (GTask *task)
 {
 	GcsvWindow *window = g_task_get_source_object (task);
@@ -589,8 +575,9 @@ launch_close_confirmation_dialog (GTask *task)
 
 	if (response_id == GTK_RESPONSE_CLOSE)
 	{
-		GcsvBuffer *buffer = get_buffer (window);
-		gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
+		/* TODO save metadata. */
+		g_task_return_boolean (task, TRUE);
+		g_object_unref (task);
 		return;
 	}
 
@@ -617,7 +604,9 @@ gcsv_window_close_async (GcsvWindow          *window,
 		return;
 	}
 
-	gcsv_buffer_save_metadata_async (buffer, window_close__save_metadata_cb, task);
+	/* TODO save metadata. */
+	g_task_return_boolean (task, TRUE);
+	g_object_unref (task);
 }
 
 /* Returns whether the window can be destroyed. */
