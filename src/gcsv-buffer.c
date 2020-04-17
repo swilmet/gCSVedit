@@ -59,6 +59,35 @@ G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, TEPL_TYPE_BUFFER)
 #define METADATA_TITLE_LINE	"gcsvedit-title-line"
 
 static void
+set_metadata (GcsvBuffer *buffer)
+{
+	gchar *delimiter;
+
+	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
+	tepl_file_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
+	g_free (delimiter);
+
+	if (buffer->title_mark != NULL)
+	{
+		GtkTextIter title_iter;
+		gint title_line;
+		gchar *title_line_str;
+
+		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
+		title_line = gtk_text_iter_get_line (&title_iter);
+		title_line_str = g_strdup_printf ("%d", title_line);
+
+		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
+
+		g_free (title_line_str);
+	}
+	else
+	{
+		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, NULL);
+	}
+}
+
+static void
 gcsv_buffer_get_property (GObject    *object,
 			  guint       prop_id,
 			  GValue     *value,
@@ -221,111 +250,6 @@ GcsvBuffer *
 gcsv_buffer_new (void)
 {
 	return g_object_new (GCSV_TYPE_BUFFER, NULL);
-}
-
-TeplFileMetadata *
-gcsv_buffer_get_metadata (GcsvBuffer *buffer)
-{
-	g_return_val_if_fail (GCSV_IS_BUFFER (buffer), NULL);
-
-	return buffer->metadata;
-}
-
-static void
-collect_metadata (GcsvBuffer *buffer)
-{
-	gchar *delimiter;
-
-	g_return_if_fail (GCSV_IS_BUFFER (buffer));
-
-	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	tepl_file_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
-	g_free (delimiter);
-
-	if (buffer->title_mark != NULL)
-	{
-		GtkTextIter title_iter;
-		gint title_line;
-		gchar *title_line_str;
-
-		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
-		title_line = gtk_text_iter_get_line (&title_iter);
-		title_line_str = g_strdup_printf ("%d", title_line);
-
-		/* FIXME: set metadata value to NULL in case the buffer->title_mark isn't set? */
-		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
-
-		g_free (title_line_str);
-	}
-}
-
-static void
-metadata_save_cb (GObject      *source_object,
-		  GAsyncResult *result,
-		  gpointer      user_data)
-{
-	TeplFileMetadata *metadata = TEPL_FILE_METADATA (source_object);
-	GTask *task = G_TASK (user_data);
-	GError *error = NULL;
-
-	tepl_file_metadata_save_finish (metadata, result, &error);
-	if (error != NULL)
-	{
-		g_warning ("Saving metadata failed: %s", error->message);
-		g_clear_error (&error);
-	}
-
-	g_task_return_boolean (task, TRUE);
-	g_object_unref (task);
-}
-
-void
-gcsv_buffer_save_metadata_async (GcsvBuffer          *buffer,
-				 GAsyncReadyCallback  callback,
-				 gpointer             user_data)
-{
-	GTask *task;
-	TeplFile *file;
-	GFile *location;
-
-	g_return_if_fail (GCSV_IS_BUFFER (buffer));
-
-	if (buffer->metadata == NULL)
-	{
-		return;
-	}
-
-	task = g_task_new (buffer, NULL, callback, user_data);
-
-	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
-	location = tepl_file_get_location (file);
-
-	if (location == NULL)
-	{
-		g_task_return_boolean (task, TRUE);
-		g_object_unref (task);
-		return;
-	}
-
-	collect_metadata (buffer);
-
-	tepl_file_metadata_save_async (buffer->metadata,
-				       location,
-				       FALSE,
-				       G_PRIORITY_DEFAULT,
-				       NULL,
-				       metadata_save_cb,
-				       task);
-}
-
-void
-gcsv_buffer_save_metadata_finish (GcsvBuffer   *buffer,
-				  GAsyncResult *result)
-{
-	g_return_if_fail (GCSV_IS_BUFFER (buffer));
-	g_return_if_fail (g_task_is_valid (result, buffer));
-
-	g_task_propagate_boolean (G_TASK (result), NULL);
 }
 
 gunichar
