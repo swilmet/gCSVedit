@@ -123,28 +123,6 @@ finish_file_loading (GcsvTab *tab)
 }
 
 static void
-load_metadata_cb (GObject      *source_object,
-		  GAsyncResult *result,
-		  gpointer      user_data)
-{
-	TeplFileMetadata *metadata = TEPL_FILE_METADATA (source_object);
-	GcsvTab *tab = GCSV_TAB (user_data);
-	GError *error = NULL;
-
-	tepl_file_metadata_load_finish (metadata, result, &error);
-
-	if (error != NULL)
-	{
-		g_warning ("Loading metadata failed: %s", error->message);
-		g_clear_error (&error);
-	}
-
-	finish_file_loading (tab);
-
-	g_object_unref (tab);
-}
-
-static void
 load_file_content_cb (GObject      *source_object,
 		      GAsyncResult *result,
 		      gpointer      user_data)
@@ -163,12 +141,8 @@ load_file_content_cb (GObject      *source_object,
 		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
 		tepl_file_add_uri_to_recent_manager (file);
 
-		tepl_file_metadata_load_async (gcsv_buffer_get_metadata (buffer),
-					       tepl_file_get_location (file),
-					       G_PRIORITY_DEFAULT,
-					       NULL,
-					       load_metadata_cb,
-					       g_object_ref (tab));
+		/* TODO load metadata. */
+		finish_file_loading (tab);
 	}
 	else
 	{
@@ -244,7 +218,7 @@ save_cb (GObject      *source_object,
 		file = tepl_buffer_get_file (buffer);
 		tepl_file_add_uri_to_recent_manager (file);
 
-		/* TODO save metadata (async). */
+		/* TODO save metadata. */
 	}
 
 	if (error != NULL)
