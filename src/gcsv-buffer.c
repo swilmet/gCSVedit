@@ -59,35 +59,6 @@ G_DEFINE_TYPE (GcsvBuffer, gcsv_buffer, TEPL_TYPE_BUFFER)
 #define METADATA_TITLE_LINE	"gcsvedit-title-line"
 
 static void
-set_metadata (GcsvBuffer *buffer)
-{
-	gchar *delimiter;
-
-	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	tepl_file_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
-	g_free (delimiter);
-
-	if (buffer->title_mark != NULL)
-	{
-		GtkTextIter title_iter;
-		gint title_line;
-		gchar *title_line_str;
-
-		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
-		title_line = gtk_text_iter_get_line (&title_iter);
-		title_line_str = g_strdup_printf ("%d", title_line);
-
-		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
-
-		g_free (title_line_str);
-	}
-	else
-	{
-		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, NULL);
-	}
-}
-
-static void
 gcsv_buffer_get_property (GObject    *object,
 			  guint       prop_id,
 			  GValue     *value,
@@ -533,5 +504,56 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 		gcsv_buffer_set_column_titles_line (buffer, title_line);
 
 		g_free (title_line_str);
+	}
+}
+
+static void
+set_metadata (GcsvBuffer *buffer)
+{
+	gchar *delimiter;
+
+	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
+	tepl_file_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
+	g_free (delimiter);
+
+	if (buffer->title_mark != NULL)
+	{
+		GtkTextIter title_iter;
+		gint title_line;
+		gchar *title_line_str;
+
+		gcsv_buffer_get_column_titles_location (buffer, &title_iter);
+		title_line = gtk_text_iter_get_line (&title_iter);
+		title_line_str = g_strdup_printf ("%d", title_line);
+
+		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
+
+		g_free (title_line_str);
+	}
+	else
+	{
+		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, NULL);
+	}
+}
+
+void
+gcsv_buffer_save_metadata (GcsvBuffer *buffer)
+{
+	TeplFile *file;
+	GFile *location;
+
+	g_return_if_fail (GCSV_IS_BUFFER (buffer));
+
+	file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
+	location = tepl_file_get_location (file);
+
+	if (location != NULL)
+	{
+		TeplMetadataStore *store;
+
+		set_metadata (buffer);
+
+		store = tepl_metadata_store_get_singleton ();
+		tepl_metadata_store_save_file_metadata (store, location, buffer->metadata);
 	}
 }
