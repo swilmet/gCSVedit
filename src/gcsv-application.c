@@ -199,20 +199,53 @@ add_action_entries (GcsvApplication *app)
 						       app);
 }
 
-static void
-init_metadata_store (void)
+static GFile *
+get_metadata_store_file (void)
 {
-	/* TODO */
-#if 0
-	gchar *metadata_filename;
+	return g_file_new_build_filename (g_get_user_data_dir (),
+					  "gcsvedit",
+					  "gcsvedit-metadata.xml",
+					  NULL);
+}
 
-	metadata_filename = g_build_filename (g_get_user_data_dir (),
-					      "gcsvedit",
-					      "gcsvedit-metadata.xml",
-					      NULL);
+static void
+load_metadata_store (void)
+{
+	TeplMetadataStore *store;
+	GFile *store_file;
+	GError *error = NULL;
 
-	g_free (metadata_filename);
-#endif
+	store = tepl_metadata_store_get_singleton ();
+	store_file = get_metadata_store_file ();
+	tepl_metadata_store_load (store, store_file, &error);
+
+	if (error != NULL)
+	{
+		g_warning ("Failed to load metadata: %s", error->message);
+		g_clear_error (&error);
+	}
+
+	g_object_unref (store_file);
+}
+
+static void
+save_metadata_store (void)
+{
+	TeplMetadataStore *store;
+	GFile *store_file;
+	GError *error = NULL;
+
+	store = tepl_metadata_store_get_singleton ();
+	store_file = get_metadata_store_file ();
+	tepl_metadata_store_save (store, store_file, TRUE, &error);
+
+	if (error != NULL)
+	{
+		g_warning ("Failed to save metadata: %s", error->message);
+		g_clear_error (&error);
+	}
+
+	g_object_unref (store_file);
 }
 
 /* Code taken from gedit. */
@@ -277,9 +310,9 @@ gcsv_application_startup (GApplication *app)
 		G_APPLICATION_CLASS (gcsv_application_parent_class)->startup (app);
 	}
 
+	load_metadata_store ();
 	add_action_info_entries (GCSV_APPLICATION (app));
 	add_action_entries (GCSV_APPLICATION (app));
-	init_metadata_store ();
 
 #ifdef G_OS_WIN32
 	setup_path ();
@@ -333,6 +366,17 @@ gcsv_application_open (GApplication  *app,
 }
 
 static void
+gcsv_application_shutdown (GApplication *app)
+{
+	save_metadata_store ();
+
+	if (G_APPLICATION_CLASS (gcsv_application_parent_class)->shutdown != NULL)
+	{
+		G_APPLICATION_CLASS (gcsv_application_parent_class)->shutdown (app);
+	}
+}
+
+static void
 gcsv_application_class_init (GcsvApplicationClass *klass)
 {
 	GApplicationClass *gapp_class = G_APPLICATION_CLASS (klass);
@@ -340,6 +384,7 @@ gcsv_application_class_init (GcsvApplicationClass *klass)
 	gapp_class->handle_local_options = gcsv_application_handle_local_options;
 	gapp_class->startup = gcsv_application_startup;
 	gapp_class->open = gcsv_application_open;
+	gapp_class->shutdown = gcsv_application_shutdown;
 }
 
 static void
