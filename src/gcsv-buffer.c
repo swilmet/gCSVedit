@@ -28,7 +28,7 @@ struct _GcsvBuffer
 {
 	TeplBuffer parent;
 
-	TeplFileMetadata *metadata;
+	TeplMetadata *metadata;
 
 	/* The delimiter is at most one Unicode character. If it is the nul
 	 * character ('\0'), there is no alignment.
@@ -209,7 +209,7 @@ gcsv_buffer_class_init (GcsvBufferClass *klass)
 static void
 gcsv_buffer_init (GcsvBuffer *buffer)
 {
-	buffer->metadata = tepl_file_metadata_new ();
+	buffer->metadata = tepl_metadata_new ();
 
 	/* Disable the undo/redo, because it doesn't work well currently with
 	 * the virtual spaces.
@@ -484,7 +484,7 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 
 	g_return_if_fail (GCSV_IS_BUFFER (buffer));
 
-	delimiter = tepl_file_metadata_get (buffer->metadata, METADATA_DELIMITER);
+	delimiter = tepl_metadata_get (buffer->metadata, METADATA_DELIMITER);
 	if (delimiter != NULL)
 	{
 		gcsv_buffer_set_delimiter (buffer, g_utf8_get_char (delimiter));
@@ -495,7 +495,7 @@ gcsv_buffer_setup_state (GcsvBuffer *buffer)
 		guess_delimiter (buffer);
 	}
 
-	title_line_str = tepl_file_metadata_get (buffer->metadata, METADATA_TITLE_LINE);
+	title_line_str = tepl_metadata_get (buffer->metadata, METADATA_TITLE_LINE);
 	if (title_line_str != NULL)
 	{
 		gint title_line;
@@ -520,10 +520,10 @@ gcsv_buffer_load_metadata (GcsvBuffer *buffer)
 
 	if (location != NULL)
 	{
-		TeplMetadataStore *store;
+		TeplMetadataManager *manager;
 
-		store = tepl_metadata_store_get_singleton ();
-		tepl_metadata_store_load_file_metadata (store, location, buffer->metadata);
+		manager = tepl_metadata_manager_get_singleton ();
+		tepl_metadata_manager_copy_from (manager, location, buffer->metadata);
 	}
 }
 
@@ -533,7 +533,7 @@ set_metadata (GcsvBuffer *buffer)
 	gchar *delimiter;
 
 	delimiter = gcsv_buffer_get_delimiter_as_string (buffer);
-	tepl_file_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
+	tepl_metadata_set (buffer->metadata, METADATA_DELIMITER, delimiter);
 	g_free (delimiter);
 
 	if (buffer->title_mark != NULL)
@@ -546,13 +546,13 @@ set_metadata (GcsvBuffer *buffer)
 		title_line = gtk_text_iter_get_line (&title_iter);
 		title_line_str = g_strdup_printf ("%d", title_line);
 
-		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
+		tepl_metadata_set (buffer->metadata, METADATA_TITLE_LINE, title_line_str);
 
 		g_free (title_line_str);
 	}
 	else
 	{
-		tepl_file_metadata_set (buffer->metadata, METADATA_TITLE_LINE, NULL);
+		tepl_metadata_set (buffer->metadata, METADATA_TITLE_LINE, NULL);
 	}
 }
 
@@ -569,11 +569,11 @@ gcsv_buffer_save_metadata (GcsvBuffer *buffer)
 
 	if (location != NULL)
 	{
-		TeplMetadataStore *store;
+		TeplMetadataManager *manager;
 
 		set_metadata (buffer);
 
-		store = tepl_metadata_store_get_singleton ();
-		tepl_metadata_store_save_file_metadata (store, location, buffer->metadata);
+		manager = tepl_metadata_manager_get_singleton ();
+		tepl_metadata_manager_merge_into (manager, location, buffer->metadata);
 	}
 }
