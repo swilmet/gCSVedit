@@ -11,8 +11,7 @@ User-visible changes:
 
 Under-the-hood changes:
 * Flatpak: convert the manifest to Yaml, and do some updates.
-* Start to port to Tepl 5, it has a new metadata API, the metadata are now
-  loaded and saved asynchronously.
+* Port to Tepl 5, it has a new metadata API.
 * Use more Tepl framework features.
 * Factor out GcsvTab class, to have a smaller GcsvWindow class and to prepare
   the ground for having multiple tabs in a single window.
