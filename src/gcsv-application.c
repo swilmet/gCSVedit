@@ -200,7 +200,7 @@ add_action_entries (GcsvApplication *app)
 }
 
 static GFile *
-get_metadata_store_file (void)
+get_metadata_manager_file (void)
 {
 	return g_file_new_build_filename (g_get_user_data_dir (),
 					  "gcsvedit",
@@ -209,15 +209,15 @@ get_metadata_store_file (void)
 }
 
 static void
-load_metadata_store (void)
+load_metadata_manager (void)
 {
-	TeplMetadataStore *store;
-	GFile *store_file;
+	TeplMetadataManager *manager;
+	GFile *file;
 	GError *error = NULL;
 
-	store = tepl_metadata_store_get_singleton ();
-	store_file = get_metadata_store_file ();
-	tepl_metadata_store_load (store, store_file, &error);
+	manager = tepl_metadata_manager_get_singleton ();
+	file = get_metadata_manager_file ();
+	tepl_metadata_manager_load_from_disk (manager, file, &error);
 
 	if (error != NULL)
 	{
@@ -225,19 +225,19 @@ load_metadata_store (void)
 		g_clear_error (&error);
 	}
 
-	g_object_unref (store_file);
+	g_object_unref (file);
 }
 
 static void
-save_metadata_store (void)
+save_metadata_manager (void)
 {
-	TeplMetadataStore *store;
-	GFile *store_file;
+	TeplMetadataManager *manager;
+	GFile *file;
 	GError *error = NULL;
 
-	store = tepl_metadata_store_get_singleton ();
-	store_file = get_metadata_store_file ();
-	tepl_metadata_store_save (store, store_file, TRUE, &error);
+	manager = tepl_metadata_manager_get_singleton ();
+	file = get_metadata_manager_file ();
+	tepl_metadata_manager_save_to_disk (manager, file, TRUE, &error);
 
 	if (error != NULL)
 	{
@@ -245,7 +245,7 @@ save_metadata_store (void)
 		g_clear_error (&error);
 	}
 
-	g_object_unref (store_file);
+	g_object_unref (file);
 }
 
 /* Code taken from gedit. */
@@ -310,7 +310,7 @@ gcsv_application_startup (GApplication *app)
 		G_APPLICATION_CLASS (gcsv_application_parent_class)->startup (app);
 	}
 
-	load_metadata_store ();
+	load_metadata_manager ();
 	add_action_info_entries (GCSV_APPLICATION (app));
 	add_action_entries (GCSV_APPLICATION (app));
 
@@ -368,7 +368,7 @@ gcsv_application_open (GApplication  *app,
 static void
 gcsv_application_shutdown (GApplication *app)
 {
-	save_metadata_store ();
+	save_metadata_manager ();
 
 	if (G_APPLICATION_CLASS (gcsv_application_parent_class)->shutdown != NULL)
 	{
