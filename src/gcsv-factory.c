@@ -36,6 +36,15 @@ gcsv_factory_create_tab (TeplAbstractFactory *factory)
 	return TEPL_TAB (gcsv_tab_new ());
 }
 
+static GFile *
+gcsv_factory_create_metadata_manager_file (TeplAbstractFactory *factory)
+{
+	return g_file_new_build_filename (g_get_user_data_dir (),
+					  "gcsvedit",
+					  "gcsvedit-metadata.xml",
+					  NULL);
+}
+
 static void
 gcsv_factory_class_init (GcsvFactoryClass *klass)
 {
@@ -43,6 +52,7 @@ gcsv_factory_class_init (GcsvFactoryClass *klass)
 
 	factory_class->create_main_window = gcsv_factory_create_main_window;
 	factory_class->create_tab = gcsv_factory_create_tab;
+	factory_class->create_metadata_manager_file = gcsv_factory_create_metadata_manager_file;
 }
 
 static void
