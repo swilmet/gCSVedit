@@ -133,14 +133,14 @@ load_file_content_cb (GObject      *source_object,
 
 	if (tepl_file_loader_load_finish (loader, result, &error))
 	{
-		GcsvBuffer *buffer;
+		TeplBuffer *buffer;
 		TeplFile *file;
 
-		buffer = GCSV_BUFFER (tepl_tab_get_buffer (TEPL_TAB (tab)));
+		buffer = tepl_tab_get_buffer (TEPL_TAB (tab));
 		file = tepl_buffer_get_file (TEPL_BUFFER (buffer));
 		tepl_file_add_uri_to_recent_manager (file);
 
-		gcsv_buffer_load_metadata (buffer);
+		tepl_buffer_load_metadata_from_metadata_manager (buffer);
 		finish_file_loading (tab);
 	}
 	else
