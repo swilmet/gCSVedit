@@ -450,7 +450,7 @@ gcsv_window_init (GcsvWindow *window)
 	TeplApplicationWindow *tepl_window;
 	GtkWidget *vgrid;
 	GtkMenuBar *menu_bar;
-	GtkWidget *statusbar;
+	TeplStatusbar *statusbar;
 	GcsvTab *tab;
 	TeplView *view;
 	GcsvBuffer *buffer;
@@ -475,14 +475,12 @@ gcsv_window_init (GcsvWindow *window)
 	tepl_application_window_set_handle_title (tepl_window, TRUE);
 
 	/* Statusbar */
-	statusbar = gtk_statusbar_new ();
-	gtk_widget_set_margin_top (statusbar, 0);
-	gtk_widget_set_margin_bottom (statusbar, 0);
+	statusbar = tepl_statusbar_new ();
 	window->statusbar_label = GTK_LABEL (gtk_label_new (NULL));
 	gtk_box_pack_end (GTK_BOX (statusbar),
 			  GTK_WIDGET (window->statusbar_label),
 			  FALSE, TRUE, 0);
-	gtk_container_add (GTK_CONTAINER (vgrid), statusbar);
+	gtk_container_add (GTK_CONTAINER (vgrid), GTK_WIDGET (statusbar));
 
 	/* Connect menubar to statusbar */
 	amtk_application_window_set_statusbar (amtk_window, GTK_STATUSBAR (statusbar));
