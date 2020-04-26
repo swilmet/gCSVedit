@@ -364,6 +364,21 @@ create_edit_submenu (void)
 }
 
 static GtkWidget *
+create_search_submenu (void)
+{
+	GtkMenuShell *search_submenu;
+	AmtkFactory *factory;
+
+	search_submenu = GTK_MENU_SHELL (gtk_menu_new ());
+
+	factory = amtk_factory_new_with_default_application ();
+	gtk_menu_shell_append (search_submenu, amtk_factory_create_menu_item (factory, "win.tepl-goto-line"));
+	g_object_unref (factory);
+
+	return GTK_WIDGET (search_submenu);
+}
+
+static GtkWidget *
 create_help_submenu (void)
 {
 	GtkMenuShell *help_submenu;
@@ -383,6 +398,7 @@ create_menu_bar (GcsvWindow *window)
 {
 	GtkWidget *file_menu_item;
 	GtkWidget *edit_menu_item;
+	GtkWidget *search_menu_item;
 	GtkWidget *help_menu_item;
 	GtkMenuBar *menu_bar;
 	TeplApplication *app;
@@ -396,6 +412,10 @@ create_menu_bar (GcsvWindow *window)
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (edit_menu_item),
 				   create_edit_submenu ());
 
+	search_menu_item = gtk_menu_item_new_with_mnemonic (_("_Search"));
+	gtk_menu_item_set_submenu (GTK_MENU_ITEM (search_menu_item),
+				   create_search_submenu ());
+
 	help_menu_item = gtk_menu_item_new_with_mnemonic (_("_Help"));
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (help_menu_item),
 				   create_help_submenu ());
@@ -403,6 +423,7 @@ create_menu_bar (GcsvWindow *window)
 	menu_bar = GTK_MENU_BAR (gtk_menu_bar_new ());
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), file_menu_item);
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), edit_menu_item);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), search_menu_item);
 	gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), help_menu_item);
 
 	app = tepl_application_get_default ();
