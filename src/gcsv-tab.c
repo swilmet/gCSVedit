@@ -190,7 +190,6 @@ gcsv_tab_load_file (GcsvTab *tab,
 	tepl_file_loader_load_async (loader,
 				     G_PRIORITY_DEFAULT,
 				     NULL, /* cancellable */
-				     NULL, NULL, NULL, /* progress */
 				     load_file_content_cb,
 				     g_object_ref (tab));
 }
@@ -257,7 +256,6 @@ launch_saver (GcsvTab       *tab,
 	tepl_file_saver_save_async (saver,
 				    G_PRIORITY_DEFAULT,
 				    NULL, /* Cancellable */
-				    NULL, NULL, NULL, /* Progress */
 				    save_cb,
 				    g_object_ref (tab));
 }
