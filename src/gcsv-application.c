@@ -178,7 +178,7 @@ about_activate_cb (GSimpleAction *about_action,
 			       "translator-credits", _("translator-credits"),
 			       "website", PACKAGE_URL,
 			       "website-label", _("gCSVedit website"),
-			       "logo-icon-name", "accessories-text-editor",
+			       "logo-icon-name", "com.github.swilmet.gcsvedit",
 			       "license-type", GTK_LICENSE_GPL_3_0,
 			       "copyright", copyright,
 			       NULL);
@@ -331,7 +331,7 @@ gcsv_application_init (GcsvApplication *app)
 	TeplApplication *tepl_app;
 
 	g_set_application_name (PACKAGE_NAME);
-	gtk_window_set_default_icon_name ("accessories-text-editor");
+	gtk_window_set_default_icon_name ("com.github.swilmet.gcsvedit");
 
 	g_application_add_main_option_entries (G_APPLICATION (app), options);
 
